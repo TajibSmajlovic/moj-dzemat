@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.unit.config.ts",
+    "vitest.integration.config.ts",
+    "playwright.config.ts",
+    "eslint.config.js",
+    "react-router.config.ts"
+  ],
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2022"]
+  }
+}

@@ -1,0 +1,133 @@
+// moj-dzemat database schema.
+//
+// Single SQLite file replicated to Fly LiteFS. Images are stored as blobs
+// (cap 3 per post, enforced in the action layer). Admin login is the only
+// authenticated flow - public visitors never sign in, so there is no
+// "Verification" model; password reset uses stateless signed URLs.
+//
+// Keep this file flat; no deeply nested optional structures that SQLite
+// struggles to index.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Auth ---------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Password is its own row so we can rotate or revoke without touching
+  // the user record. Optional because a seeded admin may exist before
+  // the first-login password is chosen.
+  password Password?
+  sessions Session[]
+  posts    Post[]
+
+  @@index([email])
+}
+
+model Password {
+  hash String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique
+}
+
+// Server-side session store. Cookie only holds the session id; every
+// server request loads the row to resolve current user + expiry.
+model Session {
+  id             String   @id @default(cuid())
+  expirationDate DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
+
+  @@index([userId])
+  @@index([expirationDate])
+}
+
+// Four kinds of posts the community publishes. Order matches how the
+enum PostType {
+  obavijest
+  smrtovnica
+  sergija
+  hutba
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  body        String
+  type        PostType
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Editorial flags the admin flips from the dashboard. `featured` posts
+  // surface in the hero carousel; `pinned` posts float to the top of the
+  // grid within their current filter.
+  featured Boolean @default(false)
+  pinned   Boolean @default(false)
+
+  // Author is nullable: we keep the relation for audit but never render
+  // it publicly, and admins may come/go without orphaning their posts.
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  authorId String?
+
+  images PostImage[]
+
+  @@index([type, publishedAt])
+  @@index([publishedAt])
+  @@index([featured, publishedAt])
+  @@index([pinned, publishedAt])
+  @@index([authorId])
+}
+
+// Up to three images per post (cap enforced in the action layer).
+// Binary stored in the same file as metadata; sharp pre-resizes to
+// WebP <= 2000px / 80% quality before we persist.
+model PostImage {
+  id          String   @id @default(cuid())
+  contentType String
+  altText     String?
+  // SQLite BLOB; Prisma maps Bytes <-> Buffer.
+  data        Bytes
+  width       Int?
+  height      Int?
+  byteSize    Int
+  createdAt   DateTime @default(now())
+  position    Int      @default(0)
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  postId String
+
+  @@index([postId, position])
+}
+
+// Top-of-page announcement strip the admin can toggle active. We support
+// a single active announcement in the app: activating one deactivates
+// the rest, and the public layout reads the newest active row.
+model SiteAnnouncement {
+  id        String   @id @default(cuid())
+  message   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, createdAt])
+}

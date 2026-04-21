@@ -1,0 +1,24 @@
+node_modules/
+
+.env
+.env.local
+.env.*.local
+
+build/
+.react-router/
+dist/
+.vite/
+
+coverage/
+playwright-report/
+test-results/
+
+*.log
+.DS_Store
+
+# SQLite databases (runtime, test, and Prisma shadow/validation)
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/*.db-wal
+/prisma/*.db-shm
+backups/
