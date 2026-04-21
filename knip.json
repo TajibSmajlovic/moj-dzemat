@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["app/routes/**/*.{ts,tsx}", "tests/**/*.test.{ts,tsx}", "tests/e2e/*.spec.ts"],
+  "project": ["app/**/*.{ts,tsx}", "server/**/*.ts", "tests/**/*.{ts,tsx}", "prisma/**/*.ts"],
+  "ignoreDependencies": ["@tailwindcss/typography", "tailwindcss", "tw-animate-css"]
+}
