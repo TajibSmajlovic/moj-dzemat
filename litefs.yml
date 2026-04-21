@@ -1,0 +1,37 @@
+# LiteFS configuration.
+#
+# Single-writer setup. Because Fly scales this app to a single Machine we
+# use a `static` lease (no Consul coordinator) - the one primary always
+# wins. If we ever scale horizontally we will need to switch to `consul`
+# leases; the rest of the config stays the same.
+#
+# The FUSE-mounted filesystem lives at `/litefs`; replicated DB files
+# are backed by the Fly volume at `/var/lib/litefs`. SQLite talks to
+# `/litefs/data.db` (see `DATABASE_URL` in the Dockerfile).
+
+fuse:
+  dir: "/litefs"
+
+data:
+  dir: "/var/lib/litefs"
+
+# Bind LiteFS's HTTP API to localhost so the health check / import /
+# export endpoints are reachable from inside the Machine but never
+# exposed publicly.
+http:
+  addr: ":20202"
+
+# Proxy accept SQLite write requests transparently when we scale up.
+# For now with a single writer it's a no-op.
+proxy:
+  addr: ":20203"
+  target: "localhost:3000"
+  db: "data.db"
+
+lease:
+  type: "static"
+  advertise-url: "http://localhost:20202"
+  candidate: true
+
+exec:
+  - cmd: "/app/start.sh"

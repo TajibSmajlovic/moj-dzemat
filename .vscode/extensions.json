@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "Prisma.prisma",
+    "bradlc.vscode-tailwindcss",
+    "ms-playwright.playwright",
+    "EditorConfig.EditorConfig",
+    "neotan.vscode-auto-restart-typescript-eslint-servers",
+    "usernamehw.errorlens",
+    "antfu.file-nesting",
+    "YoavBls.pretty-ts-errors",
+    "vitest.explorer"
+  ]
+}
