@@ -1,15 +1,23 @@
+import { config } from "dotenv";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 // Resolve relative to this file so tests don't depend on `cwd`. Vitest
 // sometimes launches workers with a cwd deep inside the matched test
 // directory, and prisma CLI needs to find `prisma/schema.prisma`.
-const PROJECT_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+// Load environment variables from .env file before any other code runs.
+// This ensures secrets and configuration are available for all modules.
+const envPath = path.join(PROJECT_ROOT, ".env");
+config({ path: envPath });
+
 const TEST_DB_PATH = path.join(PROJECT_ROOT, "prisma", "integration.db");
-/** Absolute `file:` URL so better-sqlite3 resolves the same DB regardless of process cwd (Vitest workers). */
-const TEST_DB_URL = `file:${TEST_DB_PATH}`;
+/** Prisma on Windows expects `file:C:/...` style for absolute SQLite paths. */
+const TEST_DB_URL = `file:${TEST_DB_PATH.replaceAll("\\", "/")}`;
 
 /**
  * Integration setup. SQLite only supports a single writer, so the
