@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-
+import { fileURLToPath } from "node:url";
 /**
  * Playwright global setup. Wipes `prisma/e2e.db`, runs `migrate
  * deploy`, then seeds a deterministic admin + a couple of posts + one
@@ -12,7 +12,7 @@ import path from "node:path";
 const ADMIN_EMAIL = "admin@dzemat.ba";
 const ADMIN_PASSWORD = "#tajnaLozinkaZaE2ETestove2024";
 
-const projectRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const dbPath = path.join(projectRoot, "prisma", "e2e.db");
 const databaseUrl = "file:./e2e.db";
 
