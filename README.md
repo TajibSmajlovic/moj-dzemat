@@ -79,6 +79,64 @@ See [`.env.example`](/Users/tajibsmajlovic/Work/moj-dzemat/.env.example:1) for t
 | `npm run db:migrate:deploy` | Apply committed migrations              |
 | `npm run db:seed`           | Seed admin users                        |
 
+## Branching Rules
+
+This project uses one clear branch naming pattern so everyone can understand work at a glance.
+
+### Format
+
+```text
+<type>/<issue-id>_<short-description>
+```
+
+Example:
+
+```text
+feat/1_initialize-app-mvp-baseline
+```
+
+Meaning:
+
+- `feat` = type of work
+- `1` = GitHub issue number
+- `initialize-app-mvp-baseline` = short kebab-case description
+
+### Branch Types
+
+| Type       | Use for                                                       | Example                                     |
+| ---------- | ------------------------------------------------------------- | ------------------------------------------- |
+| `feat`     | New user-facing functionality                                 | `feat/24_add-post-search`                   |
+| `fix`      | Bug fixes                                                     | `fix/31_resolve-login-redirect-loop`        |
+| `chore`    | Maintenance, tooling, dependency updates, non-feature cleanup | `chore/42_update-eslint-and-prettier`       |
+| `docs`     | Documentation-only changes                                    | `docs/50_add-branching-guidelines`          |
+| `test`     | Adding or improving tests                                     | `test/57_cover-password-reset-edge-cases`   |
+| `refactor` | Internal code improvements without behavior change            | `refactor/63_simplify-post-form-validation` |
+| `ci`       | CI/CD pipeline and automation changes                         | `ci/71_optimize-workflow-cache`             |
+
+### Naming Rules (Strict)
+
+- Always create branches from `master` unless explicitly told otherwise.
+- Always include a GitHub issue number.
+- Use lowercase letters only.
+- Use hyphens (`-`) inside the description.
+- Keep descriptions short and specific (3 to 7 words).
+- Do not use spaces, camelCase, or special characters.
+- One branch should address one issue.
+
+Quick create command:
+
+```bash
+git checkout master
+git pull
+git checkout -b feat/123_add-admin-post-filters
+```
+
+### What Not To Do
+
+- Do not commit directly to `master`.
+- Do not mix unrelated fixes/features in one branch.
+- Do not open a PR without tests (or a clear explanation why tests are not possible).
+
 ## Testing
 
 The repo uses three layers of tests:
@@ -109,5 +167,3 @@ server/                Express entrypoint
 tests/                 unit, integration, and e2e tests
 public/                static assets
 ```
-
-// test

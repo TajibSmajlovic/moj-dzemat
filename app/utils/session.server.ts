@@ -60,7 +60,7 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
     });
     if (!session) return null;
     if (session.expirationDate.getTime() < Date.now()) {
-      await prisma.session.delete({ where: { id } }).catch(() => undefined);
+      await prisma.session.deleteMany({ where: { id } });
       return null;
     }
     return { userId: session.userId };
@@ -74,7 +74,7 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
     });
   },
   async deleteData(id) {
-    await prisma.session.delete({ where: { id } }).catch(() => undefined);
+    await prisma.session.deleteMany({ where: { id } });
   },
 });
 
