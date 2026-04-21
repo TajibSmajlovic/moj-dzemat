@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "server/**/*",
+    "app/**/*.server.ts",
+    "app/**/*.server.tsx",
+    "prisma/seed.ts",
+    "tests/e2e/**/*"
+  ],
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2022"]
+  }
+}

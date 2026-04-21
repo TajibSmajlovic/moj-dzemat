@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  // Client/universal code only. Server-only modules (`*.server.ts`) are
+  // type-checked by `tsconfig.server.json` so their `process`/node globals
+  // don't bleed into browser bundles. React Router strips `.server.ts`
+  // imports from the client bundle at build time.
+  "include": ["app/**/*", "tests/**/*", ".react-router/types/**/*"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    ".react-router/build",
+    "app/**/*.server.ts",
+    "app/**/*.server.tsx",
+    "tests/e2e/**/*"
+  ],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["vite/client", "@react-router/node"],
+    "rootDirs": [".", "./.react-router/types"]
+  }
+}
