@@ -25,11 +25,9 @@ export default defineConfig({
   globalSetup: "./tests/e2e/global-setup.ts",
   globalTeardown: "./tests/e2e/global-teardown.ts",
   webServer: {
-    // Boot the dev server so the session cookie stays non-secure on
-    // http://localhost. The app reads base secrets from `.env`; the
-    // overrides below redirect to the dedicated e2e DB and turn on the
-    // /dev/* helpers.
-    command: "npm run dev",
+    // Start the app for e2e with test env overrides (.env base,
+    // e2e DB, test routes). Use single-run mode because watch can hang on Windows.
+    command: "npx tsx --env-file=.env server/index.ts",
     url: `http://localhost:${PORT}/resources/healthcheck`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
