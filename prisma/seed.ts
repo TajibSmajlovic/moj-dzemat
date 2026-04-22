@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { prisma } from "../app/utils/db.server";
 
 /**
@@ -12,21 +10,34 @@ import { prisma } from "../app/utils/db.server";
  */
 
 function resolveAdminEmails(): string[] {
-  const raw = process.env.ADMIN_SEED_EMAILS ?? "smajlovic.tajib@gmail.com";
-  return raw
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+  const raw = process.env.ADMIN_SEED_EMAILS?.trim();
+  if (!raw) return [];
+
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
 }
 
 async function seedAdmins() {
   const emails = resolveAdminEmails();
+  if (emails.length === 0) {
+    console.log("[seed] ADMIN_SEED_EMAILS is empty, skipping admin bootstrap");
+    return;
+  }
+
+  console.log(`[seed] ensuring ${emails.length} admin account(s) exist`);
+
   for (const email of emails) {
     const user = await prisma.user.upsert({
       where: { email },
       create: { email },
       update: {},
-      select: { id: true, email: true, password: { select: { userId: true } } },
+      select: { email: true, password: { select: { userId: true } } },
     });
     const status = user.password ? "exists (with password)" : "provisioned";
     console.log(`- ${user.email}: ${status}`);
