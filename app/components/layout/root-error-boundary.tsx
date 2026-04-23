@@ -2,15 +2,7 @@ import { isRouteErrorResponse, Link, useMatches } from "react-router";
 
 import { getSiteNameFromMatches } from "#app/lib/branding";
 
-type RootErrorBoundaryProps = {
-  error: unknown;
-};
-
-/**
- * Global app error UI. Shows friendly localized messaging in production
- * and includes stack trace only during development.
- */
-export function RootErrorBoundary({ error }: RootErrorBoundaryProps) {
+export function RootErrorBoundary({ error }: { error: unknown }) {
   const siteName = getSiteNameFromMatches(useMatches());
   let status = 500;
   let title = "Došlo je do greške";
@@ -19,15 +11,25 @@ export function RootErrorBoundary({ error }: RootErrorBoundaryProps) {
 
   if (isRouteErrorResponse(error)) {
     status = error.status;
-    if (error.status === 404) {
-      title = "Stranica nije pronađena";
-      message = "Tražena stranica ne postoji ili je premještena.";
-    } else if (error.status === 403) {
-      title = "Pristup odbijen";
-      message = "Nemate dozvolu za pristup ovoj stranici.";
-    } else {
-      title = `Greška ${String(error.status)}`;
-      message = error.statusText || message;
+
+    switch (error.status) {
+      case 404: {
+        {
+          title = "Stranica nije pronađena";
+          message = "Tražena stranica ne postoji ili je premještena.";
+        }
+        break;
+      }
+      case 403: {
+        title = "Pristup odbijen";
+        message = "Nemate dozvolu za pristup ovoj stranici.";
+        break;
+      }
+      case 500: {
+        title = "Interna greška servera";
+        message = "Došlo je do greške na serveru. Pokušajte ponovo za koji trenutak.";
+        break;
+      }
     }
   } else if (import.meta.env.DEV && error instanceof Error) {
     message = error.message;

@@ -208,7 +208,7 @@ function PostsTable({
   return (
     <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
       <div className="overflow-x-auto">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead>Objava</TableHead>
@@ -222,8 +222,8 @@ function PostsTable({
           <TableBody>
             {posts.map((post) => (
               <TableRow key={post.id} className={deletingId === post.id ? "opacity-50" : undefined}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
+                <TableCell className="max-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
                     {post.featured ? (
                       <Star
                         className="fill-secondary text-secondary h-4 w-4 shrink-0"
@@ -238,13 +238,13 @@ function PostsTable({
                     ) : null}
                     <Link
                       to={`/admin/objave/${post.id}`}
-                      className="hover:text-primary truncate font-medium transition-colors"
+                      className="hover:text-primary min-w-0 truncate font-medium transition-colors"
                     >
                       {post.title}
                     </Link>
                   </div>
 
-                  <div className="text-muted-foreground mt-0.5 text-xs">/{post.slug}</div>
+                  <div className="text-muted-foreground mt-0.5 truncate text-xs">/{post.slug}</div>
                 </TableCell>
 
                 <TableCell>
