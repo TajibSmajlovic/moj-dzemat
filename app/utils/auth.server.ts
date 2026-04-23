@@ -74,7 +74,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
 
 // ---- Session / current user -------------------------------------------
 
-export async function getUserIdFromSession(request: Request): Promise<string | null> {
+async function getUserIdFromSession(request: Request): Promise<string | null> {
   const cookieSession = await getSession(request.headers.get("Cookie"));
   const userId = cookieSession.get("userId");
 
