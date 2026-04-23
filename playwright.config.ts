@@ -34,6 +34,7 @@ export default defineConfig({
     env: {
       ENABLE_TEST_ROUTES: "true",
       HONEYPOT_SKIP_MIN_AGE: "true",
+      DISABLE_RATE_LIMITING: "true",
       DATABASE_URL: "file:./e2e.db",
       DZEMAT_NAME: "Donje Mostre",
       PORT,
