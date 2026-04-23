@@ -69,6 +69,7 @@ function sniffImageMime(buffer: Buffer): string | null {
   ) {
     return "image/webp";
   }
+
   return null;
 }
 
@@ -81,6 +82,7 @@ export async function processImage(
     logger.warn({ contentType }, "image processing rejected empty payload");
     throw new Response("Empty image", { status: 400 });
   }
+
   if (buffer.byteLength > MAX_RAW_BYTES) {
     logger.warn(
       { contentType, byteSize: buffer.byteLength },

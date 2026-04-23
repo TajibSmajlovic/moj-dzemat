@@ -38,6 +38,7 @@ export function passwordFingerprint(hashOrNull: string | null): string {
   // If the account has no password yet (first login), use a constant so
   // the initial reset link is still valid until the password is chosen.
   const source = hashOrNull ?? "__init__";
+
   return crypto.createHash("sha256").update(source).digest("base64url").slice(0, 16);
 }
 
@@ -51,6 +52,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
   if (password.length < MIN_PASSWORD_LENGTH) {
     return { kind: "too-short" };
   }
+
   try {
     const sha1 = crypto.createHash("sha1").update(password).digest("hex").toUpperCase();
     const prefix = sha1.slice(0, 5);
@@ -58,13 +60,16 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
     const response = await fetch(`${HIBP_URL}${prefix}`, {
       headers: { "Add-Padding": "true" },
     });
+
     if (!response.ok) {
       // HIBP unreachable - fail open (length check still applied).
       logger.warn({ status: response.status }, "HIBP lookup failed");
       return null;
     }
+
     const body = await response.text();
     const breached = body.split(/\r?\n/).some((line) => line.split(":")[0]?.trim() === suffix);
+
     return breached ? { kind: "breached" } : null;
   } catch (error) {
     logger.warn({ err: error }, "HIBP lookup threw");
@@ -137,12 +142,14 @@ export async function login({
     // "user does not exist" from "password wrong" via timing.
     await bcrypt.compare(password, "$2a$10$invalidinvalidinvalidinvalid.");
     logger.warn({ email: normalizedEmail }, "login failed");
+
     return { ok: false, reason: "invalid-credentials" };
   }
 
   const match = await verifyPassword(password, user.password.hash);
   if (!match) {
     logger.warn({ email: normalizedEmail, userId: user.id }, "login failed");
+
     return { ok: false, reason: "invalid-credentials" };
   }
 
@@ -159,6 +166,7 @@ export async function login({
 export async function logout(request: Request): Promise<Headers> {
   const userId = await getUserIdFromSession(request);
   const cookieSession = await getSession(request.headers.get("Cookie"));
+
   const headers = new Headers();
   headers.append("Set-Cookie", await destroySession(cookieSession));
   logger.info({ userId }, "logout succeeded");

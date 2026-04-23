@@ -1,10 +1,5 @@
 import type { SVGProps } from "react";
 
-/**
- * Facebook "f" glyph as an inline SVG. Keeping it inline (instead of
- * pulling an icon library) means it inherits `currentColor` and stays
- * snappy without shipping an extra bundle.
- */
 export function FacebookIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg

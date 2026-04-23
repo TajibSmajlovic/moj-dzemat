@@ -94,6 +94,8 @@ These are the variables that matter most for local development:
 | `ENABLE_TEST_ROUTES`    | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work. |
 | `RESEND_API_KEY`        | Leave empty in local development unless you explicitly want real email delivery. Required in production.                   |
 | `DZEMAT_NAME`           | Optional branding suffix shown in the UI.                                                                                  |
+| `DZEMAT_ADDRESS`        | Optional homepage address block for the embedded map section.                                                              |
+| `DZEMAT_MAP_QUERY`      | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                   |
 | `PORT`                  | Defaults to `3000`.                                                                                                        |
 
 Useful secret generator:

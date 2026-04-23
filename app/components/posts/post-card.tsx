@@ -103,7 +103,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  shareOnFacebook(post.title, `/objave/${post.slug}`);
+                  shareOnFacebook(`/objave/${post.slug}`);
                 }}
                 aria-label="Podijeli na Facebooku"
                 className="text-muted-foreground hover:text-primary transition-colors"

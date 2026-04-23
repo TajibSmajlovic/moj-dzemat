@@ -37,6 +37,16 @@ const envSchema = z.object({
     .trim()
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
+  DZEMAT_ADDRESS: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === "" ? undefined : value)),
+  DZEMAT_MAP_QUERY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === "" ? undefined : value)),
 
   APP_URL: z
     .string()

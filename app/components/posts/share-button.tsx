@@ -4,18 +4,17 @@ import { cn } from "#app/lib/cn";
 import { shareOnFacebook } from "#app/lib/share";
 
 type ShareButtonProps = {
-  title: string;
   path?: string;
   className?: string;
 };
 
-export function ShareButton({ title, path, className }: ShareButtonProps) {
+export function ShareButton({ path, className }: ShareButtonProps) {
   return (
     <Button
       variant="outline"
       size="sm"
       type="button"
-      onClick={() => shareOnFacebook(title, path)}
+      onClick={() => shareOnFacebook(path)}
       className={cn("gap-2", className)}
     >
       <FacebookIcon className="h-4 w-4" />

@@ -180,7 +180,7 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
                 </Button>
               ) : null}
 
-              <ShareButton title={post.title} />
+              <ShareButton />
             </div>
           </div>
         </motion.div>

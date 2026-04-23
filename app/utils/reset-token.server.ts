@@ -96,5 +96,6 @@ export async function verifyResetToken(token: string): Promise<VerifyResult> {
   if (payload.pwfp !== currentFingerprint) {
     return { ok: false, reason: "superseded" };
   }
+
   return { ok: true, userId: record.id };
 }

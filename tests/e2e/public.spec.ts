@@ -11,6 +11,8 @@ test.describe("public", () => {
       page.getByRole("banner").getByRole("link", { name: "Moj Džemat - Donje Mostre" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Objave" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Gdje se nalazimo" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Otvori u Google Maps" })).toBeVisible();
     await expect(page.getByText("Džuma namaz u 13:00")).toBeVisible();
 
     // First 6 post cards are can be seein in the viewport, the rest can be seen by scrolling
