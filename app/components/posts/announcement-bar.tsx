@@ -3,18 +3,13 @@ import { motion } from "motion/react";
 
 import { cn } from "#app/lib/cn";
 
-type AnnouncementBarData = {
-  message: string;
-};
-
 type AnnouncementBarProps = {
-  announcement: AnnouncementBarData | null;
+  announcement: {
+    message: string;
+  } | null;
   className?: string;
 };
 
-/**
- * Slim top-of-page strip for community-wide announcements.
- */
 export function AnnouncementBar({ announcement, className }: AnnouncementBarProps) {
   if (!announcement) return null;
 
@@ -28,9 +23,11 @@ export function AnnouncementBar({ announcement, className }: AnnouncementBarProp
       transition={{ duration: 0.25 }}
       className={cn("bg-secondary text-secondary-foreground z-9999 overflow-hidden", className)}
     >
-      <div className="z-9999 mx-auto flex max-w-5xl items-center gap-2.5 px-4 py-2.5">
-        <Info className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="truncate text-sm font-medium text-balance">{announcement.message}</span>
+      <div className="z-9999 mx-auto flex max-w-5xl items-center gap-2 px-4 py-2 sm:gap-2.5 sm:py-2.5">
+        <Info className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden="true" />
+        <span className="truncate text-xs font-medium text-balance sm:text-sm">
+          {announcement.message}
+        </span>
       </div>
     </motion.div>
   );

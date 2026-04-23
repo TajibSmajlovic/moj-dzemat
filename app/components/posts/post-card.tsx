@@ -16,8 +16,6 @@ export type PostCardData = {
   type: PostTypeValue;
   publishedAt: Date | string;
   pinned?: boolean;
-  /** Image ID served from `/slike/:id`. Optional — cards without an
-   *  image fall back to a type-badge header row. */
   thumbnailId?: string | null;
 };
 
@@ -26,12 +24,6 @@ type PostCardProps = {
   index?: number;
 };
 
-/**
- * Grid card for the public feed. Uses `<Link>` (not `<a>`) so RR can
- * short-circuit the navigation with a client-side transition. The
- * Facebook share button lives inside the card but stops propagation so
- * clicking it doesn't also trigger the outer navigation.
- */
 export function PostCard({ post, index = 0 }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
 
@@ -44,14 +36,17 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
       className="group border-border bg-card relative flex h-full flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md"
     >
       {post.pinned && (
-        <div className="bg-secondary text-secondary-foreground absolute -top-2 -right-2 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 shadow-md">
-          <Pin className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-          <span className="text-xs font-semibold tracking-wide uppercase">Na vrhu</span>
+        <div className="bg-secondary text-secondary-foreground absolute -top-2 -right-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 shadow-md sm:px-2.5 sm:py-1">
+          <Pin className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+          <span className="text-[11px] font-semibold tracking-wide uppercase sm:text-xs">
+            Na vrhu
+          </span>
         </div>
       )}
 
       <Link
         to={`/objave/${post.slug}`}
+        state={{ fromList: true }}
         className="focus-visible:ring-ring flex h-full flex-col rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         {thumbnail ? (
@@ -63,36 +58,46 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               decoding="async"
               className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out will-change-transform group-hover:scale-105"
             />
-            <div className="absolute top-3 left-3 z-10">
-              <PostTypeBadge type={post.type} variant="overlay" />
+            <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
+              <PostTypeBadge
+                type={post.type}
+                variant="overlay"
+                className="px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm"
+              />
             </div>
           </div>
         ) : null}
 
-        <div className="flex flex-1 flex-col p-5">
+        <div className="flex flex-1 flex-col p-4 sm:p-5">
           {!thumbnail && (
-            <div className="mb-3">
-              <PostTypeBadge type={post.type} />
+            <div className="mb-2.5 sm:mb-3">
+              <PostTypeBadge
+                type={post.type}
+                className="px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm"
+              />
             </div>
           )}
 
-          <h3 className="font-display group-hover:text-primary text-foreground mb-2 text-lg font-semibold text-balance transition-colors">
+          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 text-base font-semibold text-balance transition-colors sm:mb-2 sm:text-lg">
             {post.title}
           </h3>
 
           <p
-            className={`text-muted-foreground mb-4 text-sm leading-relaxed hyphens-auto ${
-              thumbnail ? "line-clamp-2" : "line-clamp-6"
+            className={`text-muted-foreground mb-3 text-sm leading-relaxed hyphens-auto sm:mb-4 ${
+              thumbnail ? "line-clamp-2" : "line-clamp-4 sm:line-clamp-6"
             }`}
           >
             {post.excerpt}
           </p>
 
-          <div className="mt-auto flex items-center justify-between pt-2">
-            <time dateTime={toIsoDate(post.publishedAt)} className="text-muted-foreground text-xs">
+          <div className="mt-auto flex items-center justify-between pt-1.5 sm:pt-2">
+            <time
+              dateTime={toIsoDate(post.publishedAt)}
+              className="text-muted-foreground text-[11px] sm:text-xs"
+            >
               {formatDateLong(post.publishedAt)}
             </time>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={(event) => {
@@ -105,7 +110,10 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               >
                 <FacebookIcon className="h-4 w-4" />
               </button>
-              <span className="text-primary group-hover:text-primary/80 text-sm font-medium transition-colors">
+              <span className="text-primary group-hover:text-primary/80 text-xs font-medium transition-colors sm:hidden">
+                Više →
+              </span>
+              <span className="text-primary group-hover:text-primary/80 hidden text-sm font-medium transition-colors sm:inline">
                 Pročitaj više →
               </span>
             </div>
