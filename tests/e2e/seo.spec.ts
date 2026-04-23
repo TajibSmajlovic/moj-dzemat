@@ -1,20 +1,22 @@
 import { expect, test } from "@playwright/test";
 
+import { POSTS_TITLES } from "./global-setup";
+
 test.describe("seo", () => {
   test("post detail shows the article and JSON-LD schema", async ({ page }) => {
-    await page.goto("/objave/petak-hutba");
+    await page.goto("/objave/e2e-objava-1");
 
-    await expect(page.getByRole("heading", { name: "Hutba za petak" })).toBeVisible();
-    await expect(page.getByText("Drugi pasus hutbe.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: POSTS_TITLES[0] })).toBeVisible();
+    await expect(page.getByText("Drugi paragraf.")).toBeVisible();
     await expect(page.getByRole("link", { name: "Uredi" })).toHaveCount(0);
 
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Hutba za petak",
+      POSTS_TITLES[0],
     );
     await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
       "content",
-      /Prvi pasus|Drugi pasus/,
+      /Tijelo objave|Drugi paragraf/,
     );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
@@ -26,7 +28,7 @@ test.describe("seo", () => {
 
     const parsed = JSON.parse(jsonLd!) as { "@type": string; headline: string };
     expect(parsed["@type"]).toBe("Article");
-    expect(parsed.headline).toBe("Hutba za petak");
+    expect(parsed.headline).toBe(POSTS_TITLES[0]);
   });
 
   test("robots.txt and sitemap.xml respond correctly", async ({ request }) => {
@@ -36,6 +38,6 @@ test.describe("seo", () => {
 
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.ok()).toBe(true);
-    expect(await sitemap.text()).toContain("/objave/petak-hutba");
+    expect(await sitemap.text()).toContain("/objave/e2e-objava-1");
   });
 });

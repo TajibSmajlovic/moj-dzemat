@@ -7,17 +7,15 @@ import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import type { PostTypeValue } from "#app/lib/post-type";
 
-type FeaturedHeroPost = {
-  slug: string;
-  title: string;
-  excerpt: string;
-  type: PostTypeValue;
-  publishedAt: Date | string;
-};
-
 type FeaturedHeroCardProps = {
-  post: FeaturedHeroPost;
   className?: string;
+  post: {
+    slug: string;
+    title: string;
+    excerpt: string;
+    type: PostTypeValue;
+    publishedAt: Date | string;
+  };
 };
 
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
@@ -32,16 +30,17 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
     >
       <Link
         to={`/objave/${post.slug}`}
+        state={{ fromList: true }}
         className="focus-visible:ring-ring block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
-        <div className="bg-primary relative flex h-full min-h-85 flex-col px-6 py-10 sm:px-10 sm:py-14">
+        <div className="bg-primary relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14">
           <div
             aria-hidden="true"
-            className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-[hsl(var(--secondary)/0.3)] blur-3xl"
+            className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[hsl(var(--secondary)/0.3)] blur-3xl sm:h-40 sm:w-40"
           />
           <div
             aria-hidden="true"
-            className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl"
+            className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
           />
 
           <div className="relative z-10 flex h-full flex-1 flex-col">
@@ -49,10 +48,13 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="mb-4 flex items-center gap-2"
+              className="mb-3 flex items-center gap-2 sm:mb-4"
             >
-              <Star className="fill-secondary text-secondary h-5 w-5" aria-hidden="true" />
-              <span className="text-secondary text-sm font-semibold tracking-wider uppercase">
+              <Star
+                className="fill-secondary text-secondary h-4 w-4 sm:h-5 sm:w-5"
+                aria-hidden="true"
+              />
+              <span className="text-secondary text-xs font-semibold tracking-wider uppercase sm:text-sm">
                 Istaknuto
               </span>
             </motion.div>
@@ -61,7 +63,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="font-display text-primary-foreground mb-3 text-2xl font-bold text-balance sm:text-3xl"
+              className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
             >
               {post.title}
             </motion.h2>
@@ -70,7 +72,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.55, duration: 0.5 }}
-              className="text-primary-foreground/80 mb-5 line-clamp-3 max-w-2xl text-base leading-relaxed text-pretty hyphens-auto"
+              className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
@@ -79,12 +81,16 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.65, duration: 0.5 }}
-              className="mt-auto flex items-center gap-4"
+              className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4"
             >
-              <PostTypeBadge type={post.type} variant="overlay" />
+              <PostTypeBadge
+                type={post.type}
+                variant="overlay"
+                className="px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm"
+              />
               <time
                 dateTime={toIsoDate(post.publishedAt)}
-                className="text-primary-foreground/70 text-sm"
+                className="text-primary-foreground/70 text-xs sm:text-sm"
               >
                 {formatDateLong(post.publishedAt)}
               </time>

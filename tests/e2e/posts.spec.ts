@@ -1,8 +1,106 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { PAGE_SIZE } from "../../app/lib/pagination";
+import { POSTS_TITLES } from "./global-setup";
 import { loginAsAdmin } from "./utils/admin";
 
+const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(PAGE_SIZE);
+const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
+const FIRST_PAGE_OLDEST_TITLE = POSTS_TITLES[PAGE_SIZE - 1];
+
 test.describe("posts", () => {
+  test("admin can navigate paginated post results", async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto("/admin/objave");
+    await page.waitForLoadState("networkidle");
+
+    await expect(page).toHaveURL(/\/admin\/objave$/);
+    await expect(page.getByText("Stranica 1 od 2")).toBeVisible();
+    await expect(page.getByText("Prikaz 1-20 od 24 objava")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: FIRST_PAGE_OLDEST_TITLE, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES[0], exact: true }),
+    ).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Sljedeća stranica" }).click();
+
+    await expect(page).toHaveURL(/\/admin\/objave\?page=2$/);
+    await expect(page.getByText("Stranica 2 od 2")).toBeVisible();
+    await expect(page.getByText("Prikaz 21-24 od 24 objava")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES[0], exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES.at(-1)!, exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
+    ).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Prethodna stranica" }).click();
+
+    await expect(page).toHaveURL(/\/admin\/objave$/);
+    await expect(page.getByText("Stranica 1 od 2")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
+    ).toBeVisible();
+  });
+
+  test("admin confirms deletion through the custom dialog", async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto("/admin/objave?page=2");
+    await page.waitForLoadState("networkidle");
+
+    await expect(page).toHaveURL(/\/admin\/objave\?page=2$/);
+    await expect(page.getByText("Stranica 2 od 2")).toBeVisible();
+
+    const firstTitle = PAGINATION_PAGE_TWO_TITLES[0];
+    if (!firstTitle) {
+      throw new Error("Expected seeded page 2 posts to exist, but none were found.");
+    }
+
+    const firstPostLink = page.getByRole("link", { name: firstTitle, exact: true });
+    await expect(firstPostLink).toBeVisible();
+
+    await page.getByTitle(`Obriši "${firstTitle}"`).click();
+
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Obrisati objavu?" })).toBeVisible();
+    await expect(dialog.getByText(firstTitle)).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Odustani" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Obriši objavu" })).toBeVisible();
+
+    await dialog.getByRole("button", { name: "Odustani" }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(firstPostLink).toBeVisible();
+
+    for (const [index, title] of PAGINATION_PAGE_TWO_TITLES.entries()) {
+      await page.getByTitle(`Obriši "${title}"`).click();
+      await expect(dialog.getByText(title)).toBeVisible();
+      await dialog.getByRole("button", { name: "Obriši objavu" }).click();
+
+      await expect(page.getByText(`Objava "${title}" obrisana.`)).toBeVisible();
+      await expect(page.getByRole("link", { name: title, exact: true })).toHaveCount(0);
+
+      if (index < PAGINATION_PAGE_TWO_TITLES.length - 1) {
+        // Delete is submitted from an index-route <Form>. React Router appends
+        // ?index to disambiguate index action vs parent action at the same path.
+        await expect(page).toHaveURL(/\/admin\/objave\?index&page=2$/);
+        await expect(page.getByText("Stranica 2 od 2")).toBeVisible();
+      } else {
+        // After the last item on the page is deleted, we should be redirected to the previous page since the current page would be out of range.
+        await expect(page).toHaveURL(/\/admin\/objave$/);
+        await expect(page.getByText("Stranica 2 od 2")).toHaveCount(0);
+      }
+    }
+  });
+
   test("admin can create a post", async ({ page }) => {
     const unique = Date.now();
     const title = `E2E objava ${unique}`;
@@ -34,7 +132,10 @@ test.describe("posts", () => {
     await page.locator('input[type="file"][name="images"]').setInputFiles({
       name: "e2e-image.png",
       mimeType: "image/png",
-      buffer: tinyPngBuffer(),
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z8W0AAAAASUVORK5CYII=",
+        "base64",
+      ),
     });
 
     await page.getByRole("button", { name: "Sačuvaj" }).click();
@@ -91,39 +192,6 @@ test.describe("posts", () => {
     await expect(page.getByRole("heading", { name: /Stranica nije pronađena/ })).toBeVisible();
   });
 
-  test("admin confirms deletion through the custom dialog", async ({ page }) => {
-    const unique = Date.now();
-    const title = `E2E objava za brisanje ${unique}`;
-    const slug = `e2e-brisanje-${unique}`;
-
-    await loginAsAdmin(page);
-    await createPostThroughAdmin(page, { title, slug });
-
-    await page.goto("/admin/objave");
-    await page.waitForLoadState("networkidle");
-    const postLink = page.getByRole("link", { name: title, exact: true });
-    await expect(postLink).toBeVisible();
-
-    await page.getByTitle(`Obriši "${title}"`).click();
-
-    const dialog = page.getByRole("alertdialog");
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("heading", { name: "Obrisati objavu?" })).toBeVisible();
-    await expect(dialog.getByText(title)).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Odustani" })).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Obriši objavu" })).toBeVisible();
-
-    await dialog.getByRole("button", { name: "Odustani" }).click();
-    await expect(dialog).not.toBeVisible();
-    await expect(postLink).toBeVisible();
-
-    await page.getByTitle(`Obriši "${title}"`).click();
-    await dialog.getByRole("button", { name: "Obriši objavu" }).click();
-
-    await expect(page.getByText(`Objava "${title}" obrisana.`)).toBeVisible();
-    await expect(postLink).toHaveCount(0);
-  });
-
   test("creating a post with an already-taken slug shows an inline server-side error", async ({
     page,
   }) => {
@@ -155,13 +223,6 @@ test.describe("posts", () => {
     );
   });
 });
-
-function tinyPngBuffer() {
-  return Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z8W0AAAAASUVORK5CYII=",
-    "base64",
-  );
-}
 
 async function createPostThroughAdmin(
   page: Page,
