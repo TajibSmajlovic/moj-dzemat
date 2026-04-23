@@ -52,8 +52,8 @@ nvm use
 
 2. Copy the environment template:
 
-   ```bash
-   cp .env.example .env
+   ```sh
+   node -e "require('node:fs').copyFileSync('.env.example', '.env')"
    ```
 
 3. Update `.env` before the first boot:
@@ -100,8 +100,8 @@ These are the variables that matter most for local development:
 
 Useful secret generator:
 
-```bash
-openssl rand -base64 32
+```sh
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
 ```
 
 ## First Admin Login
