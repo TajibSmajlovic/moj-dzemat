@@ -37,6 +37,7 @@ export function requireId(value: unknown): string {
   if (typeof value !== "string" || !value) {
     throw new Response("Missing id", { status: 400 });
   }
+
   return value;
 }
 
@@ -52,6 +53,7 @@ function uploadedFiles(formData: FormData, name: string): UploadedPart[] {
       out.push(entry as UploadedPart);
     }
   }
+
   return out.filter((file) => file.size > 0);
 }
 

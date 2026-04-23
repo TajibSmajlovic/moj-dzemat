@@ -41,6 +41,10 @@ type CreatePostOptions = {
   slug?: string;
   body?: string;
   type?: PostTypeValue;
+  featured?: boolean;
+  pinned?: boolean;
+  publishedAt?: Date;
+  createdAt?: Date;
 };
 
 export async function createPost(options: CreatePostOptions = {}) {
@@ -53,6 +57,10 @@ export async function createPost(options: CreatePostOptions = {}) {
       body: options.body ?? "Tijelo objave.\n\nDrugi paragraf.",
       type: options.type ?? "obavijest",
       authorId: options.authorId,
+      featured: options.featured,
+      pinned: options.pinned,
+      publishedAt: options.publishedAt,
+      createdAt: options.createdAt,
     },
   });
 }

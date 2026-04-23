@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { POSTS_TITLES } from "./global-setup";
 import { loginAsAdmin } from "./utils/admin";
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "";
@@ -16,7 +17,7 @@ test.describe("auth", () => {
 
     await expect(page).toHaveURL(/\/admin\/objave$/);
     await expect(page.getByRole("heading", { name: "Objave" })).toBeVisible();
-    await expect(page.getByText("Dobrodošli u džemat")).toBeVisible();
+    await expect(page.getByRole("link", { name: POSTS_TITLES[0], exact: true })).toBeVisible();
   });
 
   test("login form shows a generic form-level error on wrong credentials", async ({ page }) => {
