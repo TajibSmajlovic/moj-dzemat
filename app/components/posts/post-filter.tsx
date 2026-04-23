@@ -19,12 +19,6 @@ type Tab = { value: PostTypeValue | "all"; label: string; Icon: LucideIcon };
 
 const ALL: Tab = { value: "all", label: "Sve", Icon: Sparkles };
 
-/**
- * URL-driven filter. Each tab is a `<Link>` so navigation works without
- * JS; React Router hijacks the click on the client. The active state is
- * derived on the server from the incoming `?vrsta=` param, which keeps
- * this component a pure render of props.
- */
 export function PostFilter({ active }: PostFilterProps) {
   const tabs: Tab[] = [
     ALL,

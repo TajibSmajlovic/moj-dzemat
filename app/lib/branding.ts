@@ -2,13 +2,9 @@ const ROOT_ROUTE_ID = "root";
 
 export const DEFAULT_SITE_NAME = "Moj Džemat";
 
-type MatchWithData = {
-  id: string;
-  data?: unknown;
-};
-
 export function formatSiteName(dzematName?: string | null): string {
   const normalized = dzematName?.trim();
+
   return normalized ? `${DEFAULT_SITE_NAME} - ${normalized}` : DEFAULT_SITE_NAME;
 }
 
@@ -28,6 +24,11 @@ export function getSiteNameFromRootData(data: unknown): string {
 
   return data.siteName;
 }
+
+type MatchWithData = {
+  id: string;
+  data?: unknown;
+};
 
 export function getSiteNameFromMatches(matches: readonly (MatchWithData | undefined)[]): string {
   return getSiteNameFromRootData(matches.find((match) => match?.id === ROOT_ROUTE_ID)?.data);

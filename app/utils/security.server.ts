@@ -19,5 +19,6 @@ export function securityHeaders(options: { isProd: boolean }): Record<string, st
     // only enable HSTS in prod so localhost HTTP stays usable.
     headers["Strict-Transport-Security"] = "max-age=15552000; includeSubDomains";
   }
+
   return headers;
 }

@@ -1,8 +1,10 @@
 import { useRef } from "react";
+import { useMatches } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
 import { AnimatePresence, motion } from "motion/react";
 
+import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
 import { FeaturedHeroCard } from "#app/components/posts/featured-hero-card";
 import { PostCard, type PostCardData } from "#app/components/posts/post-card";
 import { PostFilter } from "#app/components/posts/post-filter";
@@ -14,9 +16,11 @@ import {
   CarouselPrevious,
 } from "#app/components/ui/carousel";
 import { getSiteNameFromMatches } from "#app/lib/branding";
+import { getDzematLocation } from "#app/lib/maps";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import { prisma } from "#app/utils/db.server";
+import { env } from "#app/utils/env.server";
 
 import type { Route } from "./+types/_public._index";
 
@@ -38,6 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const rawType = url.searchParams.get("vrsta");
   const activeType: PostTypeValue | "all" = isPostType(rawType) ? rawType : "all";
+  const environment = env();
 
   const select = {
     slug: true,
@@ -69,6 +74,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     featured: featured.map((post) => toCard(post)),
     posts: posts.map((post) => toCard(post)),
     activeType,
+    location: getDzematLocation({
+      address: environment.DZEMAT_ADDRESS,
+      query: environment.DZEMAT_MAP_QUERY,
+    }),
   };
 }
 
@@ -93,7 +102,8 @@ function toCard(post: {
 }
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { posts, featured, activeType } = loaderData;
+  const { posts, featured, activeType, location } = loaderData;
+  const siteName = getSiteNameFromMatches(useMatches());
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
@@ -129,6 +139,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </p>
         </motion.div>
       )}
+
+      {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
     </main>
   );
 }

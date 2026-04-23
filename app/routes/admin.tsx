@@ -23,7 +23,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   return (
     <div className="bg-background min-h-screen">
       <header className="border-border/60 bg-background/80 sticky top-0 z-30 border-b backdrop-blur-lg">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
               to="/"
@@ -39,7 +39,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
                 <h1 className="font-display text-foreground text-lg leading-tight font-bold">
                   Admin Panel
                 </h1>
-                <p className="text-muted-foreground max-w-[18rem] text-xs text-balance sm:max-w-none">
+                <p className="text-muted-foreground hidden max-w-[18rem] text-xs text-balance sm:block sm:max-w-none">
                   Upravljanje za {siteName}
                 </p>
               </div>

@@ -37,6 +37,8 @@ export default defineConfig({
       DISABLE_RATE_LIMITING: "true",
       DATABASE_URL: "file:./e2e.db",
       DZEMAT_NAME: "Donje Mostre",
+      DZEMAT_ADDRESS: "Džamija Donje Moštre, R445, Donje Moštre, Visoko, Bosna i Hercegovina",
+      DZEMAT_MAP_QUERY: "Džamija Donje Moštre, R445, Visoko, Bosna i Hercegovina",
       PORT,
     },
   },

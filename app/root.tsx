@@ -15,8 +15,8 @@ import type { Route } from "./+types/root";
 import "./styles/tailwind.css";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.svg?v=3", type: "image/svg+xml" },
-  { rel: "icon", href: "/favicon.ico?v=3", sizes: "any" },
+  { rel: "icon", href: "/favicon.svg?v=4", type: "image/svg+xml" },
+  { rel: "icon", href: "/favicon.ico?v=4", sizes: "any" },
   {
     rel: "preload",
     href: interLatinWghtNormal,
@@ -84,10 +84,10 @@ export function meta({ data }: Route.MetaArgs) {
       content: "Obavijesti, smrtovnice, sergije i hutbe džemata na jednom mjestu.",
     },
     { property: "og:type", content: "website" },
-    ...(siteUrl ? [{ property: "og:url", content: canonical }] : []),
     { name: "theme-color", content: "#1a4737" },
     { property: "og:site_name", content: siteName },
     { property: "og:locale", content: "bs_BA" },
+    ...(siteUrl ? [{ property: "og:url", content: canonical }] : []),
     ...(siteUrl ? [{ tagName: "link", rel: "canonical", href: canonical }] : []),
   ];
 }

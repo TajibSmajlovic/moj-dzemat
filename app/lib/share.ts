@@ -4,7 +4,7 @@
  * caller is responsible for wiring this up to a user-initiated click
  * (popup blockers will eat non-user-triggered `window.open` calls).
  */
-export function shareOnFacebook(title: string, path?: string): void {
+export function shareOnFacebook(path?: string): void {
   if (typeof globalThis === "undefined") return;
 
   const url = `${globalThis.location.origin}${path ?? globalThis.location.pathname}`;

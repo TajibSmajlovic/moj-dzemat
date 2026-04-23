@@ -3,7 +3,6 @@ import { z } from "zod";
 import { requiredString } from "#app/lib/form-schema";
 import { POST_TYPES } from "#app/lib/post-type";
 
-/** Hard cap for images per post; enforced in admin actions and UI. */
 export const MAX_IMAGES_PER_POST = 3;
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
