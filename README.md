@@ -39,6 +39,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Admin Bootstrap
 
 - seeded admins come from `ADMIN_SEED_EMAILS`
+- deploy startup runs the seed automatically after migrations, if `ADMIN_SEED_EMAILS` is set
 - the seed creates admin users without passwords
 - the first password is set through `/zaboravljena-lozinka`
 
@@ -56,7 +57,7 @@ Main variables:
 | `HONEYPOT_SECRET`       | yes        | Honeypot integrity secret                          |
 | `EMAIL_FROM`            | yes        | Visible From header for outgoing email             |
 | `APP_URL`               | yes        | Canonical app origin                               |
-| `ADMIN_SEED_EMAILS`     | seed only  | Comma-separated admin emails                       |
+| `ADMIN_SEED_EMAILS`     | bootstrap  | Comma-separated admin emails to provision          |
 | `DZEMAT_NAME`           | optional   | Adds a community name to the visible brand         |
 | `RESEND_API_KEY`        | production | Email provider API key                             |
 | `ENABLE_TEST_ROUTES`    | optional   | Enables dev test helpers such as `/dev/last-email` |
@@ -77,7 +78,7 @@ See [`.env.example`](/Users/tajibsmajlovic/Work/moj-dzemat/.env.example:1) for t
 | `npm run knip`              | Check for unused files and dependencies |
 | `npm run db:migrate`        | Create/apply a local dev migration      |
 | `npm run db:migrate:deploy` | Apply committed migrations              |
-| `npm run db:seed`           | Seed admin users                        |
+| `npm run db:seed`           | Ensure configured admin users exist     |
 
 ## Branching Rules
 
