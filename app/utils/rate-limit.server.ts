@@ -1,5 +1,7 @@
 import { TTLCache } from "@isaacs/ttlcache";
 
+import { env } from "#app/utils/env.server";
+
 /**
  * In-memory, per-IP rate limiter. Because Fly pins this app to a single
  * instance (single SQLite writer), process-local counters are enough -
@@ -27,6 +29,10 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
   return {
     name,
     check(ip: string): RateLimitResult {
+      if (env().DISABLE_RATE_LIMITING) {
+        return { ok: true, remaining: Number.POSITIVE_INFINITY, resetInMs: 0 };
+      }
+
       const now = Date.now();
       const key = ip;
       const existing = cache.get(key);
@@ -45,6 +51,7 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
       }
 
       existing.count += 1;
+
       return {
         ok: true,
         remaining: max - existing.count,

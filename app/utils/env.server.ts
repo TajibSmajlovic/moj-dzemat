@@ -59,6 +59,14 @@ const envSchema = z.object({
     .default("false")
     .transform((value) => value === "true"),
 
+  // Test-only escape hatch for browser automation suites that would
+  // otherwise trip the auth abuse protections by design. Never enable
+  // this in production.
+  DISABLE_RATE_LIMITING: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+
   // `fly.io` sets this automatically; used by LiteFS awareness helpers.
   FLY_REGION: z.string().optional(),
   PRIMARY_REGION: z.string().optional(),

@@ -1,7 +1,9 @@
 name: Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [master]
   workflow_dispatch:
     # keep manual trigger available
@@ -18,11 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: production
-    # Skip the deploy if the head commit opted out via `[skip deploy]` in
-    # the commit message. Handy for docs-only pushes.
-    if: ${{ !contains(github.event.head_commit.message, '[skip deploy]') }}
+    # Manual dispatch can always deploy. Automatic deploys only proceed once
+    # CI has completed successfully for the `master` push they were triggered by.
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.workflow_run.conclusion == 'success' &&
+          !contains(github.event.workflow_run.head_commit.message, '[skip deploy]')
+        )
+      }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy the exact commit that passed CI rather than whatever happens
+          # to be at the branch tip when this workflow starts.
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
