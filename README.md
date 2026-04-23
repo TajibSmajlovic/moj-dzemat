@@ -1,6 +1,16 @@
 # Moj Dzemat
 
-The app currently includes a public site for browsing community posts and a simple admin panel for managing content.
+`Moj Dzemat` is a community publishing app with two main surfaces:
+
+- a public website for browsing community posts
+- a simple admin area for managing posts and the site-wide announcement banner
+
+The project is intentionally lightweight for local development:
+
+- React 19 + React Router v7 on top of Express
+- Prisma + SQLite, so there is no separate database service to boot locally
+- admin-only authentication via seeded email addresses and password reset links
+- post images stored in SQLite after being normalized with `sharp`
 
 ## Stack
 
@@ -17,74 +27,208 @@ The app currently includes a public site for browsing community posts and a simp
 | Tests      | Vitest + Playwright                                      |
 | Deploy     | Fly.io + LiteFS                                          |
 
-## Local Setup
+## What You Need Locally
 
-Requires Node 22 and npm 10.
+- Node `22.13.0+` and `<23` (`.nvmrc` is included)
+- npm `10.9.0+`
+- no Docker, Postgres, Redis, or external email service for first local boot
+- optional: Playwright browser binaries if you plan to run e2e tests
 
-```bash
-npm ci
-cp .env.example .env
-```
-
-Fill in the required values in `.env`, then run:
+If you use `nvm`:
 
 ```bash
-npm run db:migrate:deploy
-npm run db:seed
-npm run dev
+nvm use
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## Quick Start
 
-## Admin Bootstrap
+1. Install dependencies:
 
-- seeded admins come from `ADMIN_SEED_EMAILS`
-- deploy startup runs the seed automatically after migrations, if `ADMIN_SEED_EMAILS` is set
-- the seed creates admin users without passwords
-- the first password is set through `/zaboravljena-lozinka`
+   ```bash
+   npm ci
+   ```
 
-## Environment
+   `npm ci` also runs the repo's `postinstall`, which generates Prisma client code and React Router types.
 
-Runtime environment variables are validated in [app/utils/env.server.ts](/Users/tajibsmajlovic/Work/moj-dzemat/app/utils/env.server.ts:1).
+2. Copy the environment template:
 
-Main variables:
+   ```bash
+   cp .env.example .env
+   ```
 
-| Variable                | Required   | Purpose                                            |
-| ----------------------- | ---------- | -------------------------------------------------- |
-| `DATABASE_URL`          | yes        | SQLite file path                                   |
-| `SESSION_SECRET`        | yes        | Cookie signing secret, supports rotation           |
-| `PASSWORD_RESET_SECRET` | yes        | Signed reset-link secret, supports rotation        |
-| `HONEYPOT_SECRET`       | yes        | Honeypot integrity secret                          |
-| `EMAIL_FROM`            | yes        | Visible From header for outgoing email             |
-| `APP_URL`               | yes        | Canonical app origin                               |
-| `ADMIN_SEED_EMAILS`     | bootstrap  | Comma-separated admin emails to provision          |
-| `DZEMAT_NAME`           | optional   | Adds a community name to the visible brand         |
-| `RESEND_API_KEY`        | production | Email provider API key                             |
-| `ENABLE_TEST_ROUTES`    | optional   | Enables dev test helpers such as `/dev/last-email` |
-| `PORT`                  | optional   | Defaults to `3000`                                 |
+3. Update `.env` before the first boot:
+   - set `ADMIN_SEED_EMAILS` to the email address you want to use locally
+   - replace the sample secrets for `SESSION_SECRET`, `PASSWORD_RESET_SECRET`, and `HONEYPOT_SECRET`
+   - set `ENABLE_TEST_ROUTES="true"` if you want to use the local dev inbox at `/dev/last-email`
 
-See [`.env.example`](/Users/tajibsmajlovic/Work/moj-dzemat/.env.example:1) for the current template.
+4. Apply the committed Prisma migration and seed admin users:
 
-## Useful Scripts
+   ```bash
+   npm run db:migrate:deploy
+   npm run db:seed
+   ```
 
-| Script                      | Purpose                                 |
-| --------------------------- | --------------------------------------- |
-| `npm run dev`               | Start the local dev server              |
-| `npm run build`             | Build client and server bundles         |
-| `npm run start`             | Start the production bundle             |
-| `npm run check`             | Typecheck + lint + format check         |
-| `npm run test:run`          | Run Vitest once                         |
-| `npm run test:e2e`          | Run Playwright tests                    |
-| `npm run knip`              | Check for unused files and dependencies |
-| `npm run db:migrate`        | Create/apply a local dev migration      |
-| `npm run db:migrate:deploy` | Apply committed migrations              |
-| `npm run db:seed`           | Ensure configured admin users exist     |
+5. Start the dev server:
 
-## Branching Rules
+   ```bash
+   npm run dev
+   ```
 
-This project uses one clear branch naming pattern so everyone can understand work at a glance.
+6. Open [http://localhost:3000](http://localhost:3000).
 
-### Format
+## Local Environment Notes
+
+The app reads runtime environment variables from [`app/utils/env.server.ts`](app/utils/env.server.ts). The template lives in [`.env.example`](.env.example).
+
+These are the variables that matter most for local development:
+
+| Variable                | Local guidance                                                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                    |
+| `ADMIN_SEED_EMAILS`     | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                     |
+| `SESSION_SECRET`        | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.               |
+| `PASSWORD_RESET_SECRET` | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                         |
+| `HONEYPOT_SECRET`       | Replace the sample value. Must be at least 16 characters.                                                                  |
+| `EMAIL_FROM`            | Required even in local dev. Any reasonable sender value is fine locally.                                                   |
+| `APP_URL`               | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                     |
+| `ENABLE_TEST_ROUTES`    | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work. |
+| `RESEND_API_KEY`        | Leave empty in local development unless you explicitly want real email delivery. Required in production.                   |
+| `DZEMAT_NAME`           | Optional branding suffix shown in the UI.                                                                                  |
+| `PORT`                  | Defaults to `3000`.                                                                                                        |
+
+Useful secret generator:
+
+```bash
+openssl rand -base64 32
+```
+
+## First Admin Login
+
+Admin bootstrap is easy to miss if you are new to the project:
+
+1. Add your email to `ADMIN_SEED_EMAILS`.
+2. Run `npm run db:seed`.
+3. Open `/zaboravljena-lozinka` and submit that email address.
+4. If `RESEND_API_KEY` is empty, the app captures the email in memory instead of sending it.
+5. If `ENABLE_TEST_ROUTES="true"`, open `/dev/last-email`, click the reset link, and choose your password.
+6. After setting the password, the app signs you in and redirects you to `/admin/objave`.
+
+Important details:
+
+- seeded admins are created without passwords by design
+- there is no public signup flow
+- changing `ADMIN_SEED_EMAILS` later is safe; `npm run db:seed` is idempotent
+
+## Common Commands
+
+### App
+
+| Command         | What it does                                               |
+| --------------- | ---------------------------------------------------------- |
+| `npm run dev`   | Starts the local SSR dev server from `server/index.ts`.    |
+| `npm run build` | Builds the production client and server bundles.           |
+| `npm run start` | Starts the production build from `build/server-entry.mjs`. |
+| `npm run check` | Runs typecheck, ESLint, and Prettier checks.               |
+| `npm run knip`  | Checks for unused files, exports, and dependencies.        |
+
+### Database
+
+| Command                     | What it does                                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run db:migrate`        | Runs Prisma's development migration flow. Use this when you are changing the schema locally.                         |
+| `npm run db:migrate:deploy` | Applies committed migrations without creating new ones. Best for first local setup and production-style boots.       |
+| `npm run db:seed`           | Provisions admins from `ADMIN_SEED_EMAILS`.                                                                          |
+| `npm run db:setup`          | Convenience shortcut for `prisma migrate dev && prisma db seed`.                                                     |
+| `npm run db:reset`          | Drops and recreates the local database, then reruns seed.                                                            |
+| `npm run db:studio`         | Opens Prisma Studio.                                                                                                 |
+| `npm run db:generate`       | Regenerates Prisma client code.                                                                                      |
+| `npm run db:push`           | Pushes schema changes without creating a migration. Useful for quick experiments, not for normal migration workflow. |
+
+### Tests
+
+| Command               | What it does                                     |
+| --------------------- | ------------------------------------------------ |
+| `npm run test:run`    | Runs the Vitest suite once (unit + integration). |
+| `npm run test:cov`    | Runs Vitest with coverage.                       |
+| `npm run test:e2e`    | Runs Playwright end-to-end tests.                |
+| `npm run test:e2e:ui` | Runs Playwright in headed mode.                  |
+
+Before your first e2e run, install the Playwright browser once:
+
+```bash
+npx playwright install chromium
+```
+
+On Linux CI or bare Linux machines you may need:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+Recommended local verification before opening a PR:
+
+```bash
+npm run check
+npm run knip
+npm run test:run
+npm run test:e2e
+```
+
+## Project Structure
+
+```text
+app/
+  components/          reusable UI plus admin/public feature components
+  lib/                 shared browser-safe helpers, formatting, and schemas
+  routes/              file-based routes for public pages, auth, admin, sitemap, and dev helpers
+  styles/              Tailwind theme and global CSS
+  utils/               server-only utilities such as auth, env, Prisma, email, security, and rate limiting
+prisma/                schema, migrations, seed script, and local SQLite files
+server/                Express entrypoint used by development and production server boot
+tests/                 unit, integration, e2e, and test factories
+scripts/               build orchestration and other repo scripts
+public/                static assets
+```
+
+Useful route groups:
+
+| Area      | Routes                                                                                |
+| --------- | ------------------------------------------------------------------------------------- |
+| Public    | `/`, `/objave/:slug`, `robots.txt`, `sitemap.xml`                                     |
+| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                |
+| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/obavijesna-traka` |
+| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                      |
+| Resources | `/slike/:id`, `/resources/healthcheck`                                                |
+
+## How Testing Works
+
+The repo uses three layers of tests:
+
+- unit tests for pure helpers and small business rules
+- integration tests for real Prisma + SQLite behavior
+- end-to-end tests for public and admin browser flows
+
+A few implementation details that help when debugging:
+
+- unit and integration tests run through Vitest
+- Playwright starts the app itself and points it at `prisma/e2e.db`
+- Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and `DISABLE_RATE_LIMITING`
+- the e2e global setup seeds a deterministic admin user plus post fixtures
+
+## Deployment Notes
+
+Production is designed for Fly.io with LiteFS:
+
+- the Docker image runs the built app on Node 22 Alpine
+- `start.sh` applies `prisma migrate deploy` on boot
+- the same startup flow reruns the Prisma seed so configured admins always exist
+- Fly health checks hit `/resources/healthcheck`
+
+You do not need LiteFS locally. Standard SQLite via `DATABASE_URL="file:./data.db"` is enough for development.
+
+## Branching And PRs
+
+This repo uses a simple branch naming convention:
 
 ```text
 <type>/<issue-id>_<short-description>
@@ -93,78 +237,23 @@ This project uses one clear branch naming pattern so everyone can understand wor
 Example:
 
 ```text
-feat/1_initialize-app-mvp-baseline
+feat/123_add-admin-post-filters
 ```
 
-Meaning:
+Common types:
 
-- `feat` = type of work
-- `1` = GitHub issue number
-- `initialize-app-mvp-baseline` = short kebab-case description
+- `feat`
+- `fix`
+- `chore`
+- `docs`
+- `test`
+- `refactor`
+- `ci`
 
-### Branch Types
+A few team rules:
 
-| Type       | Use for                                                       | Example                                     |
-| ---------- | ------------------------------------------------------------- | ------------------------------------------- |
-| `feat`     | New user-facing functionality                                 | `feat/24_add-post-search`                   |
-| `fix`      | Bug fixes                                                     | `fix/31_resolve-login-redirect-loop`        |
-| `chore`    | Maintenance, tooling, dependency updates, non-feature cleanup | `chore/42_update-eslint-and-prettier`       |
-| `docs`     | Documentation-only changes                                    | `docs/50_add-branching-guidelines`          |
-| `test`     | Adding or improving tests                                     | `test/57_cover-password-reset-edge-cases`   |
-| `refactor` | Internal code improvements without behavior change            | `refactor/63_simplify-post-form-validation` |
-| `ci`       | CI/CD pipeline and automation changes                         | `ci/71_optimize-workflow-cache`             |
-
-### Naming Rules (Strict)
-
-- Always create branches from `master` unless explicitly told otherwise.
-- Always include a GitHub issue number.
-- Use lowercase letters only.
-- Use hyphens (`-`) inside the description.
-- Keep descriptions short and specific (3 to 7 words).
-- Do not use spaces, camelCase, or special characters.
-- One branch should address one issue.
-
-Quick create command:
-
-```bash
-git checkout master
-git pull
-git checkout -b feat/123_add-admin-post-filters
-```
-
-### What Not To Do
-
-- Do not commit directly to `master`.
-- Do not mix unrelated fixes/features in one branch.
-- Do not open a PR without tests (or a clear explanation why tests are not possible).
-
-## Testing
-
-The repo uses three layers of tests:
-
-- unit tests for pure helpers and schema logic
-- integration tests for real Prisma + SQLite behavior
-- e2e tests for public and admin flows
-
-Typical local flow:
-
-```bash
-npm run check
-npm run test:run
-npm run test:e2e
-```
-
-## Repository Layout
-
-```text
-app/
-  components/          UI building blocks and route-level components
-  lib/                 browser-safe helpers and schemas
-  routes/              public and admin routes
-  styles/              Tailwind v4 theme and global styles
-  utils/               server-only utilities
-prisma/                schema, migrations, seed
-server/                Express entrypoint
-tests/                 unit, integration, and e2e tests
-public/                static assets
-```
+- branch from `master` unless there is a reason not to
+- keep one branch focused on one issue
+- use lowercase and hyphenated descriptions
+- do not commit directly to `master`
+- if you skip tests in a PR, explain why
