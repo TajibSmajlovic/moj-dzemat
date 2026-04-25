@@ -3,7 +3,7 @@ import { Link, useMatches } from "react-router";
 import { LogIn } from "lucide-react";
 import { motion } from "motion/react";
 
-import { BrandMosqueMark } from "#app/components/layout/brand-mosque-mark";
+import { Logo } from "#app/components/layout/brand-logo-half-moon-with-star.js";
 import { getSiteNameFromMatches } from "#app/lib/branding";
 
 export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: boolean }) {
@@ -21,10 +21,13 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
           to="/"
           className="focus-visible:ring-ring flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
         >
-          <BrandMosqueMark />
-          <span className="flex flex-col leading-none">
+          <Logo />
+          <span className="lea ding-none flex flex-col">
             <span className="font-display text-foreground max-w-56 text-base font-bold text-balance sm:max-w-none sm:text-lg">
               {siteName}
+            </span>
+            <span className="text-muted-foreground hidden text-xs sm:block">
+              Rijaset Islamske Zajednice u Bosni i Hercegovini
             </span>
           </span>
         </Link>
