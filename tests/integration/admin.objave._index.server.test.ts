@@ -97,8 +97,23 @@ describe("admin posts list route", () => {
       });
       expect(result.posts).toHaveLength(20);
       expect(result.posts[0]).toMatchObject({ title: "Zakačena objava", pinned: true });
+      expect(result.posts[0]?.status).toBe("published");
       expect(result.posts[1]?.title).toBe("Objava 1");
       expect(result.posts.at(-1)?.title).toBe("Objava 19");
+    });
+
+    it("includes draft posts in the admin list", async () => {
+      await createPost({
+        authorId: userId,
+        title: "Sakriven nacrt",
+        slug: "sakriven-nacrt",
+        status: "draft",
+      });
+
+      const result = expectLoaderData(await callLoader(ENDPOINT, cookie));
+
+      expect(result.posts).toHaveLength(1);
+      expect(result.posts[0]).toMatchObject({ title: "Sakriven nacrt", status: "draft" });
     });
 
     it("returns the later page slice for the requested page", async () => {
@@ -178,6 +193,33 @@ describe("admin posts list route", () => {
       expect(pinnedResult).toMatchObject({ ok: true });
       const pinnedPost = await prisma.post.findUnique({ where: { id: target.id } });
       expect(pinnedPost?.pinned).toBe(true);
+    });
+
+    it("publishes and unpublishes posts", async () => {
+      const draft = await createPost({
+        authorId: userId,
+        status: "draft",
+        publishedAt: new Date("2026-04-01T10:00:00Z"),
+      });
+
+      const publish = new FormData();
+      publish.set("intent", "toggle-status");
+      publish.set("id", draft.id);
+
+      const publishResult = await callAction(publish, cookie);
+      expect(publishResult).toMatchObject({ ok: true });
+      const publishedPost = await prisma.post.findUnique({ where: { id: draft.id } });
+      expect(publishedPost?.status).toBe("published");
+      expect(publishedPost?.publishedAt.getTime()).toBeGreaterThan(draft.publishedAt.getTime());
+
+      const unpublish = new FormData();
+      unpublish.set("intent", "toggle-status");
+      unpublish.set("id", draft.id);
+
+      const unpublishResult = await callAction(unpublish, cookie);
+      expect(unpublishResult).toMatchObject({ ok: true });
+      const hiddenPost = await prisma.post.findUnique({ where: { id: draft.id } });
+      expect(hiddenPost?.status).toBe("draft");
     });
 
     it("keeps the delete action working on paginated results and falls back from an empty last page", async () => {

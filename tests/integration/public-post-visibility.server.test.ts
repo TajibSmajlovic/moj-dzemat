@@ -1,0 +1,126 @@
+import { describe, expect, it } from "vitest";
+
+import { loader as publicHomeLoader } from "#app/routes/_public._index";
+import { loader as publicPostLoader } from "#app/routes/_public.objave.$slug";
+import { loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
+import { loader as imageLoader } from "#app/routes/slike.$id";
+import { prisma } from "#app/utils/db.server";
+
+import { createPost, createUser } from "../factories";
+
+type HomeLoaderArgs = Parameters<typeof publicHomeLoader>[0];
+type PostLoaderArgs = Parameters<typeof publicPostLoader>[0];
+type ImageLoaderArgs = Parameters<typeof imageLoader>[0];
+
+function callHomeLoader(url = "http://localhost/") {
+  return publicHomeLoader({
+    request: new Request(url),
+    params: {},
+    context: {},
+  } as HomeLoaderArgs);
+}
+
+function callPostLoader(slug: string) {
+  return publicPostLoader({
+    request: new Request(`http://localhost/objave/${slug}`),
+    params: { slug },
+    context: {},
+  } as PostLoaderArgs);
+}
+
+function callImageLoader(id: string) {
+  return imageLoader({
+    request: new Request(`http://localhost/slike/${id}`),
+    params: { id },
+    context: {},
+  } as ImageLoaderArgs);
+}
+
+describe("public post visibility", () => {
+  it("shows published posts and hides drafts from the homepage", async () => {
+    const { user } = await createUser();
+    await createPost({
+      authorId: user.id,
+      title: "Javna objava",
+      slug: "javna-objava",
+      status: "published",
+      featured: true,
+    });
+    await createPost({
+      authorId: user.id,
+      title: "Sakriven nacrt",
+      slug: "sakriven-nacrt",
+      status: "draft",
+      featured: true,
+    });
+
+    const result = await callHomeLoader();
+
+    expect(result.posts.map((post) => post.title)).toContain("Javna objava");
+    expect(result.posts.map((post) => post.title)).not.toContain("Sakriven nacrt");
+    expect(result.featured.map((post) => post.title)).toEqual(["Javna objava"]);
+  });
+
+  it("returns 404 for a draft on the public detail route", async () => {
+    const { user } = await createUser();
+    await createPost({
+      authorId: user.id,
+      title: "Sakriven nacrt",
+      slug: "sakriven-nacrt",
+      status: "draft",
+    });
+
+    try {
+      await callPostLoader("sakriven-nacrt");
+      throw new Error("Expected draft post detail to throw.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(Response);
+      expect((error as Response).status).toBe(404);
+    }
+  });
+
+  it("omits drafts from the sitemap", async () => {
+    const { user } = await createUser();
+    await createPost({ authorId: user.id, slug: "javna-objava", status: "published" });
+    await createPost({ authorId: user.id, slug: "sakriven-nacrt", status: "draft" });
+
+    const response = await sitemapLoader();
+    const body = await response.text();
+
+    expect(body).toContain("/objave/javna-objava");
+    expect(body).not.toContain("/objave/sakriven-nacrt");
+  });
+
+  it("does not serve draft images publicly", async () => {
+    const { user } = await createUser();
+    const draft = await createPost({ authorId: user.id, status: "draft" });
+    const published = await createPost({ authorId: user.id, status: "published" });
+    const draftImage = await prisma.postImage.create({
+      data: {
+        postId: draft.id,
+        contentType: "image/webp",
+        data: Buffer.from([1, 2, 3]),
+        byteSize: 3,
+      },
+    });
+    const publishedImage = await prisma.postImage.create({
+      data: {
+        postId: published.id,
+        contentType: "image/webp",
+        data: Buffer.from([1, 2, 3]),
+        byteSize: 3,
+      },
+    });
+
+    const publishedResponse = await callImageLoader(publishedImage.id);
+    expect(publishedResponse.status).toBe(200);
+
+    try {
+      await callImageLoader(draftImage.id);
+      throw new Error("Expected draft image to throw.");
+    } catch (error) {
+      expect(error).toBeInstanceOf(Response);
+      expect((error as Response).status).toBe(404);
+    }
+  });
+});

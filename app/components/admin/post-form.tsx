@@ -9,7 +9,7 @@ import {
   type SubmissionResult,
 } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { ImagePlus, Pin, Star, Trash2 } from "lucide-react";
+import { Eye, ImagePlus, Pin, Star, Trash2 } from "lucide-react";
 
 import { RichEditor } from "#app/components/admin/rich-editor";
 import { Field } from "#app/components/forms/field";
@@ -19,6 +19,7 @@ import { ConfirmAction } from "#app/components/ui/confirm-action";
 import { Label } from "#app/components/ui/label";
 import { showToast } from "#app/components/ui/sonner";
 import { MAX_IMAGES_PER_POST, PostFormSchema } from "#app/lib/post-schema";
+import type { PostStatusValue } from "#app/lib/post-status";
 import { POST_TYPES, POST_TYPE_LABEL } from "#app/lib/post-type";
 import type { Toast } from "#app/lib/toast";
 
@@ -36,6 +37,7 @@ type PostFormProps = {
     slug: string;
     type: string;
     body: string;
+    status: PostStatusValue;
     featured: boolean;
     pinned: boolean;
     images: PostFormImage[];
@@ -124,6 +126,13 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
 
         <div className="flex flex-wrap gap-5 pt-1">
           <FlagToggle
+            id="post-publish"
+            name="publish"
+            defaultChecked={post?.status === "published"}
+            icon={<Eye className="text-primary h-4 w-4" aria-hidden="true" />}
+            label="Objavi odmah"
+          />
+          <FlagToggle
             id="post-featured"
             name="featured"
             defaultChecked={post?.featured ?? false}
@@ -160,6 +169,14 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         {cancelTo ? (
           <Button type="button" variant="ghost" asChild>
             <Link to={cancelTo}>Odustani</Link>
+          </Button>
+        ) : null}
+        {isEdit ? (
+          <Button type="button" variant="outline" className="gap-2" asChild>
+            <Link to={`/admin/objave/${post!.id}/pregled`}>
+              <Eye className="h-4 w-4" aria-hidden="true" />
+              Pregled
+            </Link>
           </Button>
         ) : null}
         <Button type="submit" disabled={submitting}>

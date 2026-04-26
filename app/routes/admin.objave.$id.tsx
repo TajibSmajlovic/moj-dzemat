@@ -17,6 +17,7 @@ const POST_FORM_SELECT = {
   slug: true,
   type: true,
   body: true,
+  status: true,
   featured: true,
   pinned: true,
   images: {
@@ -110,7 +111,7 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
       <div className="mb-6">
         <h1 className="font-display text-foreground text-2xl font-semibold">Uredi objavu</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Uređujete „{post.title}". Sačuvajte izmjene ili se vratite bez spremanja.
+          Uređujete "{post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.
         </p>
       </div>
 

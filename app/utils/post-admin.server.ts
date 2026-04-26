@@ -5,6 +5,7 @@ import { parseFormData } from "@mjackson/form-data-parser";
 import { Prisma } from "@prisma/client";
 
 import { MAX_IMAGES_PER_POST, PostFormSchema } from "#app/lib/post-schema";
+import type { PostStatusValue } from "#app/lib/post-status";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/utils/db.server";
@@ -126,6 +127,7 @@ async function persistPostAndImages(args: {
   pinned: boolean;
   processedImages: ProcessedImage[];
   slug: string;
+  status: PostStatusValue;
   title: string;
   type: PostTypeValue;
 }) {
@@ -139,6 +141,7 @@ async function persistPostAndImages(args: {
       pinned,
       processedImages,
       slug,
+      status,
       title,
       type,
     } = args;
@@ -153,16 +156,35 @@ async function persistPostAndImages(args: {
       });
     }
 
+    const existingPost =
+      intent === "update" && existingId
+        ? await tx.post.findUnique({
+            where: { id: existingId },
+            select: { status: true },
+          })
+        : null;
+    const shouldStampPublishedAt =
+      status === "published" && (!existingPost || existingPost.status === "draft");
+
     const post =
       intent === "update" && existingId
         ? await tx.post.update({
             where: { id: existingId },
-            data: { title, slug, type, body, featured, pinned },
-            select: { id: true, slug: true },
+            data: {
+              title,
+              slug,
+              type,
+              body,
+              featured,
+              pinned,
+              status,
+              ...(shouldStampPublishedAt ? { publishedAt: new Date() } : {}),
+            },
+            select: { id: true, slug: true, status: true },
           })
         : await tx.post.create({
-            data: { title, slug, type, body, featured, pinned, authorId },
-            select: { id: true, slug: true },
+            data: { title, slug, type, body, featured, pinned, status, authorId },
+            select: { id: true, slug: true, status: true },
           });
 
     await createImageRows(tx, post.id, processedImages);
@@ -186,11 +208,31 @@ type CreateOrUpdateArgs = {
   intent: "create" | "update";
 };
 
+export async function togglePostStatus(postId: string, userId: string) {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    select: { status: true },
+  });
+  const nextStatus: PostStatusValue = post.status === "published" ? "draft" : "published";
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: {
+      status: nextStatus,
+      ...(nextStatus === "published" ? { publishedAt: new Date() } : {}),
+    },
+  });
+
+  logger.info({ postId, userId, status: nextStatus }, "post status toggled");
+
+  return nextStatus;
+}
+
 /**
  * Parses the multipart body via `@mjackson/form-data-parser` (which
  * correctly streams file parts), validates text fields, pre-processes
  * images, then commits the post + image rows in one short transaction.
- * On success redirects to the saved public post.
+ * On success redirects published posts publicly and drafts to admin preview.
  */
 export async function createOrUpdatePostFromForm({
   request,
@@ -206,7 +248,8 @@ export async function createOrUpdatePostFromForm({
     return data({ result: submission.reply() }, { status: 400 });
   }
 
-  const { title, slug, type, body, featured, pinned } = submission.value;
+  const { title, slug, type, body, publish, featured, pinned } = submission.value;
+  const status: PostStatusValue = publish ? "published" : "draft";
   const existingId = intent === "update" ? requireId(formData.get("id")) : null;
 
   let processedImages: ProcessedImage[];
@@ -224,7 +267,7 @@ export async function createOrUpdatePostFromForm({
     throw error;
   }
 
-  let savedPost: { id: string; slug: string } | null = null;
+  let savedPost: { id: string; slug: string; status: PostStatusValue } | null = null;
 
   try {
     savedPost = await persistPostAndImages({
@@ -236,6 +279,7 @@ export async function createOrUpdatePostFromForm({
       pinned,
       processedImages,
       slug,
+      status,
       title,
       type,
     });
@@ -245,6 +289,7 @@ export async function createOrUpdatePostFromForm({
         postId: savedPost.id,
         intent,
         slug: savedPost.slug,
+        status: savedPost.status,
         type,
         imageCount: processedImages.length,
       },
@@ -292,7 +337,12 @@ export async function createOrUpdatePostFromForm({
     throw new Error("Post save completed without a saved post payload.");
   }
 
-  return redirectWithToast(`/objave/${savedPost.slug}`, {
+  const redirectTo =
+    savedPost.status === "published"
+      ? `/objave/${savedPost.slug}`
+      : `/admin/objave/${savedPost.id}/pregled`;
+
+  return redirectWithToast(redirectTo, {
     ...(intent === "create"
       ? createActionToast({
           action: "create",

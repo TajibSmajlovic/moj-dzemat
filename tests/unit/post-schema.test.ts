@@ -55,11 +55,12 @@ describe("PostFormSchema", () => {
     }
   });
 
-  describe("featured/pinned checkbox shim", () => {
+  describe("checkbox shim", () => {
     it("defaults to false when the field is omitted", () => {
       const result = PostFormSchema.safeParse(valid);
       expect(result.success).toBe(true);
       if (result.success) {
+        expect(result.data.publish).toBe(false);
         expect(result.data.featured).toBe(false);
         expect(result.data.pinned).toBe(false);
       }
@@ -68,11 +69,13 @@ describe("PostFormSchema", () => {
     it("treats the literal 'on' as true (matching the browser checkbox encoding)", () => {
       const result = PostFormSchema.safeParse({
         ...valid,
+        publish: "on",
         featured: "on",
         pinned: "on",
       });
       expect(result.success).toBe(true);
       if (result.success) {
+        expect(result.data.publish).toBe(true);
         expect(result.data.featured).toBe(true);
         expect(result.data.pinned).toBe(true);
       }
@@ -81,7 +84,9 @@ describe("PostFormSchema", () => {
     it("rejects values other than 'on' or undefined", () => {
       // 'off' is not how browsers encode an unchecked box (they omit the field
       // entirely), so accepting it would mask a real submission bug.
+      expect(PostFormSchema.safeParse({ ...valid, publish: "off" }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, featured: "off" }).success).toBe(false);
+      expect(PostFormSchema.safeParse({ ...valid, publish: true }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, featured: true }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, pinned: false }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, pinned: 1 }).success).toBe(false);
