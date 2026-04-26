@@ -56,14 +56,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   } as const;
 
   const featuredPromise = prisma.post.findMany({
-    where: { featured: true },
+    where: { featured: true, status: "published" },
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
     take: 5, // TODO: maybe make this configurable
     select,
   });
 
   const postsPromise = prisma.post.findMany({
-    where: activeType === "all" ? {} : { type: activeType },
+    where:
+      activeType === "all" ? { status: "published" } : { status: "published", type: activeType },
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
     select,
   });

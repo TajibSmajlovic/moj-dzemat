@@ -36,6 +36,7 @@ export const PostFormSchema = z.object({
   body: requiredString("Tekst je obavezan.")
     .min(1, "Tekst je obavezan.")
     .max(50_000, "Tekst je predug (max 50000 znakova)."),
+  publish: checkbox,
   featured: checkbox,
   pinned: checkbox,
 });
