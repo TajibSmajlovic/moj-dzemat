@@ -15,8 +15,10 @@ import type { Route } from "./+types/root";
 import "./styles/tailwind.css";
 
 export const links: Route.LinksFunction = () => [
-  { rel: "icon", href: "/favicon.svg?v=4", type: "image/svg+xml" },
-  { rel: "icon", href: "/favicon.ico?v=4", sizes: "any" },
+  { rel: "icon", href: "/favicon-32x32.png?v=1", type: "image/png", sizes: "32x32" },
+  { rel: "icon", href: "/logo.png?v=1", type: "image/png", sizes: "512x512" },
+  { rel: "icon", href: "/logo.svg?v=7", type: "image/svg+xml" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=1" },
   {
     rel: "preload",
     href: interLatinWghtNormal,
