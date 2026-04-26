@@ -1,3 +1,4 @@
+import { getCurrentUser } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 
 import type { Route } from "./+types/slike.$id";
@@ -21,13 +22,21 @@ function toResponseBody(data: Uint8Array | Buffer): Uint8Array<ArrayBuffer> {
  * length browsers expect — some Buffer subclasses have tripped
  * `Content-Length` / body mismatches in the past.
  */
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const image = await prisma.postImage.findUnique({
     where: { id: params.id },
-    select: { data: true, contentType: true },
+    select: {
+      data: true,
+      contentType: true,
+      post: { select: { status: true } },
+    },
   });
 
   if (!image) {
+    throw new Response("Not found", { status: 404 });
+  }
+
+  if (image.post.status !== "published" && !(await getCurrentUser(request))) {
     throw new Response("Not found", { status: 404 });
   }
 

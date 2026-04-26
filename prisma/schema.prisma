@@ -68,15 +68,21 @@ enum PostType {
   hutba
 }
 
+enum PostStatus {
+  draft
+  published
+}
+
 model Post {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String     @id @default(cuid())
+  slug        String     @unique
   title       String
   body        String
   type        PostType
-  publishedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      PostStatus @default(published)
+  publishedAt DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   // Editorial flags the admin flips from the dashboard. `featured` posts
   // surface in the hero carousel; `pinned` posts float to the top of the
@@ -91,6 +97,9 @@ model Post {
 
   images PostImage[]
 
+  @@index([status, publishedAt])
+  @@index([status, type, publishedAt])
+  @@index([status, featured, publishedAt])
   @@index([type, publishedAt])
   @@index([publishedAt])
   @@index([featured, publishedAt])

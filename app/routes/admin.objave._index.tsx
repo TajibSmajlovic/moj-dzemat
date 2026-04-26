@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
 import { Form, Link, redirect, useActionData, useFetcher, useNavigation } from "react-router";
 
-import { Pencil, Pin, Plus, Star, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Pencil, Pin, Plus, Star, Trash2 } from "lucide-react";
 
 import { PaginationControls } from "#app/components/admin/pagination-controls";
+import { PostStatusBadge } from "#app/components/admin/post-status-badge";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { Button } from "#app/components/ui/button";
 import { ConfirmAction } from "#app/components/ui/confirm-action";
@@ -23,7 +24,7 @@ import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { logger } from "#app/utils/logger.server";
-import { requireId } from "#app/utils/post-admin.server";
+import { requireId, togglePostStatus } from "#app/utils/post-admin.server";
 
 import type { Route } from "./+types/admin.objave._index";
 
@@ -49,6 +50,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       slug: true,
       title: true,
       type: true,
+      status: true,
       publishedAt: true,
       featured: true,
       pinned: true,
@@ -136,6 +138,19 @@ export async function action({ request }: Route.ActionArgs) {
     };
   }
 
+  if (intent === "toggle-status") {
+    const id = requireId(formData.get("id"));
+    const next = await togglePostStatus(id, user.id);
+
+    return {
+      ok: true,
+      toast: createActionToast({
+        action: "update",
+        description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
+      }),
+    };
+  }
+
   throw new Response("Unsupported intent", { status: 400 });
 }
 
@@ -213,9 +228,10 @@ function PostsTable({
             <TableRow className="bg-muted/50">
               <TableHead>Objava</TableHead>
               <TableHead className="w-36">Vrsta</TableHead>
+              <TableHead className="w-36">Status</TableHead>
               <TableHead className="w-32">Datum</TableHead>
               <TableHead className="w-16 text-center">Slike</TableHead>
-              <TableHead className="w-64 text-right">Akcije</TableHead>
+              <TableHead className="w-60 text-right">Akcije</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -251,6 +267,10 @@ function PostsTable({
                   <PostTypeBadge type={post.type} />
                 </TableCell>
 
+                <TableCell>
+                  <PostStatusBadge status={post.status} />
+                </TableCell>
+
                 <TableCell className="text-muted-foreground text-sm">
                   {formatDateShort(post.publishedAt)}
                 </TableCell>
@@ -279,6 +299,21 @@ function PostsTable({
                       inactiveClasses="text-muted-foreground hover:text-primary hover:bg-primary/10"
                     >
                       <Pin className="h-4 w-4" aria-hidden="true" />
+                    </ToggleButton>
+
+                    <ToggleButton
+                      intent="toggle-status"
+                      id={post.id}
+                      active={post.status === "published"}
+                      title={post.status === "published" ? "Sakrij objavu" : "Objavi"}
+                      activeClasses="text-primary bg-primary/10"
+                      inactiveClasses="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    >
+                      {post.status === "published" ? (
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" aria-hidden="true" />
+                      )}
                     </ToggleButton>
 
                     <Button
@@ -354,7 +389,7 @@ function DeletePostButton({ postId, postTitle }: { postId: string; postTitle: st
 }
 
 type ToggleButtonProps = {
-  intent: "toggle-featured" | "toggle-pinned";
+  intent: "toggle-featured" | "toggle-pinned" | "toggle-status";
   id: string;
   active: boolean;
   title: string;

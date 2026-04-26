@@ -12,6 +12,7 @@ export async function loader() {
   const siteUrl = env().APP_URL;
 
   const posts = await prisma.post.findMany({
+    where: { status: "published" },
     orderBy: { updatedAt: "desc" },
     take: MAX_ENTRIES,
     select: { slug: true, updatedAt: true },

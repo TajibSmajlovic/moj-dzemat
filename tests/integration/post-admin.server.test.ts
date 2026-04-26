@@ -54,6 +54,7 @@ describe("createOrUpdatePostFromForm", () => {
       formData.set("slug", "prva-objava");
       formData.set("type", "obavijest");
       formData.set("body", "Tijelo objave.");
+      formData.set("publish", "on");
 
       const response = await createOrUpdatePostFromForm({
         request: multipartRequest(formData),
@@ -71,6 +72,7 @@ describe("createOrUpdatePostFromForm", () => {
       expect(stored?.title).toBe("Prva objava");
       expect(stored?.type).toBe("obavijest");
       expect(stored?.authorId).toBe(user.id);
+      expect(stored?.status).toBe("published");
       expect(stored?.featured).toBe(false);
       expect(stored?.pinned).toBe(false);
     });
@@ -82,6 +84,7 @@ describe("createOrUpdatePostFromForm", () => {
       formData.set("slug", "naslov");
       formData.set("type", "hutba");
       formData.set("body", "Tekst hutbe.");
+      formData.set("publish", "on");
       formData.set("featured", "on");
       formData.set("pinned", "on");
 
@@ -94,6 +97,29 @@ describe("createOrUpdatePostFromForm", () => {
       const stored = await prisma.post.findUnique({ where: { slug: "naslov" } });
       expect(stored?.featured).toBe(true);
       expect(stored?.pinned).toBe(true);
+    });
+
+    it("can save a draft and redirects to the admin preview instead of the public URL", async () => {
+      const { user } = await createUser();
+      const formData = new FormData();
+      formData.set("title", "Nacrt objave");
+      formData.set("slug", "nacrt-objave");
+      formData.set("type", "obavijest");
+      formData.set("body", "Tekst koji još nije javan.");
+
+      const response = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(response).toBeInstanceOf(Response);
+      const res = response as Response;
+      expect(res.status).toBe(302);
+
+      const stored = await prisma.post.findUnique({ where: { slug: "nacrt-objave" } });
+      expect(stored?.status).toBe("draft");
+      expect(res.headers.get("Location")).toBe(`/admin/objave/${stored?.id}/pregled`);
     });
 
     it("returns 400 with a slug field error when the slug is already taken", async () => {
@@ -205,6 +231,7 @@ describe("createOrUpdatePostFromForm", () => {
       formData.set("slug", "novi-slug");
       formData.set("type", "hutba");
       formData.set("body", "Novi tekst.");
+      formData.set("publish", "on");
 
       const response = await createOrUpdatePostFromForm({
         request: multipartRequest(formData),
@@ -221,6 +248,38 @@ describe("createOrUpdatePostFromForm", () => {
       expect(stored?.title).toBe("Novi naslov");
       expect(stored?.slug).toBe("novi-slug");
       expect(stored?.type).toBe("hutba");
+      expect(stored?.status).toBe("published");
+    });
+
+    it("can publish an existing draft from the edit form", async () => {
+      const { user } = await createUser();
+      const post = await createPost({
+        authorId: user.id,
+        title: "Nacrt",
+        slug: "nacrt",
+        status: "draft",
+        publishedAt: new Date("2026-04-01T10:00:00Z"),
+      });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", "Objavljen nacrt");
+      formData.set("slug", "objavljen-nacrt");
+      formData.set("type", "obavijest");
+      formData.set("body", "Spremno za javnost.");
+      formData.set("publish", "on");
+
+      const response = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(response).toBeInstanceOf(Response);
+      expect((response as Response).headers.get("Location")).toBe("/objave/objavljen-nacrt");
+
+      const stored = await prisma.post.findUnique({ where: { id: post.id } });
+      expect(stored?.status).toBe("published");
+      expect(stored?.publishedAt.getTime()).toBeGreaterThan(post.publishedAt.getTime());
     });
 
     it("allows keeping the same slug when other fields change", async () => {
