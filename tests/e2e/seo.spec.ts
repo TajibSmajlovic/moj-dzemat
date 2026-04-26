@@ -20,7 +20,7 @@ test.describe("seo", () => {
     );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      /\/(slike|favicon)/,
+      /\/(slike|logo\.png)/,
     );
 
     const jsonLd = await page.locator('script[type="application/ld+json"]').textContent();

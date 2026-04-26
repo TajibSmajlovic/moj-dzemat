@@ -70,7 +70,7 @@ export function meta({ data, matches }: Route.MetaArgs) {
     { property: "og:description", content: description },
     { property: "og:type", content: "article" },
     { property: "og:url", content: canonical },
-    { property: "og:image", content: imageUrl ?? `${siteUrl}/logo.svg` },
+    { property: "og:image", content: imageUrl ?? `${siteUrl}/logo.png` },
     ...(primaryImage?.altText ? [{ property: "og:image:alt", content: primaryImage.altText }] : []),
     ...(primaryImage?.width
       ? [{ property: "og:image:width", content: String(primaryImage.width) }]
