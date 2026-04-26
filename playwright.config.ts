@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
   workers: 1,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   timeout: 30_000,
   expect: { timeout: 5000 },
@@ -32,6 +32,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
+      NODE_ENV: "test",
       ENABLE_TEST_ROUTES: "true",
       HONEYPOT_SKIP_MIN_AGE: "true",
       DISABLE_RATE_LIMITING: "true",

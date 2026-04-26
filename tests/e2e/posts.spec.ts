@@ -159,7 +159,7 @@ test.describe("posts", () => {
     await expect(page.locator('img[src^="/slike/"]')).toHaveCount(0);
   });
 
-  test("admin can draft, preview, publish, and unpublish a post", async ({ page }) => {
+  test("admin can draft, preview, and publish post", async ({ page }) => {
     const unique = Date.now();
     const title = `E2E nacrt ${unique}`;
     const slug = `e2e-nacrt-${unique}`;
