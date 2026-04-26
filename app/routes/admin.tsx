@@ -2,7 +2,7 @@ import { Form, Link, NavLink, Outlet, useMatches } from "react-router";
 
 import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
-import { Logo } from "#app/components/layout/brand-logo-half-moon-with-star.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
 import { Button } from "#app/components/ui/button";
 import { getSiteNameFromMatches } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
@@ -33,7 +33,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Link>
             <div className="flex items-center gap-3">
-              <Logo />
+              <IslamskaZajednicaLogo />
 
               <div>
                 <h1 className="font-display text-foreground text-lg leading-tight font-bold">
