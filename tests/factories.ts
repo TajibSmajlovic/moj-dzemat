@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 
+import type { PostStatusValue } from "#app/lib/post-status";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { prisma } from "#app/utils/db.server";
 
@@ -41,6 +42,7 @@ type CreatePostOptions = {
   slug?: string;
   body?: string;
   type?: PostTypeValue;
+  status?: PostStatusValue;
   featured?: boolean;
   pinned?: boolean;
   publishedAt?: Date;
@@ -56,6 +58,7 @@ export async function createPost(options: CreatePostOptions = {}) {
       slug,
       body: options.body ?? "Tijelo objave.\n\nDrugi paragraf.",
       type: options.type ?? "obavijest",
+      status: options.status,
       authorId: options.authorId,
       featured: options.featured,
       pinned: options.pinned,

@@ -128,6 +128,7 @@ test.describe("posts", () => {
     await page.getByLabel("Vrsta").selectOption("obavijest");
     await page.locator(".ProseMirror").waitFor({ state: "visible" });
     await page.locator(".ProseMirror").fill("E2E sadržaj sa uploadovanom slikom.");
+    await page.getByLabel("Objavi odmah").click();
 
     await page.locator('input[type="file"][name="images"]').setInputFiles({
       name: "e2e-image.png",
@@ -156,6 +157,52 @@ test.describe("posts", () => {
 
     await expect(page.getByText("Slika obrisana.")).toBeVisible();
     await expect(page.locator('img[src^="/slike/"]')).toHaveCount(0);
+  });
+
+  test("admin can draft, preview, and publish post", async ({ page }) => {
+    const unique = Date.now();
+    const title = `E2E nacrt ${unique}`;
+    const slug = `e2e-nacrt-${unique}`;
+
+    await loginAsAdmin(page);
+    await page.goto("/admin/objave/nova");
+    await expect(page).toHaveURL(/\/admin\/objave\/nova$/);
+
+    await page.getByRole("textbox", { name: "Naslov" }).fill(title);
+    await page.getByLabel("URL slug").fill(slug);
+    await page.getByLabel("Vrsta").selectOption("obavijest");
+    await page.locator(".ProseMirror").waitFor({ state: "visible" });
+    await page.locator(".ProseMirror").fill("Ovaj tekst je prvo skriven od javnosti.");
+
+    await page.getByRole("button", { name: "Sačuvaj" }).click();
+
+    await expect(page).toHaveURL(/\/admin\/objave\/[^/]+\/pregled$/);
+    await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
+    await expect(page.getByText("Neobjavljeno").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
+
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 3, name: title })).toHaveCount(0);
+
+    const draftDetail = await page.goto(`/objave/${slug}`);
+    expect(draftDetail?.status()).toBe(404);
+
+    await page.goto("/admin/objave");
+    await expect(page.getByRole("link", { name: title, exact: true })).toBeVisible();
+    await expect(page.getByText("Neobjavljeno").first()).toBeVisible();
+
+    await page.getByRole("link", { name: title, exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/objave\/[^/]+$/);
+    await page.getByRole("link", { name: "Pregled" }).click();
+    await expect(page).toHaveURL(/\/admin\/objave\/[^/]+\/pregled$/);
+
+    await page.getByRole("button", { name: "Objavi", exact: true }).click();
+    await expect(page.getByText("Objava je objavljena.")).toBeVisible();
+    await expect(page.getByText("Objavljeno").first()).toBeVisible();
+
+    const publishedDetail = await page.goto(`/objave/${slug}`);
+    expect(publishedDetail?.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
   });
 
   test("logged-in admin can edit a post from the public detail page", async ({ page }) => {
@@ -242,6 +289,7 @@ async function createPostThroughAdmin(
   await page
     .locator(".ProseMirror")
     .fill(options.body ?? "Ovo je jednostavan E2E test sadržaj objave.");
+  await page.getByLabel("Objavi odmah").click();
 
   await page.getByRole("button", { name: "Sačuvaj" }).click();
 

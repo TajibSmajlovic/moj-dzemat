@@ -53,7 +53,9 @@ export default function AdminNewPost() {
       <div className="mb-6">
         <h1 className="font-display text-foreground text-2xl font-semibold">Nova objava</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Popunite polja i po želji dodajte slike (do 3). Sačuvajte kada ste gotovi.
+          Popunite polja i po želji dodajte slike (do 3). Ukoliko želite da objavite odmah, označite
+          opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i napraviti dodatne
+          izmjene po potrebi.
         </p>
       </div>
 
