@@ -6,7 +6,3 @@ export const POST_STATUS_LABEL: Record<PostStatusValue, string> = {
   draft: "Neobjavljeno",
   published: "Objavljeno",
 };
-
-export function isPublished(status: string): status is "published" {
-  return status === "published";
-}

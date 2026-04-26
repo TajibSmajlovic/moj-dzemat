@@ -12,14 +12,14 @@ import {
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/lib/post-type";
 
-export type PostDetailImage = {
+type PostDetailImage = {
   id: string;
   altText: string | null;
   width: number | null;
   height: number | null;
 };
 
-export type PostDetailPost = {
+type PostDetailPost = {
   slug: string;
   title: string;
   body: string;
@@ -43,7 +43,7 @@ type PostDetailArticleProps = {
  * plain text (legacy posts created before the editor was added).
  * Plain text gets wrapped in `<p>` tags so both render correctly.
  */
-export function bodyToHtml(body: string): string {
+function bodyToHtml(body: string): string {
   const trimmed = body.trim();
   if (trimmed.startsWith("<")) {
     // Strip any accidental `<script>` / `<iframe>` / event handlers as
