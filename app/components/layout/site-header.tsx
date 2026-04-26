@@ -26,7 +26,7 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
             <span className="font-display text-foreground max-w-56 text-base font-bold text-balance sm:max-w-none sm:text-lg">
               {siteName}
             </span>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-muted-foreground -mt-0.5 text-xs">
               Rijaset Islamske zajednice u Bosni i Hercegovini
             </span>
           </span>
