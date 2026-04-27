@@ -60,6 +60,8 @@ export function meta({ data, matches }: Route.MetaArgs) {
     { property: "og:title", content: post.title },
     { property: "og:description", content: description },
     { property: "og:type", content: "article" },
+    { property: "og:site_name", content: siteName },
+    { property: "og:locale", content: "bs_BA" },
     { property: "og:url", content: canonical },
     { property: "og:image", content: imageUrl ?? `${siteUrl}/logo.png` },
     ...(primaryImage?.altText ? [{ property: "og:image:alt", content: primaryImage.altText }] : []),

@@ -7,6 +7,9 @@ import { env } from "#app/utils/env.server";
  */
 export function loader() {
   const body = [
+    "User-agent: facebookexternalhit",
+    "Allow: /slike/",
+    "",
     "User-agent: *",
     "Allow: /",
     "Disallow: /admin",
