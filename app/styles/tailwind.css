@@ -165,7 +165,7 @@
     overflow-x: clip;
     /* Stops scroll chaining into horizontal 'rubber band' on nested carousels. */
     overscroll-behavior-x: none;
-    scrollbar-gutter: stable;
+    scrollbar-gutter: stable both-edges;
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.45) transparent;
     /* Scrollbars / form controls follow the active palette (light until `.dark`). */
