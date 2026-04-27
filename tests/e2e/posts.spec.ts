@@ -143,6 +143,12 @@ test.describe("posts", () => {
 
     await expect(page).toHaveURL(new RegExp(`/objave/${slug}$`));
     await expect(page.locator('img[src^="/slike/"]')).toHaveCount(1);
+    await page.getByRole("button", { name: "Otvori sliku 1 preko cijelog ekrana" }).click();
+    const lightbox = page.getByRole("dialog", { name: "Pregled slike preko cijelog ekrana" });
+    await expect(lightbox).toBeVisible();
+    await expect(lightbox.locator('img[src^="/slike/"]')).toBeVisible();
+    await lightbox.getByRole("button", { name: "Zatvori prikaz slike" }).click();
+    await expect(lightbox).toBeHidden();
     await expect(page.getByRole("link", { name: "Uredi" })).toBeVisible();
 
     await page.getByRole("link", { name: "Uredi" }).click();
