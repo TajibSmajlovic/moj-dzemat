@@ -1,4 +1,4 @@
-import { Link, useLocation, useMatches, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { ArrowLeft, Pencil } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { ShareButton } from "#app/components/posts/share-button";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
+import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { getCurrentUser } from "#app/utils/auth.server.js";
 import { prisma } from "#app/utils/db.server";
@@ -42,7 +42,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data, matches }: Route.MetaArgs) {
-  const siteName = getSiteNameFromMatches(matches);
+  const siteName = getRootSiteName(matches);
 
   if (!data) {
     return [{ title: formatPageTitle("Objava nije pronađena", siteName) }];
@@ -75,12 +75,11 @@ export function meta({ data, matches }: Route.MetaArgs) {
 
 export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
   const { post, siteUrl, isAdminLoggedIn } = loaderData;
-  const matches = useMatches();
   const navigate = useNavigate();
   const location = useLocation();
 
   const fromList = (location.state as { fromList?: boolean } | null)?.fromList === true;
-  const siteName = getSiteNameFromMatches(matches);
+  const siteName = useRootSiteName();
 
   return (
     <AnimatePresence>

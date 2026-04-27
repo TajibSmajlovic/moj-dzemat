@@ -7,7 +7,7 @@ import loraLatinWghtNormal from "@fontsource-variable/lora/files/lora-latin-wght
 
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
-import { formatSiteName, getSiteNameFromRootData } from "#app/lib/branding";
+import { DEFAULT_SITE_NAME, formatSiteName } from "#app/lib/branding";
 import { env } from "#app/utils/env.server";
 import { getToast } from "#app/utils/toast.server";
 
@@ -57,6 +57,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     {
       siteName: formatSiteName(environment.DZEMAT_NAME),
       siteUrl: environment.APP_URL,
+      facebookPageUrl: environment.FACEBOOK_PAGE_URL,
       toast,
     },
     {
@@ -70,7 +71,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  const siteName = getSiteNameFromRootData(data);
+  const siteName = data?.siteName ?? DEFAULT_SITE_NAME;
   const siteUrl = data?.siteUrl;
   const canonical = siteUrl ? `${siteUrl}/` : "/";
 

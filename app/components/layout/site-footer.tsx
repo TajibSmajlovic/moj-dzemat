@@ -1,23 +1,37 @@
-import { useMatches } from "react-router";
-
 import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
-import { getSiteNameFromMatches } from "#app/lib/branding";
+import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 
 export function SiteFooter() {
-  const siteName = getSiteNameFromMatches(useMatches());
+  const siteName = useRootSiteName();
+  const { brandName, dzematName } = getSiteNameParts(siteName);
 
   return (
     <footer className="border-border/60 mt-8 border-t">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-4 px-4 py-8 sm:flex-row sm:justify-start">
         <IslamskaZajednicaLogo className="h-14 sm:h-12" />
 
-        <div className="min-w-0 space-y-1.5 text-left">
-          <p className="text-foreground text-center text-sm leading-none font-medium sm:mb-0 sm:text-left">
-            &copy; {siteName}
+        <div className="min-w-0 space-y-1.5 text-center sm:text-left">
+          <p className="font-display text-foreground text-sm leading-tight sm:text-base">
+            <span className="font-bold">&copy; {brandName}</span>
+            {dzematName ? (
+              <>
+                <span className="text-muted-foreground mx-1.5 font-medium" aria-hidden="true">
+                  ·
+                </span>
+                <span className="text-primary text-[0.94em] font-semibold">{dzematName}</span>
+              </>
+            ) : null}
           </p>
 
-          <p className="text-muted-foreground max-w-full text-center text-xs leading-relaxed lg:whitespace-nowrap">
-            Džemat Donje Mostre djeluje u okviru{" "}
+          <p className="text-muted-foreground max-w-full text-xs leading-relaxed lg:whitespace-nowrap">
+            {dzematName ? (
+              <>
+                Džemat <span className="text-foreground/80 font-medium">{dzematName}</span> djeluje
+                u okviru{" "}
+              </>
+            ) : (
+              "Djeluje u okviru "
+            )}
             <a
               href="https://islamskazajednica.ba/"
               target="_blank"

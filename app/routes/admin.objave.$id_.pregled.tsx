@@ -1,4 +1,4 @@
-import { Form, Link, useMatches, useNavigation } from "react-router";
+import { Form, Link, useNavigation } from "react-router";
 
 import { ArrowLeft, Eye, EyeOff, Pencil } from "lucide-react";
 import { motion } from "motion/react";
@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { PostStatusBadge } from "#app/components/admin/post-status-badge";
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
+import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
@@ -80,7 +80,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   const { post, siteUrl } = loaderData;
-  const siteName = getSiteNameFromMatches(useMatches());
+  const siteName = useRootSiteName();
   const navigation = useNavigation();
   const toggling =
     navigation.state === "submitting" && navigation.formData?.get("intent") === "toggle-status";

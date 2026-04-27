@@ -5,7 +5,7 @@ import { BookOpenText, HandHeart, Megaphone, Moon, type LucideIcon } from "lucid
  * schema) because localisation is presentation-layer concern - the DB
  * only knows the canonical enum identifier.
  */
-export const POST_TYPES = ["obavijest", "smrtovnica", "sergija", "hutba"] as const;
+export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica"] as const;
 
 export type PostTypeValue = (typeof POST_TYPES)[number];
 

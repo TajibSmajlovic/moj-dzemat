@@ -47,6 +47,12 @@ const envSchema = z.object({
     .trim()
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
+  FACEBOOK_PAGE_URL: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === "" ? undefined : value))
+    .pipe(z.string().url().optional()),
 
   APP_URL: z
     .string()

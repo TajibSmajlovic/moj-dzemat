@@ -8,7 +8,7 @@ import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
+import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { hashPassword, validateNewPassword } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
@@ -34,7 +34,7 @@ const NewPasswordSchema = z
 
 export function meta({ matches }: Route.MetaArgs) {
   return [
-    { title: formatPageTitle("Nova lozinka", getSiteNameFromMatches(matches)) },
+    { title: formatPageTitle("Nova lozinka", getRootSiteName(matches)) },
     { name: "robots", content: "noindex" },
   ];
 }

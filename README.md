@@ -96,6 +96,7 @@ These are the variables that matter most for local development:
 | `DZEMAT_NAME`           | Optional branding suffix shown in the UI.                                                                                  |
 | `DZEMAT_ADDRESS`        | Optional homepage address block for the embedded map section.                                                              |
 | `DZEMAT_MAP_QUERY`      | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                   |
+| `FACEBOOK_PAGE_URL`     | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                   |
 | `PORT`                  | Defaults to `3000`.                                                                                                        |
 
 Useful secret generator:
