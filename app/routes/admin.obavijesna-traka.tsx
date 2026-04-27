@@ -42,6 +42,7 @@ import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { logger } from "#app/utils/logger.server";
+import { requireId } from "#app/utils/post-admin.server";
 import { redirectWithToast } from "#app/utils/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
@@ -135,12 +136,10 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     const { message, isActive } = submission.value;
-    let announcementId: string;
 
-    await prisma.$transaction(async (tx) => {
+    const announcementId = await prisma.$transaction(async (tx) => {
       if (intent === "update") {
         const id = requireId(formData.get("id"));
-        announcementId = id;
         if (isActive) {
           await tx.siteAnnouncement.updateMany({
             where: { id: { not: id }, isActive: true },
@@ -151,6 +150,7 @@ export async function action({ request }: Route.ActionArgs) {
           where: { id },
           data: { message, isActive },
         });
+        return id;
       } else {
         if (isActive) {
           await tx.siteAnnouncement.updateMany({
@@ -161,12 +161,12 @@ export async function action({ request }: Route.ActionArgs) {
         const created = await tx.siteAnnouncement.create({
           data: { message, isActive },
         });
-        announcementId = created.id;
+        return created.id;
       }
     });
     logger.info(
       {
-        announcementId: announcementId!,
+        announcementId,
         userId: user.id,
         intent,
         isActive,
@@ -175,8 +175,9 @@ export async function action({ request }: Route.ActionArgs) {
       "site announcement saved",
     );
 
-    return redirectWithToast("/admin/obavijesna-traka", {
-      ...(intent === "create"
+    return redirectWithToast(
+      "/admin/obavijesna-traka",
+      intent === "create"
         ? createActionToast({
             action: "create",
             description: "Poruka na obavijesnoj traci je uspješno kreirana.",
@@ -184,18 +185,11 @@ export async function action({ request }: Route.ActionArgs) {
         : createActionToast({
             action: "update",
             description: "Poruka na obavijesnoj traci je uspješno ažurirana.",
-          })),
-    });
+          }),
+    );
   }
 
   throw new Response("Unsupported intent", { status: 400 });
-}
-
-function requireId(value: FormDataEntryValue | null): string {
-  if (typeof value !== "string" || !value) {
-    throw new Response("Missing id", { status: 400 });
-  }
-  return value;
 }
 
 type AnnouncementRow = Awaited<ReturnType<typeof loader>>["announcements"][number];

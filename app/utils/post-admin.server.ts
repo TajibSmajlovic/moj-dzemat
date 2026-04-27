@@ -342,8 +342,9 @@ export async function createOrUpdatePostFromForm({
       ? `/objave/${savedPost.slug}`
       : `/admin/objave/${savedPost.id}/pregled`;
 
-  return redirectWithToast(redirectTo, {
-    ...(intent === "create"
+  return redirectWithToast(
+    redirectTo,
+    intent === "create"
       ? createActionToast({
           action: "create",
           description: "Objava je uspješno kreirana.",
@@ -351,6 +352,6 @@ export async function createOrUpdatePostFromForm({
       : createActionToast({
           action: "update",
           description: "Objava je uspješno ažurirana.",
-        })),
-  });
+        }),
+  );
 }

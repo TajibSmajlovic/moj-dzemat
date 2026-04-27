@@ -1,18 +1,18 @@
-import { Form, data, redirect, useActionData } from "react-router";
-import { Link } from "react-router";
+import { Form, Link, data, redirect, useActionData } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { motion } from "motion/react";
 import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PasswordField } from "#app/components/forms/password-field";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
+import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
 import { login } from "#app/utils/auth.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
@@ -29,7 +29,7 @@ const LoginSchema = z.object({
 
 export function meta({ matches }: Route.MetaArgs) {
   return [
-    { title: formatPageTitle("Prijava", getSiteNameFromMatches(matches)) },
+    { title: formatPageTitle("Prijava", getRootSiteName(matches)) },
     { name: "robots", content: "noindex" },
   ];
 }
@@ -111,8 +111,8 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
 
         <div className="border-border bg-card rounded-2xl border p-8 shadow-lg">
           <div className="mb-6 flex flex-col items-center">
-            <div className="bg-primary text-primary-foreground mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
-              <Lock className="h-6 w-6" aria-hidden="true" />
+            <div className="mb-6">
+              <IslamskaZajednicaLogo className="h-18 sm:h-18" />
             </div>
             <h1 className="font-display text-foreground text-2xl font-bold">Admin Panel</h1>
             <p className="text-muted-foreground mt-1 text-sm">

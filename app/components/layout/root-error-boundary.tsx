@@ -1,9 +1,11 @@
-import { isRouteErrorResponse, Link, useMatches } from "react-router";
+import { isRouteErrorResponse, Link } from "react-router";
 
-import { getSiteNameFromMatches } from "#app/lib/branding";
+import { useRootSiteName } from "#app/lib/branding";
+
+import { IslamskaZajednicaLogo } from "./islamska-zajednica-logo";
 
 export function RootErrorBoundary({ error }: { error: unknown }) {
-  const siteName = getSiteNameFromMatches(useMatches());
+  const siteName = useRootSiteName();
   let status = 500;
   let title = "Došlo je do greške";
   let message = "Dogodila se neočekivana greška. Pokušajte ponovo za koji trenutak.";
@@ -47,7 +49,7 @@ export function RootErrorBoundary({ error }: { error: unknown }) {
 
       <div className="relative mx-auto flex max-w-md flex-col items-center gap-6 text-center">
         <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium">
-          <span aria-hidden="true">🕌</span>
+          <IslamskaZajednicaLogo />
           <span>
             {siteName} · {status}
           </span>

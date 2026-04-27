@@ -10,7 +10,7 @@ import {
 
 describe("post-type", () => {
   it("keeps POST_TYPES aligned with the schema enum order", () => {
-    expect([...POST_TYPES]).toEqual(["obavijest", "smrtovnica", "sergija", "hutba"]);
+    expect([...POST_TYPES]).toEqual(["obavijest", "hutba", "sergija", "smrtovnica"]);
   });
 
   it("labels every known type in both singular and plural forms", () => {

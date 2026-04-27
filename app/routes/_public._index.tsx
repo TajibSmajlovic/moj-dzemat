@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { useMatches } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
 import { AnimatePresence, motion } from "motion/react";
@@ -15,7 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#app/components/ui/carousel";
-import { getSiteNameFromMatches } from "#app/lib/branding";
+import { getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
@@ -25,7 +24,7 @@ import { env } from "#app/utils/env.server";
 import type { Route } from "./+types/_public._index";
 
 export function meta({ matches }: Route.MetaArgs) {
-  const siteName = getSiteNameFromMatches(matches);
+  const siteName = getRootSiteName(matches);
 
   return [
     { title: siteName },
@@ -104,7 +103,7 @@ function toCard(post: {
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
   const { posts, featured, activeType, location } = loaderData;
-  const siteName = getSiteNameFromMatches(useMatches());
+  const siteName = useRootSiteName();
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">

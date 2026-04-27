@@ -3,22 +3,8 @@ import { data } from "react-router";
 import { ArrowRight, Clock3, ExternalLink, Inbox, Mail, RefreshCw } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
 
 import type { Route } from "./+types/dev.last-email";
-
-export function meta({ matches }: Route.MetaArgs) {
-  const siteName = getSiteNameFromMatches(matches);
-
-  return [
-    { title: formatPageTitle("Dev inbox", siteName) },
-    {
-      name: "description",
-      content: "Dev pregled zadnjeg emaila za lokalni reset lozinke i testiranje.",
-    },
-    { name: "robots", content: "noindex" },
-  ];
-}
 
 export async function loader() {
   const [{ env }, { getLastCapturedEmail }] = await Promise.all([
