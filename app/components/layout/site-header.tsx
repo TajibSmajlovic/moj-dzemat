@@ -40,12 +40,15 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
               ) : null}
             </span>
             <span className="text-muted-foreground mt-0.5 text-xs">
-              Rijaset Islamske zajednice u Bosni i Hercegovini
+              <span className="max-[389px]:hidden">
+                Rijaset Islamske zajednice u Bosni i Hercegovini
+              </span>
+              <span className="hidden max-[389px]:inline">Rijaset Islamske zajednice u BiH</span>
             </span>
           </span>
         </Link>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 self-start">
           {facebookPageUrl ? (
             <a
               href={facebookPageUrl}
