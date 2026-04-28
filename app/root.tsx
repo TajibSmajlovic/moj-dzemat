@@ -7,7 +7,7 @@ import loraLatinWghtNormal from "@fontsource-variable/lora/files/lora-latin-wght
 
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
-import { DEFAULT_SITE_NAME, formatSiteName } from "#app/lib/branding";
+import { DEFAULT_SITE_NAME, formatSiteDescription, formatSiteName } from "#app/lib/branding";
 import { env } from "#app/utils/env.server";
 import { getToast } from "#app/utils/toast.server";
 
@@ -72,6 +72,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   const siteName = data?.siteName ?? DEFAULT_SITE_NAME;
+  const siteDescription = formatSiteDescription(siteName);
   const siteUrl = data?.siteUrl;
   const canonical = siteUrl ? `${siteUrl}/` : "/";
 
@@ -79,12 +80,12 @@ export function meta({ data }: Route.MetaArgs) {
     { title: siteName },
     {
       name: "description",
-      content: "Obavijesti, smrtovnice, sergije i hutbe džemata na jednom mjestu.",
+      content: siteDescription,
     },
     { property: "og:title", content: siteName },
     {
       property: "og:description",
-      content: "Obavijesti, smrtovnice, sergije i hutbe džemata na jednom mjestu.",
+      content: siteDescription,
     },
     { property: "og:type", content: "website" },
     { name: "theme-color", content: "#1a4737" },

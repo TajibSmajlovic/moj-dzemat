@@ -14,7 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#app/components/ui/carousel";
-import { getRootSiteName, useRootSiteName } from "#app/lib/branding";
+import { formatSiteDescription, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
@@ -25,14 +25,16 @@ import type { Route } from "./+types/_public._index";
 
 export function meta({ matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
+  const siteDescription = formatSiteDescription(siteName);
 
   return [
     { title: siteName },
     {
       name: "description",
-      content: "Obavijesti, smrtovnice, sergije i hutbe džemata na jednom mjestu.",
+      content: siteDescription,
     },
     { property: "og:title", content: siteName },
+    { property: "og:description", content: siteDescription },
     { property: "og:type", content: "website" },
   ];
 }
