@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SITE_NAME,
   formatPageTitle,
+  formatSiteDescription,
   formatSiteName,
   getSiteNameParts,
 } from "#app/lib/branding";
@@ -27,6 +28,20 @@ describe("formatPageTitle", () => {
   it("uses the provided site name", () => {
     expect(formatPageTitle("Objave", "Moj Džemat - Donje Mostre")).toBe(
       "Objave — Moj Džemat - Donje Mostre",
+    );
+  });
+});
+
+describe("formatSiteDescription", () => {
+  it("keeps the description general when no dzemat name is configured", () => {
+    expect(formatSiteDescription()).toBe(
+      "Zvanična stranica džemata za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
+    );
+  });
+
+  it("personalizes the description with the configured dzemat name", () => {
+    expect(formatSiteDescription("Moj Džemat - Donje Mostre")).toBe(
+      "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
     );
   });
 });

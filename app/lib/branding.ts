@@ -1,6 +1,8 @@
 import { useRouteLoaderData } from "react-router";
 
 export const DEFAULT_SITE_NAME = "Moj Džemat";
+const DEFAULT_SITE_DESCRIPTION_PREFIX = "Zvanična stranica džemata";
+const DEFAULT_SITE_DESCRIPTION_SUFFIX = "za aktuelne obavijesti, hutbe, sergije i smrtovnice.";
 
 type SiteNameParts = {
   brandName: string;
@@ -41,6 +43,15 @@ export function getRootSiteName(matches: readonly unknown[]): string {
 
 export function formatPageTitle(pageTitle: string, siteName = DEFAULT_SITE_NAME): string {
   return `${pageTitle} — ${siteName}`;
+}
+
+export function formatSiteDescription(siteName = DEFAULT_SITE_NAME): string {
+  const { dzematName } = getSiteNameParts(siteName);
+  const subject = dzematName
+    ? `${DEFAULT_SITE_DESCRIPTION_PREFIX} ${dzematName}`
+    : DEFAULT_SITE_DESCRIPTION_PREFIX;
+
+  return `${subject} ${DEFAULT_SITE_DESCRIPTION_SUFFIX}`;
 }
 
 export function useRootSiteName(): string {
