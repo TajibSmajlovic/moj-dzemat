@@ -7,7 +7,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-border/60 mt-8 border-t">
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-4 px-4 py-8 sm:flex-row sm:justify-start">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-4 px-4 py-10 sm:flex-row sm:justify-start">
         <IslamskaZajednicaLogo className="h-14 sm:h-12" />
 
         <div className="min-w-0 space-y-1.5 text-center sm:text-left">
