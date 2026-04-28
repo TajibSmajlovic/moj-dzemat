@@ -75,6 +75,7 @@ export function meta({ data }: Route.MetaArgs) {
   const siteDescription = formatSiteDescription(siteName);
   const siteUrl = data?.siteUrl;
   const canonical = siteUrl ? `${siteUrl}/` : "/";
+  const logoUrl = siteUrl ? `${siteUrl}/logo.png` : "/logo.png";
 
   return [
     { title: siteName },
@@ -91,6 +92,10 @@ export function meta({ data }: Route.MetaArgs) {
     { name: "theme-color", content: "#1a4737" },
     { property: "og:site_name", content: siteName },
     { property: "og:locale", content: "bs_BA" },
+    { property: "og:image", content: logoUrl },
+    { property: "og:image:alt", content: `${siteName} logo` },
+    { property: "og:image:width", content: "512" },
+    { property: "og:image:height", content: "512" },
     ...(siteUrl ? [{ property: "og:url", content: canonical }] : []),
     ...(siteUrl ? [{ tagName: "link", rel: "canonical", href: canonical }] : []),
   ];
