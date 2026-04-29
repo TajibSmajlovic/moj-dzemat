@@ -83,13 +83,13 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             </div>
           )}
 
-          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg">
+          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 line-clamp-2 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg">
             {post.title}
           </h3>
 
           <p
             className={`text-muted-foreground mb-3 text-sm leading-relaxed wrap-break-word hyphens-auto sm:mb-4 ${
-              thumbnail ? "line-clamp-2" : "line-clamp-8 sm:line-clamp-6"
+              thumbnail ? "line-clamp-2" : "line-clamp-9 sm:line-clamp-8"
             }`}
           >
             {post.excerpt}

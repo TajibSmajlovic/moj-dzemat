@@ -1,8 +1,7 @@
 const RE_NBSP_ENTITY = /&(?:nbsp|#160|#x0*a0);/gi;
 const NBSP = String.fromCodePoint(160);
 
-const DEFAULT_EXCERPT_CHARS = 220;
-const TEXT_ONLY_CARD_EXCERPT_CHARS = 360;
+const DEFAULT_EXCERPT_CHARS = 450;
 
 const NAMED_HTML_ENTITIES: Record<string, string> = {
   amp: "&",
@@ -12,8 +11,6 @@ const NAMED_HTML_ENTITIES: Record<string, string> = {
   nbsp: " ",
   quot: '"',
 };
-
-export { TEXT_ONLY_CARD_EXCERPT_CHARS };
 
 export function normalizeNonBreakingSpaces(value: string): string {
   return value.replaceAll(RE_NBSP_ENTITY, " ").replaceAll(NBSP, " ");
