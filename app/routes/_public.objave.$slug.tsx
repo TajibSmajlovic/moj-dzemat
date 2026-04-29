@@ -102,7 +102,7 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
               size="sm"
               type="button"
               onClick={() => (fromList ? void navigate(-1) : void navigate("/"))}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors has-[>svg]:px-0"
+              className="text-muted-foreground hover:text-foreground -ml-3 inline-flex items-center gap-2 text-sm font-medium transition-colors"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Nazad na listu
