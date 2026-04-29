@@ -16,7 +16,7 @@ import {
 } from "#app/components/ui/carousel";
 import { formatSiteDescription, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
-import { plainExcerpt } from "#app/lib/post-excerpt";
+import { plainExcerpt, TEXT_ONLY_CARD_EXCERPT_CHARS } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import { prisma } from "#app/utils/db.server";
 import { env } from "#app/utils/env.server";
@@ -95,7 +95,10 @@ function toCard(post: {
   return {
     slug: post.slug,
     title: post.title,
-    excerpt: plainExcerpt(post.body),
+    excerpt: plainExcerpt(
+      post.body,
+      post.images.length > 0 ? undefined : TEXT_ONLY_CARD_EXCERPT_CHARS,
+    ),
     type: post.type as PostTypeValue,
     publishedAt: post.publishedAt,
     pinned: post.pinned,
