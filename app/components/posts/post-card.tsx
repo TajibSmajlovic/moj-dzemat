@@ -46,6 +46,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
       <Link
         to={`/objave/${post.slug}`}
+        prefetch="intent"
         state={{ fromList: true }}
         className="focus-visible:ring-ring flex h-full flex-col rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
