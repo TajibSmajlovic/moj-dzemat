@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "#app/lib/cn";
+import { normalizeNonBreakingSpaces } from "#app/lib/post-excerpt";
 
 type RichEditorProps = {
   /** HTML value to initialise with (and kept in sync via onChange). */
@@ -74,6 +75,9 @@ export function RichEditor({
       onChange(e.getHTML());
     },
     editorProps: {
+      transformPastedHTML(html) {
+        return normalizeNonBreakingSpaces(html);
+      },
       attributes: {
         id: id ?? "",
         class:

@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
+import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { shareOnFacebook } from "#app/lib/share";
@@ -33,7 +34,10 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+      className={cn(
+        "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md",
+        !thumbnail && "min-h-[23rem] sm:min-h-0",
+      )}
     >
       {post.pinned && (
         <div className="bg-secondary text-secondary-foreground absolute -top-2 -right-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 shadow-md sm:px-2.5 sm:py-1">
@@ -85,7 +89,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
           <p
             className={`text-muted-foreground mb-3 text-sm leading-relaxed wrap-break-word hyphens-auto sm:mb-4 ${
-              thumbnail ? "line-clamp-2" : "line-clamp-4 sm:line-clamp-6"
+              thumbnail ? "line-clamp-2" : "line-clamp-8 sm:line-clamp-6"
             }`}
           >
             {post.excerpt}

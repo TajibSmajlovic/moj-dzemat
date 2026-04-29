@@ -13,6 +13,7 @@ import {
   CarouselPrevious,
 } from "#app/components/ui/carousel";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
+import { normalizeNonBreakingSpaces } from "#app/lib/post-excerpt";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/lib/post-type";
 
 type PostDetailImage = {
@@ -67,12 +68,6 @@ function bodyToHtml(body: string): string {
     .filter(Boolean)
     .map((p) => `<p>${p}</p>`)
     .join("");
-}
-
-function normalizeNonBreakingSpaces(value: string): string {
-  return value
-    .replaceAll(/&(?:nbsp|#160|#x0*a0);/gi, " ")
-    .replaceAll(String.fromCodePoint(160), " ");
 }
 
 export function PostDetailArticle({
