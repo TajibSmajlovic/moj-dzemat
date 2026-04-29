@@ -46,25 +46,33 @@ type PostDetailArticleProps = {
  * plain text (legacy posts created before the editor was added).
  * Plain text gets wrapped in `<p>` tags so both render correctly.
  */
-function bodyToHtml(body: string): string {
+export function bodyToHtml(body: string): string {
   const trimmed = body.trim();
   if (trimmed.startsWith("<")) {
     // Strip any accidental `<script>` / `<iframe>` / event handlers as
     // a defence-in-depth measure even though admins are trusted.
-    return trimmed
-      .replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replaceAll(/<iframe\b[^>]*>.*?<\/iframe>/gi, "")
-      .replaceAll(/\bon\w+\s*=\s*"[^"]*"/gi, "")
-      .replaceAll(/\bon\w+\s*=\s*'[^']*'/gi, "");
+    return normalizeNonBreakingSpaces(
+      trimmed
+        .replaceAll(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replaceAll(/<iframe\b[^>]*>.*?<\/iframe>/gi, "")
+        .replaceAll(/\bon\w+\s*=\s*"[^"]*"/gi, "")
+        .replaceAll(/\bon\w+\s*=\s*'[^']*'/gi, ""),
+    );
   }
 
   // Legacy plain text - split on blank lines into paragraphs.
-  return trimmed
+  return normalizeNonBreakingSpaces(trimmed)
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter(Boolean)
     .map((p) => `<p>${p}</p>`)
     .join("");
+}
+
+function normalizeNonBreakingSpaces(value: string): string {
+  return value
+    .replaceAll(/&(?:nbsp|#160|#x0*a0);/gi, " ")
+    .replaceAll(String.fromCodePoint(160), " ");
 }
 
 export function PostDetailArticle({
@@ -143,7 +151,7 @@ export function PostDetailArticle({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="prose prose-stone text-foreground/85 max-w-none leading-relaxed"
+          className="prose prose-stone text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
       </motion.article>

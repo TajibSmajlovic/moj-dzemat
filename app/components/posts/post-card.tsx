@@ -33,7 +33,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group border-border bg-card relative flex h-full flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+      className="group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md"
     >
       {post.pinned && (
         <div className="bg-secondary text-secondary-foreground absolute -top-2 -right-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 shadow-md sm:px-2.5 sm:py-1">
@@ -79,12 +79,12 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             </div>
           )}
 
-          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 text-base font-semibold text-balance transition-colors sm:mb-2 sm:text-lg">
+          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg">
             {post.title}
           </h3>
 
           <p
-            className={`text-muted-foreground mb-3 text-sm leading-relaxed hyphens-auto sm:mb-4 ${
+            className={`text-muted-foreground mb-3 text-sm leading-relaxed wrap-break-word hyphens-auto sm:mb-4 ${
               thumbnail ? "line-clamp-2" : "line-clamp-4 sm:line-clamp-6"
             }`}
           >
