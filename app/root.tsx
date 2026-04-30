@@ -4,6 +4,7 @@ import interLatinExtWghtNormal from "@fontsource-variable/inter/files/inter-lati
 import interLatinWghtNormal from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import loraLatinExtWghtNormal from "@fontsource-variable/lora/files/lora-latin-ext-wght-normal.woff2?url";
 import loraLatinWghtNormal from "@fontsource-variable/lora/files/lora-latin-wght-normal.woff2?url";
+import { MotionConfig } from "motion/react";
 
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
@@ -93,7 +94,11 @@ export default function App() {
   const { toast } = useLoaderData<typeof loader>();
   useToast(toast);
 
-  return <Outlet />;
+  return (
+    <MotionConfig reducedMotion="user">
+      <Outlet />
+    </MotionConfig>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

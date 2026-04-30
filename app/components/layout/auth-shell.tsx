@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 
 import { cn } from "#app/lib/cn";
+import { sectionReveal } from "#app/lib/motion";
 
 type MaxWidth = "sm" | "md";
 
@@ -54,9 +55,7 @@ export function AuthCardShell({
   return (
     <main className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        {...sectionReveal}
         className={cn("w-full", MAX_WIDTH_CLASSES[maxWidth], className)}
       >
         {beforeCard}

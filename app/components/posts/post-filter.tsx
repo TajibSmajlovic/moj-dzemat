@@ -5,6 +5,7 @@ import { Sparkles, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
 
 import { cn } from "#app/lib/cn";
+import { motionTransitions } from "#app/lib/motion";
 import {
   POST_TYPES,
   POST_TYPE_ICON,
@@ -72,14 +73,18 @@ export function PostFilter({ active }: PostFilterProps) {
             const { Icon } = tab;
 
             return (
-              <motion.div key={tab.value} whileTap={{ scale: 0.95 }} className="shrink-0">
+              <motion.div
+                key={tab.value}
+                whileTap={{ scale: 0.97, transition: motionTransitions.hover }}
+                className="shrink-0"
+              >
                 <Link
                   preventScrollReset
                   to={href}
                   prefetch="intent"
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-balance transition-all sm:px-4 sm:py-2",
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-balance transition-[background-color,color,box-shadow] sm:px-4 sm:py-2",
                     "focus-visible:ring-ring focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md"

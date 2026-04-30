@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 import { Pencil } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { ShareButton } from "#app/components/posts/share-button";
@@ -9,6 +9,7 @@ import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
+import { pageFade } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import {
   THEME_COLOR,
@@ -89,44 +90,33 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
   const siteName = useRootSiteName();
 
   return (
-    <AnimatePresence>
-      <motion.main
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="mx-auto max-w-3xl px-4 py-3 sm:py-6"
-      >
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-4 sm:mb-6"
-        >
-          <div className="flex items-center justify-between">
-            <BackButton fallback="/" label="Nazad na listu" />
+    <motion.main {...pageFade} className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <BackButton fallback="/" label="Nazad na listu" />
 
-            <div className="flex flex-wrap items-center gap-2">
-              {isAdminLoggedIn ? (
-                <Button variant="outline" size="sm" className="gap-2" asChild>
-                  <Link to={`/admin/objave/${post.id}`}>
-                    <Pencil className="h-4 w-4" aria-hidden="true" />
-                    Uredi
-                  </Link>
-                </Button>
-              ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {isAdminLoggedIn ? (
+              <Button variant="outline" size="sm" className="gap-2" asChild>
+                <Link to={`/admin/objave/${post.id}`}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  Uredi
+                </Link>
+              </Button>
+            ) : null}
 
-              <ShareButton />
-            </div>
+            <ShareButton />
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        <PostDetailArticle
-          post={post}
-          siteName={siteName}
-          siteUrl={siteUrl}
-          showPinnedBadge={isAdminLoggedIn}
-          showStructuredData
-        />
-      </motion.main>
-    </AnimatePresence>
+      <PostDetailArticle
+        post={post}
+        siteName={siteName}
+        siteUrl={siteUrl}
+        showPinnedBadge={isAdminLoggedIn}
+        showStructuredData
+      />
+    </motion.main>
   );
 }

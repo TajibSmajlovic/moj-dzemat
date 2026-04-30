@@ -9,6 +9,7 @@ import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
+import { sectionReveal } from "#app/lib/motion";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
@@ -92,8 +93,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        {...sectionReveal}
         className="border-border bg-card mb-8 rounded-2xl border p-4 shadow-sm"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">

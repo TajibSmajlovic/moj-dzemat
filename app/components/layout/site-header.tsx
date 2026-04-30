@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 
 import { LogIn } from "lucide-react";
-import { motion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
@@ -14,12 +13,7 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
   const facebookPageUrl = useRootFacebookPageUrl();
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="border-border/50 bg-background/80 sticky top-0 z-40 border-b backdrop-blur-lg"
-    >
+    <header className="border-border/50 bg-background/80 sticky top-0 z-40 border-b backdrop-blur-lg">
       <div className="mx-auto flex max-w-5xl items-end justify-between px-4 py-3 sm:py-4">
         <Link
           to="/"
@@ -70,6 +64,6 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
           </Link>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
