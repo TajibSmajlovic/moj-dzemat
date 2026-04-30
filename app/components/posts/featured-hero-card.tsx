@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import type { PostCardData } from "#app/components/posts/post-card";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { heroContentVariants, heroItemVariants, sectionReveal } from "#app/lib/motion";
+import { heroReveal } from "#app/lib/motion";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,
@@ -21,7 +21,7 @@ type FeaturedHeroCardProps = {
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   return (
     <motion.div
-      {...sectionReveal}
+      {...heroReveal}
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}
@@ -41,16 +41,8 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
           />
 
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={heroContentVariants}
-            className="relative z-10 flex h-full flex-1 flex-col"
-          >
-            <motion.div
-              variants={heroItemVariants}
-              className="mb-3 flex items-center gap-2 sm:mb-4"
-            >
+          <div className="relative z-10 flex h-full flex-1 flex-col">
+            <div className="mb-3 flex items-center gap-2 sm:mb-4">
               <Star
                 className="fill-secondary text-secondary h-4 w-4 sm:h-5 sm:w-5"
                 aria-hidden="true"
@@ -58,26 +50,17 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               <span className="text-secondary text-xs font-semibold tracking-wider uppercase sm:text-sm">
                 Istaknuto
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h2
-              variants={heroItemVariants}
-              className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
-            >
+            <h2 className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl">
               {post.title}
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              variants={heroItemVariants}
-              className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
-            >
+            <p className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base">
               {post.excerpt}
-            </motion.p>
+            </p>
 
-            <motion.div
-              variants={heroItemVariants}
-              className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4"
-            >
+            <div className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4">
               <PostTypeBadge
                 type={post.type}
                 variant="overlay"
@@ -89,8 +72,8 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               >
                 {formatDateLong(post.publishedAt)}
               </time>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </Link>
     </motion.div>

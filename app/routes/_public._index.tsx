@@ -22,7 +22,7 @@ import {
   useRootSiteUrl,
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
-import { sectionRevealWithDelay, softFade } from "#app/lib/motion";
+import { softFade } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import {
@@ -155,10 +155,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
       <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
         {featured.length > 0 ? <Featured featured={featured} /> : null}
 
-        <motion.section
-          {...sectionRevealWithDelay(featured.length > 0 ? 0.12 : 0)}
-          className="mb-6 space-y-3 sm:mb-8 sm:space-y-4"
-        >
+        <motion.section {...softFade} className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
           <h2 className="font-display text-foreground text-lg font-semibold text-balance sm:text-xl">
             Objave
           </h2>
