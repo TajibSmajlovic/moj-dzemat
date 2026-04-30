@@ -36,7 +36,7 @@ const TOAST_TONE_BY_ACTION = {
   delete: "destructive",
 } as const satisfies Record<ToastAction, ToastTone>;
 
-export function getToastToneForAction(action: ToastAction): ToastTone {
+function getToastToneForAction(action: ToastAction): ToastTone {
   return TOAST_TONE_BY_ACTION[action];
 }
 

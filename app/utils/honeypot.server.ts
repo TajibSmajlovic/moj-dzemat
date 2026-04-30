@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { HONEYPOT_FIELD, HONEYPOT_TIMESTAMP_FIELD, type HoneypotToken } from "#app/lib/honeypot";
+import { invariantResponse } from "#app/lib/invariant";
 import { env } from "#app/utils/env.server";
 
 /**
@@ -43,29 +44,22 @@ export function assertHoneypot(formData: FormData): void {
   const hp = formData.get(HONEYPOT_FIELD);
   const ts = formData.get(HONEYPOT_TIMESTAMP_FIELD);
 
-  if (typeof hp !== "string" || hp !== "") {
-    throw new Response("Invalid submission", { status: 400 });
-  }
-  if (typeof ts !== "string") {
-    throw new Response("Invalid submission", { status: 400 });
-  }
+  invariantResponse(typeof hp === "string" && hp === "", "Invalid submission");
+  invariantResponse(typeof ts === "string", "Invalid submission");
 
   const [timestampStr, signature] = ts.split(".");
-  if (!timestampStr || !signature) {
-    throw new Response("Invalid submission", { status: 400 });
-  }
+  invariantResponse(timestampStr && signature, "Invalid submission");
 
   const expected = sign(timestampStr);
   // constant-time compare
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-    throw new Response("Invalid submission", { status: 400 });
-  }
+  invariantResponse(a.length === b.length && crypto.timingSafeEqual(a, b), "Invalid submission");
 
   const age = Date.now() - Number(timestampStr);
   const shouldSkipMinAge = env().HONEYPOT_SKIP_MIN_AGE;
-  if (!Number.isFinite(age) || (!shouldSkipMinAge && age < MIN_AGE_MS) || age > MAX_AGE_MS) {
-    throw new Response("Invalid submission", { status: 400 });
-  }
+  invariantResponse(
+    Number.isFinite(age) && (shouldSkipMinAge || age >= MIN_AGE_MS) && age <= MAX_AGE_MS,
+    "Invalid submission",
+  );
 }

@@ -41,6 +41,18 @@ export function getRootSiteName(matches: readonly unknown[]): string {
   return typeof siteName === "string" ? siteName : DEFAULT_SITE_NAME;
 }
 
+export function getRootSiteUrl(matches: readonly unknown[]): string | undefined {
+  const root = matches[0];
+  if (!root || typeof root !== "object") return undefined;
+
+  const { data } = root as { data?: unknown };
+  if (!data || typeof data !== "object") return undefined;
+
+  const { siteUrl } = data as { siteUrl?: unknown };
+
+  return typeof siteUrl === "string" ? siteUrl : undefined;
+}
+
 export function formatPageTitle(pageTitle: string, siteName = DEFAULT_SITE_NAME): string {
   return `${pageTitle} — ${siteName}`;
 }
@@ -58,4 +70,10 @@ export function useRootSiteName(): string {
   const data = useRouteLoaderData<{ siteName: string }>("root");
 
   return data?.siteName ?? DEFAULT_SITE_NAME;
+}
+
+export function useRootSiteUrl(): string | undefined {
+  const data = useRouteLoaderData<{ siteUrl?: string }>("root");
+
+  return data?.siteUrl;
 }

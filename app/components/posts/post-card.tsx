@@ -61,7 +61,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out will-change-transform group-hover:scale-105"
+              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out will-change-transform sm:group-hover:scale-105"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
               <PostTypeBadge

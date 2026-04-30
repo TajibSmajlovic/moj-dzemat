@@ -26,8 +26,11 @@ export async function sendEmail(args: SendArgs): Promise<void> {
 
   if (NODE_ENV !== "production" || !RESEND_API_KEY) {
     devInbox.unshift({ ...args, capturedAt: new Date() });
+
     while (devInbox.length > DEV_BUFFER_SIZE) devInbox.pop();
+
     logger.info({ to: args.to, subject: args.subject }, "email captured in dev inbox");
+
     return;
   }
 
@@ -48,7 +51,9 @@ export async function sendEmail(args: SendArgs): Promise<void> {
 
   if (!response.ok) {
     const body = await response.text().catch(() => "<unreadable>");
+
     logger.error({ status: response.status, body, to: args.to }, "Resend failed");
+
     throw new Error(`Email send failed: ${response.status}`);
   }
 

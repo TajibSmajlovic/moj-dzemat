@@ -53,8 +53,13 @@ describe("auth.server", () => {
       expect(passwordFingerprint("a")).not.toBe(passwordFingerprint("b"));
     });
 
-    it("uses a sentinel for users without a password", () => {
+    it("uses a distinct sentinel for users without a password", () => {
+      // Stable across calls (so reset links survive cold-restarts).
       expect(passwordFingerprint(null)).toBe(passwordFingerprint(null));
+      // Not aliased to the empty string — otherwise an account whose
+      // hash row was somehow stored as "" could share fingerprints
+      // with a passwordless account, breaking the supersession check.
+      expect(passwordFingerprint(null)).not.toBe(passwordFingerprint(""));
     });
   });
 
@@ -127,19 +132,20 @@ describe("auth.server", () => {
     it("throws a redirect to /prijava with the original path captured", async () => {
       const request = new Request("http://localhost/admin/objave?vrsta=hutba");
 
-      await expect(requireAdmin(request)).rejects.toBeInstanceOf(Response);
-
+      let thrown: unknown;
       try {
         await requireAdmin(request);
       } catch (error) {
-        expect(error).toBeInstanceOf(Response);
-        const response = error as Response;
-        expect(response.status).toBe(302);
-        const location = response.headers.get("Location") ?? "";
-        expect(location.startsWith("/prijava?")).toBe(true);
-        // URLSearchParams encodes the slash as %2F and ? as %3F.
-        expect(location).toContain("redirectTo=%2Fadmin%2Fobjave%3Fvrsta%3Dhutba");
+        thrown = error;
       }
+
+      expect(thrown).toBeInstanceOf(Response);
+      const response = thrown as Response;
+      expect(response.status).toBe(302);
+      const location = response.headers.get("Location") ?? "";
+      expect(location.startsWith("/prijava?")).toBe(true);
+      // URLSearchParams encodes the slash as %2F and ? as %3F.
+      expect(location).toContain("redirectTo=%2Fadmin%2Fobjave%3Fvrsta%3Dhutba");
     });
 
     it("returns the user when a valid session is attached", async () => {
