@@ -7,34 +7,18 @@ import { loader as imageLoader } from "#app/routes/slike.$id";
 import { prisma } from "#app/utils/db.server";
 
 import { createPost, createUser } from "../factories";
+import { callLoader } from "../helpers/route";
 
-type HomeLoaderArgs = Parameters<typeof publicHomeLoader>[0];
-type PostLoaderArgs = Parameters<typeof publicPostLoader>[0];
-type ImageLoaderArgs = Parameters<typeof imageLoader>[0];
+const callHomeLoader = (url = "http://localhost/") => callLoader(publicHomeLoader, { url });
 
-function callHomeLoader(url = "http://localhost/") {
-  return publicHomeLoader({
-    request: new Request(url),
-    params: {},
-    context: {},
-  } as HomeLoaderArgs);
-}
-
-function callPostLoader(slug: string) {
-  return publicPostLoader({
-    request: new Request(`http://localhost/objave/${slug}`),
+const callPostLoader = (slug: string) =>
+  callLoader(publicPostLoader, {
+    url: `http://localhost/objave/${slug}`,
     params: { slug },
-    context: {},
-  } as PostLoaderArgs);
-}
+  });
 
-function callImageLoader(id: string) {
-  return imageLoader({
-    request: new Request(`http://localhost/slike/${id}`),
-    params: { id },
-    context: {},
-  } as ImageLoaderArgs);
-}
+const callImageLoader = (id: string) =>
+  callLoader(imageLoader, { url: `http://localhost/slike/${id}`, params: { id } });
 
 describe("public post visibility", () => {
   it("shows published posts and hides drafts from the homepage", async () => {

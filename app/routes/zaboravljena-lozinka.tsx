@@ -6,10 +6,12 @@ import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
+import { AuthHeader, AuthPageShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
+import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { prisma } from "#app/utils/db.server";
 import { sendEmail } from "#app/utils/email.server";
 import { env } from "#app/utils/env.server";
@@ -27,7 +29,7 @@ const ForgotSchema = z.object({
 export function meta({ matches }: Route.MetaArgs) {
   return [
     { title: formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)) },
-    { name: "robots", content: "noindex" },
+    { name: "robots", content: ROBOTS_NOINDEX },
   ];
 }
 
@@ -95,24 +97,22 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
 
   if (actionData?.sent) {
     return (
-      <main className="mx-auto flex max-w-md flex-col gap-4 px-4 py-12">
+      <AuthPageShell gap="gap-4">
         <h1 className="text-3xl">Provjerite email</h1>
         <p className="text-muted-foreground">
           Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke. Link vrijedi 1
           sat.
         </p>
-      </main>
+      </AuthPageShell>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
-      <header className="space-y-2 text-center">
-        <h1 className="text-3xl">Zaboravljena lozinka</h1>
-        <p className="text-muted-foreground text-sm">
-          Unesite svoj email. Poslat ćemo link za postavljanje nove lozinke.
-        </p>
-      </header>
+    <AuthPageShell>
+      <AuthHeader
+        title="Zaboravljena lozinka"
+        description="Unesite svoj email. Poslat ćemo link za postavljanje nove lozinke."
+      />
 
       {form.errors?.length ? (
         <Alert variant="destructive">
@@ -136,6 +136,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
           Pošalji link
         </Button>
       </Form>
-    </main>
+    </AuthPageShell>
   );
 }

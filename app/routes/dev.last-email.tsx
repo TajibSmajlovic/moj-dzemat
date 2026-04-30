@@ -3,6 +3,8 @@ import { data } from "react-router";
 import { ArrowRight, Clock3, ExternalLink, Inbox, Mail, RefreshCw } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
+import { formatDateTimeLong } from "#app/lib/date";
+import { invariantResponse } from "#app/lib/invariant";
 
 import type { Route } from "./+types/dev.last-email";
 
@@ -12,9 +14,7 @@ export async function loader() {
     import("#app/utils/email.server"),
   ]);
 
-  if (!env().ENABLE_TEST_ROUTES) {
-    throw new Response("Not found", { status: 404 });
-  }
+  invariantResponse(env().ENABLE_TEST_ROUTES, "Not found", { status: 404 });
 
   const latestEmail = getLastCapturedEmail() ?? null;
 
@@ -72,7 +72,7 @@ export default function DevLastEmailPage({ loaderData }: Route.ComponentProps) {
                   />
                   <InfoTile
                     label="Vrijeme"
-                    value={formatCapturedAt(latestEmail.capturedAt)}
+                    value={formatDateTimeLong(latestEmail.capturedAt)}
                     icon={<Clock3 className="size-4" />}
                   />
                   <InfoTile
@@ -144,15 +144,6 @@ function extractResetUrl(
     `${email.text}\n${email.html}`,
   );
   return match?.[0] ?? null;
-}
-
-function formatCapturedAt(value: string | Date): string {
-  const date = new Date(value);
-
-  return new Intl.DateTimeFormat("bs-BA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 }
 
 function InfoTile({

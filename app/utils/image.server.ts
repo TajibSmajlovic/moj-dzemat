@@ -31,6 +31,7 @@ function normalizeClientMime(raw: string): string {
   if (t === "image/jpg" || t === "image/pjpeg" || t === "image/x-citrix-jpeg") {
     return "image/jpeg";
   }
+
   return t;
 }
 
@@ -88,6 +89,7 @@ export async function processImage(
       { contentType, byteSize: buffer.byteLength },
       "image processing rejected oversized payload",
     );
+
     throw new Response("Image too large (max 15 MB)", { status: 413 });
   }
 
@@ -124,6 +126,7 @@ export async function processImage(
     // Prisma now rejects in TS. Copy the bytes into a fresh ArrayBuffer.
     const bytes = new Uint8Array(data.byteLength);
     bytes.set(data);
+
     logger.debug(
       {
         inputMime: mime,
@@ -135,6 +138,7 @@ export async function processImage(
       },
       "image processed",
     );
+
     return {
       data: bytes,
       contentType: "image/webp",
@@ -147,6 +151,7 @@ export async function processImage(
       { err: error, contentType: mime, byteSize: buffer.byteLength },
       "image processing failed",
     );
+
     throw error;
   }
 }

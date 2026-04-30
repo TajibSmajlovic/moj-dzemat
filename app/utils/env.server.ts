@@ -94,12 +94,15 @@ let cached: Env | undefined;
 
 export function env(): Env {
   if (cached) return cached;
+
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
     // Log and throw - Express will crash, systemd/Fly will restart us.
     console.error("Invalid environment variables:\n", z.treeifyError(parsed.error));
+
     throw new Error("Invalid environment variables");
   }
+
   cached = parsed.data;
 
   return cached;

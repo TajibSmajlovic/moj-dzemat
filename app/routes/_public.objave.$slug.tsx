@@ -1,13 +1,21 @@
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link } from "react-router";
 
-import { ArrowLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { ShareButton } from "#app/components/posts/share-button";
+import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
+import { invariantResponse } from "#app/lib/invariant";
 import { plainExcerpt } from "#app/lib/post-excerpt";
+import {
+  THEME_COLOR,
+  buildSocialMeta,
+  formatDefaultSocialImageAlt,
+  getDefaultSocialImageUrl,
+} from "#app/lib/seo";
 import { getCurrentUser } from "#app/utils/auth.server.js";
 import { prisma } from "#app/utils/db.server";
 import { env } from "#app/utils/env.server";
@@ -34,9 +42,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     },
   });
 
-  if (!post) {
-    throw new Response("Objava nije pronađena.", { status: 404 });
-  }
+  invariantResponse(post, "Objava nije pronađena.", { status: 404 });
 
   return { post, siteUrl: env().APP_URL, isAdminLoggedIn };
 }
@@ -52,35 +58,34 @@ export function meta({ data, matches }: Route.MetaArgs) {
   const description = plainExcerpt(post.body);
   const canonical = `${siteUrl}/objave/${post.slug}`;
   const primaryImage = post.images[0];
-  const imageUrl = primaryImage ? `${siteUrl}/slike/${primaryImage.id}` : null;
+  const imageUrl = primaryImage
+    ? `${siteUrl}/slike/${primaryImage.id}`
+    : getDefaultSocialImageUrl(siteUrl);
+  const imageAlt =
+    primaryImage?.altText ?? (primaryImage ? post.title : formatDefaultSocialImageAlt(siteName));
 
   return [
     { title: formatPageTitle(post.title, siteName) },
     { name: "description", content: description },
-    { property: "og:title", content: post.title },
-    { property: "og:description", content: description },
+    { name: "theme-color", content: THEME_COLOR },
     { property: "og:type", content: "article" },
     { property: "og:site_name", content: siteName },
     { property: "og:locale", content: "bs_BA" },
     { property: "og:url", content: canonical },
-    { property: "og:image", content: imageUrl ?? `${siteUrl}/logo.png` },
-    ...(primaryImage?.altText ? [{ property: "og:image:alt", content: primaryImage.altText }] : []),
-    ...(primaryImage?.width
-      ? [{ property: "og:image:width", content: String(primaryImage.width) }]
-      : []),
-    ...(primaryImage?.height
-      ? [{ property: "og:image:height", content: String(primaryImage.height) }]
-      : []),
+    ...buildSocialMeta({
+      title: post.title,
+      description,
+      imageUrl,
+      imageAlt,
+      imageWidth: primaryImage?.width,
+      imageHeight: primaryImage?.height,
+    }),
     { tagName: "link", rel: "canonical", href: canonical },
   ];
 }
 
 export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
   const { post, siteUrl, isAdminLoggedIn } = loaderData;
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const fromList = (location.state as { fromList?: boolean } | null)?.fromList === true;
   const siteName = useRootSiteName();
 
   return (
@@ -97,16 +102,7 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
           className="mb-4 sm:mb-6"
         >
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => (fromList ? void navigate(-1) : void navigate("/"))}
-              className="text-muted-foreground hover:text-foreground -ml-3 inline-flex items-center gap-2 text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Nazad na listu
-            </Button>
+            <BackButton fallback="/" label="Nazad na listu" />
 
             <div className="flex flex-wrap items-center gap-2">
               {isAdminLoggedIn ? (

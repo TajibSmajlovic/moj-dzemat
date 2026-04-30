@@ -4,6 +4,7 @@ import { requiredString } from "#app/lib/form-schema";
 import { POST_TYPES } from "#app/lib/post-type";
 
 export const MAX_IMAGES_PER_POST = 3;
+export const MAX_IMAGE_ALT_TEXT_LENGTH = 160;
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

@@ -5,38 +5,17 @@ import {
   loader as adminPostsLoader,
 } from "#app/routes/admin.objave._index";
 import { prisma } from "#app/utils/db.server";
-import { commitSession, getSession } from "#app/utils/session.server";
 
 import { createPost, createUser } from "../factories";
+import { callAction as runAction, callLoader as runLoader } from "../helpers/route";
+import { sessionCookieFor } from "../helpers/session";
 
 const ENDPOINT = "http://localhost/admin/objave";
 
-type LoaderArgs = Parameters<typeof adminPostsLoader>[0];
-type ActionArgs = Parameters<typeof adminPostsAction>[0];
+const callLoader = (url: string, cookie: string) => runLoader(adminPostsLoader, { url, cookie });
 
-async function sessionCookieFor(userId: string): Promise<string> {
-  const session = await getSession(null);
-  session.set("userId", userId);
-  const setCookie = await commitSession(session);
-
-  return setCookie.split(";")[0]!;
-}
-
-async function callLoader(url: string, cookie: string) {
-  const request = new Request(url, { headers: { Cookie: cookie } });
-
-  return adminPostsLoader({ request, params: {}, context: {} } as LoaderArgs);
-}
-
-async function callAction(formData: FormData, cookie: string) {
-  const request = new Request(ENDPOINT, {
-    method: "POST",
-    body: formData,
-    headers: { Cookie: cookie },
-  });
-
-  return adminPostsAction({ request, params: {}, context: {} } as ActionArgs);
-}
+const callAction = (formData: FormData, cookie: string) =>
+  runAction(adminPostsAction, { url: ENDPOINT, formData, cookie });
 
 async function createOrderedPosts(authorId: string, count: number) {
   const base = Date.parse("2026-04-22T12:00:00Z");

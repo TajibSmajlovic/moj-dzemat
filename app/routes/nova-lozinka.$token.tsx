@@ -6,10 +6,12 @@ import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
+import { AuthHeader, AuthPageShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
+import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { hashPassword, validateNewPassword } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
@@ -35,7 +37,7 @@ const NewPasswordSchema = z
 export function meta({ matches }: Route.MetaArgs) {
   return [
     { title: formatPageTitle("Nova lozinka", getRootSiteName(matches)) },
-    { name: "robots", content: "noindex" },
+    { name: "robots", content: ROBOTS_NOINDEX },
   ];
 }
 
@@ -109,7 +111,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
 
   if (loaderData.invalid) {
     return (
-      <main className="mx-auto flex max-w-md flex-col gap-4 px-4 py-12">
+      <AuthPageShell gap="gap-4">
         <h1 className="text-3xl">Link nije važeći</h1>
         <p className="text-muted-foreground">
           Ovaj link je istekao ili je već iskorišten. Zatražite novi putem{" "}
@@ -118,19 +120,16 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
           </a>
           .
         </p>
-      </main>
+      </AuthPageShell>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
-      <header className="space-y-2 text-center">
-        <h1 className="text-3xl">Nova lozinka</h1>
-        <p className="text-muted-foreground text-sm">
-          Odaberite lozinku. Minimalno 10 znakova; provjerili smo i da ne postoji u javnim curenjima
-          podataka.
-        </p>
-      </header>
+    <AuthPageShell>
+      <AuthHeader
+        title="Nova lozinka"
+        description="Odaberite lozinku. Minimalno 10 znakova; provjerili smo i da ne postoji u javnim curenjima podataka."
+      />
 
       {form.errors?.length ? (
         <Alert variant="destructive">
@@ -164,6 +163,6 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
           Spremi i prijavi se
         </Button>
       </Form>
-    </main>
+    </AuthPageShell>
   );
 }

@@ -1,12 +1,15 @@
 import { Form, Link, useNavigation } from "react-router";
 
-import { ArrowLeft, Eye, EyeOff, Pencil } from "lucide-react";
+import { Eye, EyeOff, Pencil } from "lucide-react";
 import { motion } from "motion/react";
 
 import { PostStatusBadge } from "#app/components/admin/post-status-badge";
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
+import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
+import { invariantResponse } from "#app/lib/invariant";
+import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
@@ -24,7 +27,7 @@ export function meta({ data }: Route.MetaArgs) {
         "Admin",
       ),
     },
-    { name: "robots", content: "noindex,nofollow" },
+    { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW },
   ];
 }
 
@@ -50,9 +53,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     },
   });
 
-  if (!post) {
-    throw new Response("Objava nije pronađena.", { status: 404 });
-  }
+  invariantResponse(post, "Objava nije pronađena.", { status: 404 });
 
   return { post, siteUrl: env().APP_URL };
 }
@@ -63,19 +64,17 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  if (intent === "toggle-status") {
-    const next = await togglePostStatus(id, user.id);
+  invariantResponse(intent === "toggle-status", "Unsupported intent");
 
-    return redirectWithToast(
-      `/admin/objave/${id}/pregled`,
-      createActionToast({
-        action: "update",
-        description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
-      }),
-    );
-  }
+  const next = await togglePostStatus(id, user.id);
 
-  throw new Response("Unsupported intent", { status: 400 });
+  return redirectWithToast(
+    `/admin/objave/${id}/pregled`,
+    createActionToast({
+      action: "update",
+      description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
+    }),
+  );
 }
 
 export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
@@ -89,13 +88,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
-        <Link
-          to="/admin/objave"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Nazad na listu
-        </Link>
+        <BackLink to="/admin/objave" label="Nazad na listu" />
       </div>
 
       <motion.div

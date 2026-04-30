@@ -4,21 +4,9 @@ import { prisma } from "#app/utils/db.server";
 import { createOrUpdatePostFromForm } from "#app/utils/post-admin.server";
 
 import { createPost, createUser } from "../factories";
+import { tinyPngFile } from "../helpers/png";
 
 const ENDPOINT = "http://localhost/admin/objave/nova";
-
-/**
- * 1×1 transparent PNG. Tiny enough to keep tests fast but valid enough
- * for sharp to accept and re-encode.
- */
-function tinyPngFile(name = "img.png") {
-  const buffer = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z8W0AAAAASUVORK5CYII=",
-    "base64",
-  );
-
-  return new File([buffer], name, { type: "image/png" });
-}
 
 function multipartRequest(formData: FormData) {
   return new Request(ENDPOINT, { method: "POST", body: formData });
@@ -174,6 +162,7 @@ describe("createOrUpdatePostFromForm", () => {
       formData.set("type", "obavijest");
       formData.set("body", "Tekst sa slikom.");
       formData.append("images", tinyPngFile("a.png"));
+      formData.append("newImageAltText", "  Džamija u Donjim Moštrama  ");
 
       const result = await createOrUpdatePostFromForm({
         request: multipartRequest(formData),
@@ -188,6 +177,7 @@ describe("createOrUpdatePostFromForm", () => {
       });
       expect(post?.images).toHaveLength(1);
       expect(post?.images[0]?.contentType).toBe("image/webp");
+      expect(post?.images[0]?.altText).toBe("Džamija u Donjim Moštrama");
       expect(post?.images[0]?.position).toBe(0);
       expect(post?.images[0]?.byteSize ?? 0).toBeGreaterThan(0);
     });
@@ -301,6 +291,39 @@ describe("createOrUpdatePostFromForm", () => {
       expect(statusOf(result)).toBe(302);
       const stored = await prisma.post.findUnique({ where: { id: post.id } });
       expect(stored?.title).toBe("New title");
+    });
+
+    it("updates existing image alt text from the edit form", async () => {
+      const { user } = await createUser();
+      const post = await createPost({ authorId: user.id });
+      const image = await prisma.postImage.create({
+        data: {
+          postId: post.id,
+          contentType: "image/webp",
+          altText: "Stari opis",
+          data: new Uint8Array([1]),
+          byteSize: 1,
+          position: 0,
+        },
+      });
+
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+      formData.set(`imageAltText:${image.id}`, "  Novi opis slike  ");
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const stored = await prisma.postImage.findUnique({ where: { id: image.id } });
+      expect(stored?.altText).toBe("Novi opis slike");
     });
 
     it("rejects updates that would steal another post's slug", async () => {
