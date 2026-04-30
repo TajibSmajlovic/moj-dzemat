@@ -8,7 +8,7 @@ import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { heroContentVariants, heroItemVariants, sectionReveal } from "#app/lib/motion";
 
-export type FeaturedHeroCardPost = Pick<
+type FeaturedHeroCardPost = Pick<
   PostCardData,
   "slug" | "title" | "excerpt" | "type" | "publishedAt"
 >;
