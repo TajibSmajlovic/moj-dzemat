@@ -158,7 +158,6 @@
   }
 
   html {
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Kill accidental horizontal scroll from any child; pairs with body min-w-0. */
