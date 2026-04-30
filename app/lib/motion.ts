@@ -55,10 +55,34 @@ export const cardReveal = {
   transition: motionTransitions.item,
 } satisfies MotionPreset;
 
-export const heroContentReveal = {
-  initial: { opacity: 0.1, y: motionOffset.xs },
+export const featuredHeroReveal = {
+  initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
-  transition: motionTransitions.micro,
+  transition: { duration: 0.52, ease: motionEase },
+} satisfies MotionPreset;
+
+export const featuredHeroEyebrowReveal = {
+  initial: { opacity: 0, x: -16 },
+  animate: { opacity: 1, x: 0 },
+  transition: { delay: 0.18, duration: 0.36, ease: motionEase },
+} satisfies MotionPreset;
+
+export const featuredHeroTitleReveal = {
+  initial: { opacity: 0, y: motionOffset.sm },
+  animate: { opacity: 1, y: 0 },
+  transition: { delay: 0.26, duration: 0.36, ease: motionEase },
+} satisfies MotionPreset;
+
+export const featuredHeroExcerptReveal = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { delay: 0.36, duration: 0.34, ease: motionEase },
+} satisfies MotionPreset;
+
+export const featuredHeroMetaReveal = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { delay: 0.44, duration: 0.34, ease: motionEase },
 } satisfies MotionPreset;
 
 function withMotionDelay(transition: MotionTransition, delay: number) {

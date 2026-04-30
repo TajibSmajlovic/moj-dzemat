@@ -6,7 +6,13 @@ import { motion } from "motion/react";
 import type { PostCardData } from "#app/components/posts/post-card";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { heroContentReveal } from "#app/lib/motion";
+import {
+  featuredHeroExcerptReveal,
+  featuredHeroEyebrowReveal,
+  featuredHeroMetaReveal,
+  featuredHeroReveal,
+  featuredHeroTitleReveal,
+} from "#app/lib/motion";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,
@@ -20,7 +26,8 @@ type FeaturedHeroCardProps = {
 
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   return (
-    <div
+    <motion.div
+      {...featuredHeroReveal}
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}
@@ -40,8 +47,11 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
           />
 
-          <motion.div {...heroContentReveal} className="relative z-10 flex h-full flex-1 flex-col">
-            <div className="mb-3 flex items-center gap-2 sm:mb-4">
+          <div className="relative z-10 flex h-full flex-1 flex-col">
+            <motion.div
+              {...featuredHeroEyebrowReveal}
+              className="mb-3 flex items-center gap-2 sm:mb-4"
+            >
               <Star
                 className="fill-secondary text-secondary h-4 w-4 sm:h-5 sm:w-5"
                 aria-hidden="true"
@@ -49,17 +59,26 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               <span className="text-secondary text-xs font-semibold tracking-wider uppercase sm:text-sm">
                 Istaknuto
               </span>
-            </div>
+            </motion.div>
 
-            <h2 className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl">
+            <motion.h2
+              {...featuredHeroTitleReveal}
+              className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
+            >
               {post.title}
-            </h2>
+            </motion.h2>
 
-            <p className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base">
+            <motion.p
+              {...featuredHeroExcerptReveal}
+              className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
+            >
               {post.excerpt}
-            </p>
+            </motion.p>
 
-            <div className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4">
+            <motion.div
+              {...featuredHeroMetaReveal}
+              className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4"
+            >
               <PostTypeBadge
                 type={post.type}
                 variant="overlay"
@@ -71,10 +90,10 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               >
                 {formatDateLong(post.publishedAt)}
               </time>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
