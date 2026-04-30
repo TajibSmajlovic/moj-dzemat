@@ -51,7 +51,6 @@ export const scrollReveal = {
 export const cardReveal = {
   initial: { opacity: 0, y: motionOffset.sm },
   whileInView: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -motionOffset.xs },
   viewport: motionViewport,
 } satisfies MotionPreset;
 
