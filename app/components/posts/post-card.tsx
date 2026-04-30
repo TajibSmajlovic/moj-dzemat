@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 import { Pin } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
@@ -27,15 +27,14 @@ type PostCardProps = {
 
 export function PostCard({ post }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
-  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.article
       {...cardReveal}
-      whileHover={shouldReduceMotion ? undefined : { y: -2, transition: motionTransitions.hover }}
+      whileHover={{ y: -2, transition: motionTransitions.hover }}
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
-        "transform-gpu transition-shadow duration-300 ease-out will-change-transform hover:shadow-md",
+        "transition-shadow duration-200 ease-out hover:shadow-md hover:will-change-transform",
         "motion-reduce:transition-none",
         !thumbnail && "min-h-92 sm:min-h-0",
       )}
@@ -62,7 +61,7 @@ export function PostCard({ post }: PostCardProps) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full transform-gpu object-cover transition-transform duration-500 ease-out will-change-transform backface-hidden motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:will-change-transform motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
               <PostTypeBadge

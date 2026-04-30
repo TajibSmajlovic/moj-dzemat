@@ -13,9 +13,10 @@ import {
   CarouselPrevious,
 } from "#app/components/ui/carousel";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { motionTransitions, sectionReveal } from "#app/lib/motion";
+import { motionTransitions } from "#app/lib/motion";
 import { normalizeNonBreakingSpaces } from "#app/lib/post-excerpt";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/lib/post-type";
+import { jsonLdScriptContent } from "#app/lib/seo";
 
 type PostDetailImage = {
   id: string;
@@ -105,15 +106,13 @@ export function PostDetailArticle({
       {jsonLd ? (
         <script
           type="application/ld+json"
-          // Safe: payload is built from trusted DB fields. We escape `</`
-          // explicitly to avoid accidental early-close of the script tag.
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replaceAll("</", String.raw`<\/`),
-          }}
+          // Safe: payload is built from trusted DB fields and `jsonLdScriptContent`
+          // escapes `</` to prevent accidental early-close of the script tag.
+          dangerouslySetInnerHTML={{ __html: jsonLdScriptContent(jsonLd) }}
         />
       ) : null}
 
-      <motion.article {...sectionReveal}>
+      <article>
         <h1 className="font-display text-foreground mb-2 text-3xl leading-tight font-bold sm:text-4xl">
           {post.title}
         </h1>
@@ -143,7 +142,7 @@ export function PostDetailArticle({
           className="prose prose-stone text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
-      </motion.article>
+      </article>
     </>
   );
 }
@@ -165,10 +164,10 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
     });
   };
 
-  if (images.length === 1)
+  if (images.length === 1 && images[0])
     return (
       <div className="mb-8">
-        <SingleImage image={images[0]} onOpen={setLightboxIndex} />
+        <ExpandableImage image={images[0]} index={0} onOpen={setLightboxIndex} />
         <AnimatePresence>
           {lightboxIndex === null ? null : (
             <ImageLightbox
@@ -211,18 +210,6 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
     </div>
   );
 };
-
-function SingleImage({
-  image,
-  onOpen,
-}: {
-  image: PostDetailImage | undefined;
-  onOpen: (index: number) => void;
-}) {
-  if (!image) return null;
-
-  return <ExpandableImage image={image} index={0} onOpen={onOpen} />;
-}
 
 function ExpandableImage({
   image,

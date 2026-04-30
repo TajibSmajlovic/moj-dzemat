@@ -3,20 +3,19 @@ import { Link } from "react-router";
 import { Star } from "lucide-react";
 import { motion } from "motion/react";
 
+import type { PostCardData } from "#app/components/posts/post-card";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { heroContentVariants, heroItemVariants, sectionReveal } from "#app/lib/motion";
-import type { PostTypeValue } from "#app/lib/post-type";
+
+export type FeaturedHeroCardPost = Pick<
+  PostCardData,
+  "slug" | "title" | "excerpt" | "type" | "publishedAt"
+>;
 
 type FeaturedHeroCardProps = {
   className?: string;
-  post: {
-    slug: string;
-    title: string;
-    excerpt: string;
-    type: PostTypeValue;
-    publishedAt: Date | string;
-  };
+  post: FeaturedHeroCardPost;
 };
 
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {

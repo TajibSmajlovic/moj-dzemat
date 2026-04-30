@@ -2,7 +2,7 @@ import { Form, Link, NavLink, Outlet } from "react-router";
 
 import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
 import { Button } from "#app/components/ui/button";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
