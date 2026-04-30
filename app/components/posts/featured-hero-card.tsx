@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import type { PostCardData } from "#app/components/posts/post-card";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { heroReveal } from "#app/lib/motion";
+import { heroContentReveal } from "#app/lib/motion";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,
@@ -20,8 +20,7 @@ type FeaturedHeroCardProps = {
 
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   return (
-    <motion.div
-      {...heroReveal}
+    <div
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}
@@ -41,7 +40,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
           />
 
-          <div className="relative z-10 flex h-full flex-1 flex-col">
+          <motion.div {...heroContentReveal} className="relative z-10 flex h-full flex-1 flex-col">
             <div className="mb-3 flex items-center gap-2 sm:mb-4">
               <Star
                 className="fill-secondary text-secondary h-4 w-4 sm:h-5 sm:w-5"
@@ -73,9 +72,9 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
                 {formatDateLong(post.publishedAt)}
               </time>
             </div>
-          </div>
+          </motion.div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }
