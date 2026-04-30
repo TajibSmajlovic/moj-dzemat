@@ -31,12 +31,12 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
   return (
     <motion.article
-      layout="position"
       {...cardReveal}
       transition={withMotionDelay(motionTransitions.item, listDelay(index))}
-      whileHover={{ y: -3, transition: motionTransitions.hover }}
       className={cn(
-        "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md",
+        "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
+        "transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md sm:hover:-translate-y-1",
+        "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         !thumbnail && "min-h-[23rem] sm:min-h-0",
       )}
     >
@@ -62,7 +62,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none sm:group-hover:scale-[1.03] motion-reduce:sm:group-hover:scale-100"
+              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out motion-reduce:transition-none sm:group-hover:scale-[1.03] motion-reduce:sm:group-hover:scale-100"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
               <PostTypeBadge

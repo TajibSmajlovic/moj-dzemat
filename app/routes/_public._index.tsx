@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import Autoplay from "embla-carousel-autoplay";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
 import { FeaturedHeroCard } from "#app/components/posts/featured-hero-card";
@@ -170,11 +170,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             aria-label="Lista objava"
             className="grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
           >
-            <AnimatePresence mode="popLayout">
-              {posts.map((post, index) => (
-                <PostCard key={post.slug} post={post} index={index} />
-              ))}
-            </AnimatePresence>
+            {posts.map((post, index) => (
+              <PostCard key={post.slug} post={post} index={index} />
+            ))}
           </section>
         ) : (
           <motion.div {...pageFade} className="py-20 text-center">
