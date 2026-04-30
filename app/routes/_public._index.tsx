@@ -170,8 +170,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             aria-label="Lista objava"
             className="grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
           >
-            {posts.map((post, index) => (
-              <PostCard key={post.slug} post={post} index={index} />
+            {posts.map((post) => (
+              <PostCard key={post.slug} post={post} />
             ))}
           </section>
         ) : (
