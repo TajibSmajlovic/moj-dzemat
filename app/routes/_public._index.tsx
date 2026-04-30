@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import Autoplay from "embla-carousel-autoplay";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
 import { FeaturedHeroCard } from "#app/components/posts/featured-hero-card";
@@ -22,6 +22,7 @@ import {
   useRootSiteUrl,
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
+import { pageFade, sectionRevealWithDelay } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import {
@@ -155,9 +156,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         {featured.length > 0 ? <Featured featured={featured} /> : null}
 
         <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          {...sectionRevealWithDelay(featured.length > 0 ? 0.12 : 0)}
           className="mb-6 space-y-3 sm:mb-8 sm:space-y-4"
         >
           <h2 className="font-display text-foreground text-lg font-semibold text-balance sm:text-xl">
@@ -178,11 +177,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             </AnimatePresence>
           </section>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="py-20 text-center"
-          >
+          <motion.div {...pageFade} className="py-20 text-center">
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>
@@ -259,8 +254,9 @@ function HomeStructuredData({
 }
 
 function Featured({ featured }: { featured: PostCardData[] }) {
+  const shouldReduceMotion = useReducedMotion();
   const autoplay = useRef(
-    Autoplay({ delay: 7000, stopOnInteraction: false, stopOnMouseEnter: true }),
+    Autoplay({ delay: 8000, stopOnInteraction: true, stopOnMouseEnter: true }),
   );
 
   if (featured.length === 1 && featured[0]) {
@@ -281,7 +277,11 @@ function Featured({ featured }: { featured: PostCardData[] }) {
 
   return (
     <section aria-label="Istaknute objave" className="mb-8 sm:mb-10">
-      <Carousel className="w-full" opts={{ loop: true }} plugins={[autoplay.current]}>
+      <Carousel
+        className="w-full"
+        opts={{ loop: true, duration: shouldReduceMotion ? 0 : 25 }}
+        plugins={shouldReduceMotion ? [] : [autoplay.current]}
+      >
         <CarouselContent className="items-stretch">
           {featured.map((post) => (
             <CarouselItem key={post.slug} className="h-auto">

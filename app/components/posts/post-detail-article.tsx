@@ -13,6 +13,7 @@ import {
   CarouselPrevious,
 } from "#app/components/ui/carousel";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
+import { motionTransitions, sectionReveal } from "#app/lib/motion";
 import { normalizeNonBreakingSpaces } from "#app/lib/post-excerpt";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/lib/post-type";
 
@@ -112,11 +113,7 @@ export function PostDetailArticle({
         />
       ) : null}
 
-      <motion.article
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
+      <motion.article {...sectionReveal}>
         <h1 className="font-display text-foreground mb-2 text-3xl leading-tight font-bold sm:text-4xl">
           {post.title}
         </h1>
@@ -142,10 +139,7 @@ export function PostDetailArticle({
 
         <div className="bg-border mb-8 h-px" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
+        <div
           className="prose prose-stone text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
@@ -257,7 +251,7 @@ function ExpandableImage({
         height={image.height ?? undefined}
         loading="lazy"
         decoding="async"
-        className="aspect-video h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]"
+        className="aspect-video h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.015] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
       />
       <span
         aria-hidden="true"
@@ -323,7 +317,7 @@ function ImageLightbox({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.18 }}
+      transition={motionTransitions.lightbox}
       className="text-primary-foreground fixed inset-0 z-10000 bg-[hsl(var(--foreground)/0.92)] p-3 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
@@ -352,9 +346,9 @@ function ImageLightbox({
           key={image.id}
           src={`/slike/${image.id}`}
           alt={image.altText ?? ""}
-          initial={{ opacity: 0.6, scale: 0.985 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2 }}
+          transition={motionTransitions.lightbox}
           className="ring-primary-foreground/10 max-h-full max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.35)] ring-1"
         />
       </div>

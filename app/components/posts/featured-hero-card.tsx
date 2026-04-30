@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
+import { heroContentVariants, heroItemVariants, sectionReveal } from "#app/lib/motion";
 import type { PostTypeValue } from "#app/lib/post-type";
 
 type FeaturedHeroCardProps = {
@@ -21,9 +22,7 @@ type FeaturedHeroCardProps = {
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
+      {...sectionReveal}
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}
@@ -43,11 +42,14 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
           />
 
-          <div className="relative z-10 flex h-full flex-1 flex-col">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={heroContentVariants}
+            className="relative z-10 flex h-full flex-1 flex-col"
+          >
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              variants={heroItemVariants}
               className="mb-3 flex items-center gap-2 sm:mb-4"
             >
               <Star
@@ -60,27 +62,21 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             </motion.div>
 
             <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              variants={heroItemVariants}
               className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
             >
               {post.title}
             </motion.h2>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55, duration: 0.5 }}
+              variants={heroItemVariants}
               className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.65, duration: 0.5 }}
+              variants={heroItemVariants}
               className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4"
             >
               <PostTypeBadge
@@ -95,7 +91,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
                 {formatDateLong(post.publishedAt)}
               </time>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </Link>
     </motion.div>
