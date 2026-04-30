@@ -29,7 +29,7 @@ const motionViewport = {
   margin: "0px 0px -10% 0px",
 } satisfies NonNullable<MotionProps["viewport"]>;
 
-export const pageFade = {
+export const softFade = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
   transition: motionTransitions.page,
@@ -52,6 +52,7 @@ export const cardReveal = {
   initial: { opacity: 0, y: motionOffset.sm },
   whileInView: { opacity: 1, y: 0 },
   viewport: motionViewport,
+  transition: motionTransitions.item,
 } satisfies MotionPreset;
 
 export const heroContentVariants = {
@@ -65,10 +66,9 @@ export const heroContentVariants = {
 } satisfies MotionProps["variants"];
 
 export const heroItemVariants = {
-  hidden: { opacity: 0, y: motionOffset.sm },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: motionTransitions.micro,
   },
 } satisfies MotionProps["variants"];

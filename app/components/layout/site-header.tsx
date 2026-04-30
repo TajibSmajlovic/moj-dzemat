@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { LogIn } from "lucide-react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
 

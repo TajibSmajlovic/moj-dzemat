@@ -22,7 +22,7 @@ import {
   useRootSiteUrl,
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
-import { pageFade, sectionRevealWithDelay } from "#app/lib/motion";
+import { sectionRevealWithDelay, softFade } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import {
@@ -175,7 +175,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             ))}
           </section>
         ) : (
-          <motion.div {...pageFade} className="py-20 text-center">
+          <motion.div {...softFade} className="py-20 text-center">
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>
@@ -257,18 +257,11 @@ function Featured({ featured }: { featured: PostCardData[] }) {
     Autoplay({ delay: 8000, stopOnInteraction: true, stopOnMouseEnter: true }),
   );
 
-  if (featured.length === 1 && featured[0]) {
+  const [only] = featured;
+  if (featured.length === 1 && only) {
     return (
       <section aria-label="Istaknuta objava" className="mb-8 sm:mb-10">
-        <FeaturedHeroCard
-          post={{
-            slug: featured[0].slug,
-            title: featured[0].title,
-            excerpt: featured[0].excerpt,
-            type: featured[0].type,
-            publishedAt: featured[0].publishedAt,
-          }}
-        />
+        <FeaturedHeroCard post={only} />
       </section>
     );
   }
@@ -284,15 +277,7 @@ function Featured({ featured }: { featured: PostCardData[] }) {
           {featured.map((post) => (
             <CarouselItem key={post.slug} className="h-auto">
               <div className="h-full">
-                <FeaturedHeroCard
-                  post={{
-                    slug: post.slug,
-                    title: post.title,
-                    excerpt: post.excerpt,
-                    type: post.type,
-                    publishedAt: post.publishedAt,
-                  }}
-                />
+                <FeaturedHeroCard post={post} />
               </div>
             </CarouselItem>
           ))}

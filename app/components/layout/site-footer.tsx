@@ -1,4 +1,4 @@
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 
 export function SiteFooter() {

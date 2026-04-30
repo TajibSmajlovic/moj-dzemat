@@ -8,7 +8,7 @@ import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PasswordField } from "#app/components/forms/password-field";
 import { AuthCardShell } from "#app/components/layout/auth-shell";
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";

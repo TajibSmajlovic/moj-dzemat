@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useRouteLoaderData } from "react-router";
 
 import { Pencil } from "lucide-react";
 import { motion } from "motion/react";
@@ -9,7 +9,7 @@ import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { pageFade } from "#app/lib/motion";
+import { sectionReveal, sectionRevealWithDelay } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import {
   THEME_COLOR,
@@ -17,14 +17,12 @@ import {
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import { getCurrentUser } from "#app/utils/auth.server.js";
 import { prisma } from "#app/utils/db.server";
 import { env } from "#app/utils/env.server";
 
 import type { Route } from "./+types/_public.objave.$slug";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  const isAdminLoggedIn = (await getCurrentUser(request)) !== null;
+export async function loader({ params }: Route.LoaderArgs) {
   const post = await prisma.post.findFirst({
     where: { slug: params.slug, status: "published" },
     select: {
@@ -45,7 +43,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   invariantResponse(post, "Objava nije pronađena.", { status: 404 });
 
-  return { post, siteUrl: env().APP_URL, isAdminLoggedIn };
+  return { post, siteUrl: env().APP_URL };
 }
 
 export function meta({ data, matches }: Route.MetaArgs) {
@@ -86,12 +84,14 @@ export function meta({ data, matches }: Route.MetaArgs) {
 }
 
 export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
-  const { post, siteUrl, isAdminLoggedIn } = loaderData;
+  const { post, siteUrl } = loaderData;
   const siteName = useRootSiteName();
+  const layoutData = useRouteLoaderData<{ isAdminLoggedIn: boolean }>("routes/_public");
+  const isAdminLoggedIn = layoutData?.isAdminLoggedIn ?? false;
 
   return (
-    <motion.main {...pageFade} className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
-      <div className="mb-4 sm:mb-6">
+    <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
+      <motion.div {...sectionReveal} className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <BackButton fallback="/" label="Nazad na listu" />
 
@@ -108,15 +108,17 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
             <ShareButton />
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <PostDetailArticle
-        post={post}
-        siteName={siteName}
-        siteUrl={siteUrl}
-        showPinnedBadge={isAdminLoggedIn}
-        showStructuredData
-      />
-    </motion.main>
+      <motion.div {...sectionRevealWithDelay(0.08)}>
+        <PostDetailArticle
+          post={post}
+          siteName={siteName}
+          siteUrl={siteUrl}
+          showPinnedBadge={isAdminLoggedIn}
+          showStructuredData
+        />
+      </motion.div>
+    </main>
   );
 }
