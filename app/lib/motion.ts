@@ -41,6 +41,12 @@ export const sectionReveal = {
   transition: motionTransitions.section,
 } satisfies MotionPreset;
 
+export const heroReveal = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: motionTransitions.micro,
+} satisfies MotionPreset;
+
 export const scrollReveal = {
   initial: { opacity: 0, y: motionOffset.md },
   whileInView: { opacity: 1, y: 0 },
@@ -54,24 +60,6 @@ export const cardReveal = {
   viewport: motionViewport,
   transition: motionTransitions.item,
 } satisfies MotionPreset;
-
-export const heroContentVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      delayChildren: 0.08,
-      staggerChildren: 0.055,
-    },
-  },
-} satisfies MotionProps["variants"];
-
-export const heroItemVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: motionTransitions.micro,
-  },
-} satisfies MotionProps["variants"];
 
 function withMotionDelay(transition: MotionTransition, delay: number) {
   if (delay <= 0) return transition;
