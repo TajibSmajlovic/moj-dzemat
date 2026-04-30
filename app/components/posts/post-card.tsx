@@ -1,13 +1,13 @@
 import { Link } from "react-router";
 
 import { Pin } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { cardReveal, listDelay, motionTransitions, withMotionDelay } from "#app/lib/motion";
+import { cardReveal, motionTransitions } from "#app/lib/motion";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { shareOnFacebook } from "#app/lib/share";
 
@@ -23,21 +23,21 @@ export type PostCardData = {
 
 type PostCardProps = {
   post: PostCardData;
-  index?: number;
 };
 
-export function PostCard({ post, index = 0 }: PostCardProps) {
+export function PostCard({ post }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.article
       {...cardReveal}
-      transition={withMotionDelay(motionTransitions.item, listDelay(index))}
+      whileHover={shouldReduceMotion ? undefined : { y: -2, transition: motionTransitions.hover }}
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
-        "transition-[transform,box-shadow] duration-200 ease-out hover:shadow-md sm:hover:-translate-y-1",
-        "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
-        !thumbnail && "min-h-[23rem] sm:min-h-0",
+        "transform-gpu transition-shadow duration-300 ease-out will-change-transform hover:shadow-md",
+        "motion-reduce:transition-none",
+        !thumbnail && "min-h-92 sm:min-h-0",
       )}
     >
       {post.pinned && (
@@ -53,7 +53,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
         to={`/objave/${post.slug}`}
         prefetch="intent"
         state={{ fromList: true }}
-        className="focus-visible:ring-ring flex h-full flex-col rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="focus-visible:ring-ring flex h-full flex-col overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         {thumbnail ? (
           <div className="relative isolate aspect-video w-full overflow-hidden rounded-t-xl">
@@ -62,7 +62,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               alt=""
               loading="lazy"
               decoding="async"
-              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out motion-reduce:transition-none sm:group-hover:scale-[1.03] motion-reduce:sm:group-hover:scale-100"
+              className="h-full w-full transform-gpu object-cover transition-transform duration-500 ease-out will-change-transform backface-hidden motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
               <PostTypeBadge

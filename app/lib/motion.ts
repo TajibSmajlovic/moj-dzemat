@@ -73,11 +73,7 @@ export const heroItemVariants = {
   },
 } satisfies MotionProps["variants"];
 
-export function listDelay(index = 0) {
-  return Math.min(Math.max(index, 0), 5) * 0.045;
-}
-
-export function withMotionDelay(transition: MotionTransition, delay: number) {
+function withMotionDelay(transition: MotionTransition, delay: number) {
   if (delay <= 0) return transition;
 
   return { ...transition, delay } satisfies MotionTransition;
