@@ -84,16 +84,3 @@ export const featuredHeroMetaReveal = {
   animate: { opacity: 1 },
   transition: { delay: 0.44, duration: 0.34, ease: motionEase },
 } satisfies MotionPreset;
-
-function withMotionDelay(transition: MotionTransition, delay: number) {
-  if (delay <= 0) return transition;
-
-  return { ...transition, delay } satisfies MotionTransition;
-}
-
-export function sectionRevealWithDelay(delay: number) {
-  return {
-    ...sectionReveal,
-    transition: withMotionDelay(sectionReveal.transition, delay),
-  } satisfies MotionPreset;
-}

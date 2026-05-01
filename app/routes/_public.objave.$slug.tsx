@@ -1,7 +1,6 @@
 import { Link, useRouteLoaderData } from "react-router";
 
 import { Pencil } from "lucide-react";
-import { motion } from "motion/react";
 
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { ShareButton } from "#app/components/posts/share-button";
@@ -9,7 +8,6 @@ import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { sectionReveal, sectionRevealWithDelay } from "#app/lib/motion";
 import { plainExcerpt } from "#app/lib/post-excerpt";
 import {
   THEME_COLOR,
@@ -91,34 +89,30 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
-      <motion.div {...sectionReveal} className="mb-4 sm:mb-6">
-        <div className="flex items-center justify-between">
-          <BackButton fallback="/" label="Nazad na listu" />
+      <div className="flex items-center justify-between">
+        <BackButton fallback="/" label="Nazad na listu" />
 
-          <div className="flex flex-wrap items-center gap-2">
-            {isAdminLoggedIn ? (
-              <Button variant="outline" size="sm" className="gap-2" asChild>
-                <Link to={`/admin/objave/${post.id}`}>
-                  <Pencil className="h-4 w-4" aria-hidden="true" />
-                  Uredi
-                </Link>
-              </Button>
-            ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {isAdminLoggedIn ? (
+            <Button variant="outline" size="sm" className="gap-2" asChild>
+              <Link to={`/admin/objave/${post.id}`}>
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+                Uredi
+              </Link>
+            </Button>
+          ) : null}
 
-            <ShareButton />
-          </div>
+          <ShareButton />
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div {...sectionRevealWithDelay(0.08)}>
-        <PostDetailArticle
-          post={post}
-          siteName={siteName}
-          siteUrl={siteUrl}
-          showPinnedBadge={isAdminLoggedIn}
-          showStructuredData
-        />
-      </motion.div>
+      <PostDetailArticle
+        post={post}
+        siteName={siteName}
+        siteUrl={siteUrl}
+        showPinnedBadge={isAdminLoggedIn}
+        showStructuredData
+      />
     </main>
   );
 }
