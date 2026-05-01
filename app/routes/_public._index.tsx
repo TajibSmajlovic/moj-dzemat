@@ -267,7 +267,7 @@ function Featured({ featured }: { featured: PostCardData[] }) {
     <section aria-label="Istaknute objave" className="mb-8 sm:mb-10">
       <Carousel
         className="w-full"
-        opts={{ loop: true, duration: shouldReduceMotion ? 0 : 25 }}
+        opts={{ loop: true, duration: shouldReduceMotion ? 0 : 32 }}
         plugins={shouldReduceMotion ? [] : [autoplay.current]}
       >
         <CarouselContent className="items-stretch">
