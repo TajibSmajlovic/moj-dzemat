@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, NavigationType, useNavigationType } from "react-router";
 
 import { Pin } from "lucide-react";
 import { motion } from "motion/react";
@@ -27,10 +27,12 @@ type PostCardProps = {
 
 export function PostCard({ post }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
+  const navigationType = useNavigationType();
+  const skipEntrance = navigationType === NavigationType.Pop;
 
   return (
     <motion.article
-      {...cardReveal}
+      {...(skipEntrance ? {} : cardReveal)}
       whileHover={{ y: -2, transition: motionTransitions.hover }}
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
