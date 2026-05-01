@@ -6,15 +6,19 @@ type MotionPreset = Pick<
   "animate" | "exit" | "initial" | "transition" | "variants" | "viewport" | "whileInView"
 >;
 
-const motionEase = [0.22, 1, 0.36, 1] as [number, number, number, number];
+// Easing curves tuned per motion intent
+const easeOut = [0.22, 1, 0.36, 1] as [number, number, number, number]; // entrances — fast start, gentle land
+const easeInOut = [0.4, 0, 0.2, 1] as [number, number, number, number]; // modal/reversible — symmetric, smooth
+const easeSnap = [0.2, 0, 0, 1] as [number, number, number, number]; // interactive — responsive press/hover
+const easeEditorial = [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]; // staggered text — soft, editorial feel
 
 export const motionTransitions = {
-  page: { duration: 0.24, ease: motionEase },
-  section: { duration: 0.36, ease: motionEase },
-  item: { duration: 0.32, ease: motionEase },
-  micro: { duration: 0.22, ease: motionEase },
-  hover: { duration: 0.18, ease: motionEase },
-  lightbox: { duration: 0.18, ease: motionEase },
+  page: { duration: 0.24, ease: easeOut },
+  section: { duration: 0.36, ease: easeOut },
+  item: { duration: 0.26, ease: easeOut },
+  micro: { duration: 0.22, ease: easeOut },
+  hover: { duration: 0.18, ease: easeSnap },
+  lightbox: { duration: 0.28, ease: easeInOut },
 } satisfies Record<string, MotionTransition>;
 
 const motionOffset = {
@@ -31,7 +35,7 @@ const motionViewport = {
 
 const featuredHeroChildTransition = {
   duration: 0.44,
-  ease: motionEase,
+  ease: easeEditorial,
 } satisfies MotionTransition;
 
 const featuredHeroChildReveal = {
@@ -78,7 +82,7 @@ export const featuredHeroReveal = {
       transition: {
         delayChildren: 0.1,
         duration: 0.6,
-        ease: motionEase,
+        ease: easeOut,
         staggerChildren: 0.075,
       },
     },
