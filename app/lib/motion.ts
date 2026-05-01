@@ -29,6 +29,18 @@ const motionViewport = {
   margin: "0px 0px -10% 0px",
 } satisfies NonNullable<MotionProps["viewport"]>;
 
+const featuredHeroChildTransition = {
+  duration: 0.44,
+  ease: motionEase,
+} satisfies MotionTransition;
+
+const featuredHeroChildReveal = {
+  variants: {
+    hidden: { opacity: 0, y: motionOffset.sm },
+    show: { opacity: 1, y: 0, transition: featuredHeroChildTransition },
+  },
+} satisfies MotionPreset;
+
 export const softFade = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
@@ -56,31 +68,27 @@ export const cardReveal = {
 } satisfies MotionPreset;
 
 export const featuredHeroReveal = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.52, ease: motionEase },
+  initial: "hidden",
+  animate: "show",
+  variants: {
+    hidden: { opacity: 0, y: 18 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        delayChildren: 0.1,
+        duration: 0.6,
+        ease: motionEase,
+        staggerChildren: 0.075,
+      },
+    },
+  },
 } satisfies MotionPreset;
 
-export const featuredHeroEyebrowReveal = {
-  initial: { opacity: 0, x: -16 },
-  animate: { opacity: 1, x: 0 },
-  transition: { delay: 0.18, duration: 0.36, ease: motionEase },
-} satisfies MotionPreset;
+export const featuredHeroEyebrowReveal = featuredHeroChildReveal;
 
-export const featuredHeroTitleReveal = {
-  initial: { opacity: 0, y: motionOffset.sm },
-  animate: { opacity: 1, y: 0 },
-  transition: { delay: 0.26, duration: 0.36, ease: motionEase },
-} satisfies MotionPreset;
+export const featuredHeroTitleReveal = featuredHeroChildReveal;
 
-export const featuredHeroExcerptReveal = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  transition: { delay: 0.36, duration: 0.34, ease: motionEase },
-} satisfies MotionPreset;
+export const featuredHeroExcerptReveal = featuredHeroChildReveal;
 
-export const featuredHeroMetaReveal = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  transition: { delay: 0.44, duration: 0.34, ease: motionEase },
-} satisfies MotionPreset;
+export const featuredHeroMetaReveal = featuredHeroChildReveal;
