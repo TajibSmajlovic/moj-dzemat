@@ -81,6 +81,10 @@ async function createServer(): Promise<express.Express> {
         maxAge: "1y",
       }),
     );
+    app.get("/logo.svg", (_req, res) => {
+      res.setHeader("Cache-Control", "public, max-age=604800"); // 7 days
+      res.sendFile("logo.svg", { root: "build/client" });
+    });
     app.use(express.static("build/client", { maxAge: "1h" }));
 
     // `build/server/index.js` is produced by `react-router build`. Imported
