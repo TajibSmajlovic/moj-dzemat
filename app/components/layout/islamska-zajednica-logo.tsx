@@ -6,6 +6,8 @@ export function IslamskaZajednicaLogo({ className }: { className?: string }) {
       <img
         src="/logo.svg?v=7"
         alt=""
+        width={40}
+        height={40}
         className={cn("inline-block h-9 w-auto sm:h-10", className)}
         aria-hidden="true"
       />

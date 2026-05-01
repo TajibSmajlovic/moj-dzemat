@@ -70,7 +70,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
 
             <motion.p
               {...featuredHeroExcerptReveal}
-              className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
+              className="text-primary-foreground/90 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
@@ -86,7 +86,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               />
               <time
                 dateTime={toIsoDate(post.publishedAt)}
-                className="text-primary-foreground/70 text-xs sm:text-sm"
+                className="text-primary-foreground/85 text-xs sm:text-sm"
               >
                 {formatDateLong(post.publishedAt)}
               </time>

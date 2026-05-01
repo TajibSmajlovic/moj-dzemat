@@ -23,9 +23,11 @@ export type PostCardData = {
 
 type PostCardProps = {
   post: PostCardData;
+  /** Mark as the LCP image candidate — uses eager loading + fetchpriority high */
+  priority?: boolean;
 };
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, priority }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
   const navigationType = useNavigationType();
   const skipEntrance = navigationType === NavigationType.Pop;
@@ -61,8 +63,11 @@ export function PostCard({ post }: PostCardProps) {
             <img
               src={thumbnail}
               alt=""
-              loading="lazy"
+              width={756}
+              height={425}
+              loading={priority ? "eager" : "lazy"}
               decoding="async"
+              fetchPriority={priority ? "high" : undefined}
               className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:will-change-transform motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
@@ -113,7 +118,7 @@ export function PostCard({ post }: PostCardProps) {
                   shareOnFacebook(`/objave/${post.slug}`);
                 }}
                 aria-label="Podijeli na Facebooku"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground hover:text-primary flex h-11 w-11 items-center justify-center transition-colors"
               >
                 <FacebookIcon className="h-4 w-4" />
               </button>
