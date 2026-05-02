@@ -13,7 +13,7 @@ import { Button } from "#app/components/ui/button";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
-import { getAuthPageChrome } from "#app/utils/auth-page.server";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { prisma } from "#app/utils/db.server";
 import { sendEmail } from "#app/utils/email.server";
 import { env } from "#app/utils/env.server";
@@ -39,7 +39,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request }: Route.LoaderArgs) {
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPageChrome(request)),
+    ...(await getAuthPage(request)),
   };
 }
 

@@ -14,7 +14,7 @@ import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
-import { getAuthPageChrome } from "#app/utils/auth-page.server";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { login } from "#app/utils/auth.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
 import { logger } from "#app/utils/logger.server";
@@ -38,7 +38,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ request }: Route.LoaderArgs) {
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPageChrome(request)),
+    ...(await getAuthPage(request)),
   };
 }
 

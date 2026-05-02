@@ -13,7 +13,7 @@ import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
-import { getAuthPageChrome } from "#app/utils/auth-page.server";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { hashPassword, validateNewPassword } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
@@ -46,7 +46,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader({ params, request }: Route.LoaderArgs) {
   const [verification, chrome] = await Promise.all([
     verifyResetToken(params.token),
-    getAuthPageChrome(request),
+    getAuthPage(request),
   ]);
 
   if (!verification.ok) {
