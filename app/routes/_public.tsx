@@ -5,6 +5,7 @@ import { SiteHeader } from "#app/components/layout/site-header";
 import { AnnouncementBar } from "#app/components/posts/announcement-bar";
 import { getCurrentUser } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
+import { env } from "#app/utils/env.server";
 
 import type { Route } from "./+types/_public";
 
@@ -15,6 +16,7 @@ import type { Route } from "./+types/_public";
  * a single-active invariant, so we just grab the first active row.
  */
 export async function loader({ request }: Route.LoaderArgs) {
+  const environment = env();
   const announcement = await prisma.siteAnnouncement.findFirst({
     where: { isActive: true },
     orderBy: { createdAt: "desc" },
@@ -23,7 +25,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const currentUser = await getCurrentUser(request);
 
-  return { announcement, isAdminLoggedIn: currentUser !== null };
+  return {
+    announcement,
+    cloudflareWebAnalyticsToken: environment.CLOUDFLARE_WEB_ANALYTICS_TOKEN,
+    isAdminLoggedIn: currentUser !== null,
+  };
 }
 
 export default function PublicLayout({ loaderData }: Route.ComponentProps) {
@@ -37,6 +43,16 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
       </div>
 
       <SiteFooter />
+
+      {loaderData.cloudflareWebAnalyticsToken ? (
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({
+            token: loaderData.cloudflareWebAnalyticsToken,
+          })}
+        />
+      ) : null}
     </div>
   );
 }
