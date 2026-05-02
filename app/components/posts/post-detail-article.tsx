@@ -167,7 +167,7 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
   if (images.length === 1 && images[0])
     return (
       <div className="mb-8">
-        <ExpandableImage image={images[0]} index={0} onOpen={setLightboxIndex} />
+        <ExpandableImage image={images[0]} index={0} onOpen={setLightboxIndex} priority />
         <AnimatePresence>
           {lightboxIndex === null ? null : (
             <ImageLightbox
@@ -188,7 +188,12 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={image.id}>
-              <ExpandableImage image={image} index={index} onOpen={setLightboxIndex} />
+              <ExpandableImage
+                image={image}
+                index={index}
+                onOpen={setLightboxIndex}
+                priority={index === 0}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -215,10 +220,12 @@ function ExpandableImage({
   image,
   index,
   onOpen,
+  priority = false,
 }: {
   image: PostDetailImage;
   index: number;
   onOpen: (index: number) => void;
+  priority?: boolean;
 }) {
   const label = image.altText
     ? `Otvori sliku ${index + 1}: ${image.altText}`
@@ -236,8 +243,9 @@ function ExpandableImage({
         alt={image.altText ?? ""}
         width={image.width ?? undefined}
         height={image.height ?? undefined}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
         decoding="async"
+        fetchPriority={priority ? "high" : undefined}
         className="aspect-video h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.015] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
       />
       <span
