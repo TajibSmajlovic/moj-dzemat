@@ -2,19 +2,19 @@ import { Form, Link, data, redirect, useActionData } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
+import { FileText, LogIn, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PasswordField } from "#app/components/forms/password-field";
-import { AuthCardShell } from "#app/components/layout/auth-shell";
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
+import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
-import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { getAuthPageChrome } from "#app/utils/auth-page.server";
 import { login } from "#app/utils/auth.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
 import { logger } from "#app/utils/logger.server";
@@ -35,8 +35,11 @@ export function meta({ matches }: Route.MetaArgs) {
   ];
 }
 
-export function loader(_args: Route.LoaderArgs) {
-  return { honeypot: honeypotToken() };
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    honeypot: honeypotToken(),
+    ...(await getAuthPageChrome(request)),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -95,15 +98,27 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <AuthCardShell beforeCard={<BackLink to="/" className="mb-8" />}>
-      <div className="mb-6 flex flex-col items-center">
-        <div className="mb-6">
-          <IslamskaZajednicaLogo className="h-18 sm:h-18" />
-        </div>
-        <h1 className="font-display text-foreground text-2xl font-bold">Admin Panel</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Prijavite se za upravljanje objavama</p>
-      </div>
-
+    <PublicAuthShell
+      announcement={loaderData.announcement}
+      isAdminLoggedIn={loaderData.isAdminLoggedIn}
+      eyebrow="Admin panel"
+      title="Prijava za uredništvo"
+      description="Upravljajte objavama, obavijesnom trakom i sadržajem džematske stranice iz zaštićenog administrativnog prostora."
+      panelTitle="Prijavite se"
+      panelDescription="Unesite administratorski email i lozinku."
+      details={[
+        {
+          icon: <FileText className="size-4" />,
+          title: "Objave i obavijesti",
+          description: "Administracija je namijenjena urednicima stranice.",
+        },
+        {
+          icon: <ShieldCheck className="size-4" />,
+          title: "Zaštićen pristup",
+          description: "Nalozi se aktiviraju kroz sigurni tok za postavljanje lozinke.",
+        },
+      ]}
+    >
       {actionData?.formError ? (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{actionData.formError}</AlertDescription>
@@ -146,6 +161,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
         />
 
         <Button type="submit" className="w-full">
+          <LogIn className="size-4" />
           Prijavi se
         </Button>
 
@@ -158,7 +174,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
           </Link>
         </p>
       </Form>
-    </AuthCardShell>
+    </PublicAuthShell>
   );
 }
 
