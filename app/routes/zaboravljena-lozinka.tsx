@@ -1,22 +1,25 @@
-import { Form, data, useActionData } from "react-router";
+import { Form, Link, data, useActionData } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
+import { ArrowLeft, Clock3, MailCheck, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
-import { AuthHeader, AuthPageShell } from "#app/components/layout/auth-shell";
+import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { prisma } from "#app/utils/db.server";
 import { sendEmail } from "#app/utils/email.server";
 import { env } from "#app/utils/env.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
 import { logger } from "#app/utils/logger.server";
+import { buildPasswordResetEmail } from "#app/utils/password-reset-email.server";
 import { forgotPasswordLimiter, getClientIp } from "#app/utils/rate-limit.server";
 import { signResetToken } from "#app/utils/reset-token.server";
 
@@ -33,8 +36,11 @@ export function meta({ matches }: Route.MetaArgs) {
   ];
 }
 
-export function loader(_args: Route.LoaderArgs) {
-  return { honeypot: honeypotToken() };
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    honeypot: honeypotToken(),
+    ...(await getAuthPage(request)),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -64,17 +70,17 @@ export async function action({ request }: Route.ActionArgs) {
   });
 
   if (user) {
+    const environment = env();
     const token = await signResetToken({
       userId: user.id,
       passwordHash: user.password?.hash ?? null,
     });
-    const url = `${env().APP_URL}/nova-lozinka/${token}`;
-    await sendEmail({
-      to: user.email,
-      subject: "Postavljanje nove lozinke",
-      text: `Otvorite sljedeći link kako biste postavili novu lozinku (vrijedi 1 sat):\n\n${url}`,
-      html: `<p>Otvorite sljedeći link kako biste postavili novu lozinku (vrijedi 1 sat):</p><p><a href="${url}">${url}</a></p>`,
+    const url = `${environment.APP_URL}/nova-lozinka/${token}`;
+    const email = buildPasswordResetEmail({
+      resetUrl: url,
+      siteName: formatSiteName(environment.DZEMAT_NAME),
     });
+    await sendEmail({ to: user.email, ...email });
     logger.info({ email: user.email, userId: user.id }, "password reset email sent");
   } else {
     // Still burn the same timing budget to avoid leaking existence.
@@ -97,25 +103,70 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
 
   if (actionData?.sent) {
     return (
-      <AuthPageShell gap="gap-4">
-        <h1 className="text-3xl">Provjerite email</h1>
-        <p className="text-muted-foreground">
-          Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke. Link vrijedi 1
-          sat.
-        </p>
-      </AuthPageShell>
+      <PublicAuthShell
+        announcement={loaderData.announcement}
+        isAdminLoggedIn={loaderData.isAdminLoggedIn}
+        eyebrow="Siguran pristup"
+        title="Provjerite email"
+        description="Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke."
+        panelTitle="Zahtjev je zaprimljen"
+        panelDescription="Iz sigurnosnih razloga prikazujemo istu poruku bez obzira na to da li je email pronađen."
+        details={[
+          {
+            icon: <Clock3 className="size-4" />,
+            title: "Link vrijedi 1 sat",
+            description: "Nakon isteka možete zatražiti novi link istim putem.",
+          },
+          {
+            icon: <ShieldCheck className="size-4" />,
+            title: "Postojeća lozinka ostaje aktivna",
+            description: "Promjena se desi tek kada otvorite link i postavite novu lozinku.",
+          },
+        ]}
+      >
+        <div className="space-y-5">
+          <div className="bg-primary/10 text-primary flex size-12 items-center justify-center rounded-lg">
+            <MailCheck className="size-6" />
+          </div>
+          <p className="text-muted-foreground text-sm leading-6">
+            Provjerite inbox. Ako poruka ne stigne za nekoliko minuta, pogledajte spam folder ili
+            ponovo pošaljite zahtjev.
+          </p>
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/prijava">
+              <ArrowLeft className="size-4" />
+              Nazad na prijavu
+            </Link>
+          </Button>
+        </div>
+      </PublicAuthShell>
     );
   }
 
   return (
-    <AuthPageShell>
-      <AuthHeader
-        title="Zaboravljena lozinka"
-        description="Unesite svoj email. Poslat ćemo link za postavljanje nove lozinke."
-      />
-
+    <PublicAuthShell
+      announcement={loaderData.announcement}
+      isAdminLoggedIn={loaderData.isAdminLoggedIn}
+      eyebrow="Admin pristup"
+      title="Zaboravljena lozinka"
+      description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
+      panelTitle="Pošalji link"
+      panelDescription="Link za novu lozinku stiže na email i vrijedi 1 sat."
+      details={[
+        {
+          icon: <Clock3 className="size-4" />,
+          title: "Vremenski ograničen link",
+          description: "Svaki link vrijedi 1 sat i vezan je za trenutno stanje naloga.",
+        },
+        {
+          icon: <ShieldCheck className="size-4" />,
+          title: "Bez otkrivanja naloga",
+          description: "Poruka nakon slanja ostaje ista i ne otkriva da li email postoji.",
+        },
+      ]}
+    >
       {form.errors?.length ? (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-4">
           <AlertDescription>{form.errors[0]}</AlertDescription>
         </Alert>
       ) : null}
@@ -129,6 +180,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
           inputProps={{
             ...getInputProps(fields.email, { type: "email" }),
             autoComplete: "email",
+            placeholder: "admin@dzemat.ba",
           }}
         />
 
@@ -136,6 +188,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
           Pošalji link
         </Button>
       </Form>
-    </AuthPageShell>
+    </PublicAuthShell>
   );
 }
