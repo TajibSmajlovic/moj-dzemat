@@ -53,6 +53,11 @@ const envSchema = z.object({
     .optional()
     .transform((value) => (value === "" ? undefined : value))
     .pipe(z.string().url().optional()),
+  CLOUDFLARE_WEB_ANALYTICS_TOKEN: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value === "" ? undefined : value)),
 
   APP_URL: z
     .string()
