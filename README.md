@@ -82,22 +82,23 @@ The app reads runtime environment variables from [`app/utils/env.server.ts`](app
 
 These are the variables that matter most for local development:
 
-| Variable                | Local guidance                                                                                                             |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`          | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                    |
-| `ADMIN_SEED_EMAILS`     | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                     |
-| `SESSION_SECRET`        | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.               |
-| `PASSWORD_RESET_SECRET` | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                         |
-| `HONEYPOT_SECRET`       | Replace the sample value. Must be at least 16 characters.                                                                  |
-| `EMAIL_FROM`            | Required even in local dev. Any reasonable sender value is fine locally.                                                   |
-| `APP_URL`               | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                     |
-| `ENABLE_TEST_ROUTES`    | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work. |
-| `RESEND_API_KEY`        | Leave empty in local development unless you explicitly want real email delivery. Required in production.                   |
-| `DZEMAT_NAME`           | Optional branding suffix shown in the UI.                                                                                  |
-| `DZEMAT_ADDRESS`        | Optional homepage address block for the embedded map section.                                                              |
-| `DZEMAT_MAP_QUERY`      | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                   |
-| `FACEBOOK_PAGE_URL`     | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                   |
-| `PORT`                  | Defaults to `3000`.                                                                                                        |
+| Variable                         | Local guidance                                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                   | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                    |
+| `ADMIN_SEED_EMAILS`              | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                     |
+| `SESSION_SECRET`                 | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.               |
+| `PASSWORD_RESET_SECRET`          | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                         |
+| `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                  |
+| `EMAIL_FROM`                     | Required even in local dev. Any reasonable sender value is fine locally.                                                   |
+| `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                     |
+| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work. |
+| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                   |
+| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                  |
+| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                              |
+| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                   |
+| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                   |
+| `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.       |
+| `PORT`                           | Defaults to `3000`.                                                                                                        |
 
 Useful secret generator:
 
