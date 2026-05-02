@@ -1,17 +1,19 @@
-import { Form, data, redirect, useActionData } from "react-router";
+import { Form, Link, data, redirect, useActionData } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
+import { AlertTriangle, CheckCircle2, Clock3, KeyRound, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
-import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
-import { AuthHeader, AuthPageShell } from "#app/components/layout/auth-shell";
+import { PasswordField } from "#app/components/forms/password-field";
+import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { hashPassword, validateNewPassword } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
@@ -41,13 +43,18 @@ export function meta({ matches }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const verification = await verifyResetToken(params.token);
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const [verification, chrome] = await Promise.all([
+    verifyResetToken(params.token),
+    getAuthPage(request),
+  ]);
+
   if (!verification.ok) {
     logger.warn({ reason: verification.reason }, "password reset page opened with invalid token");
-    return data({ invalid: true as const, honeypot: honeypotToken() }, { status: 400 });
+
+    return data({ invalid: true as const, honeypot: honeypotToken(), ...chrome }, { status: 400 });
   }
-  return { invalid: false as const, honeypot: honeypotToken() };
+  return { invalid: false as const, honeypot: honeypotToken(), ...chrome };
 }
 
 export async function action({ params, request }: Route.ActionArgs) {
@@ -111,28 +118,66 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
 
   if (loaderData.invalid) {
     return (
-      <AuthPageShell gap="gap-4">
-        <h1 className="text-3xl">Link nije važeći</h1>
-        <p className="text-muted-foreground">
-          Ovaj link je istekao ili je već iskorišten. Zatražite novi putem{" "}
-          <a className="underline" href="/zaboravljena-lozinka">
-            stranice za zaboravljenu lozinku
-          </a>
-          .
-        </p>
-      </AuthPageShell>
+      <PublicAuthShell
+        announcement={loaderData.announcement}
+        isAdminLoggedIn={loaderData.isAdminLoggedIn}
+        eyebrow="Siguran pristup"
+        title="Link nije važeći"
+        description="Ovaj link je istekao, već iskorišten ili više ne odgovara trenutnom stanju naloga."
+        panelTitle="Zatražite novi link"
+        panelDescription="Novi link za postavljanje lozinke možete poslati na isti administratorski email."
+        details={[
+          {
+            icon: <Clock3 className="size-4" />,
+            title: "Link vrijedi 1 sat",
+            description: "Istekli linkovi se odbijaju automatski.",
+          },
+          {
+            icon: <ShieldCheck className="size-4" />,
+            title: "Promjena lozinke poništava stare linkove",
+            description: "Ako je lozinka već promijenjena, raniji link više nije upotrebljiv.",
+          },
+        ]}
+      >
+        <div className="space-y-5">
+          <div className="bg-destructive/10 text-destructive flex size-12 items-center justify-center rounded-lg">
+            <AlertTriangle className="size-6" />
+          </div>
+          <p className="text-muted-foreground text-sm leading-6">
+            Pošaljite novi zahtjev i otvorite najnoviji email koji primite.
+          </p>
+          <Button asChild className="w-full">
+            <Link to="/zaboravljena-lozinka">Pošalji novi link</Link>
+          </Button>
+        </div>
+      </PublicAuthShell>
     );
   }
 
   return (
-    <AuthPageShell>
-      <AuthHeader
-        title="Nova lozinka"
-        description="Odaberite lozinku. Minimalno 10 znakova; provjerili smo i da ne postoji u javnim curenjima podataka."
-      />
-
+    <PublicAuthShell
+      announcement={loaderData.announcement}
+      isAdminLoggedIn={loaderData.isAdminLoggedIn}
+      eyebrow="Admin pristup"
+      title="Postavite novu lozinku"
+      description="Odaberite novu lozinku za administratorski nalog. Nakon uspješnog spremanja odmah ćemo vas prijaviti."
+      panelTitle="Nova lozinka"
+      panelDescription="Koristite najmanje 10 znakova. Provjerit ćemo i da lozinka nije poznata iz javnih curenja podataka."
+      details={[
+        {
+          icon: <KeyRound className="size-4" />,
+          title: "Minimalno 10 znakova",
+          description: "Duža jedinstvena lozinka je bolja od kratke i složene.",
+        },
+        {
+          icon: <CheckCircle2 className="size-4" />,
+          title: "Automatska prijava",
+          description: "Nakon spremanja lozinke nastavljate direktno u admin panel.",
+        },
+      ]}
+    >
       {form.errors?.length ? (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-4">
           <AlertDescription>{form.errors[0]}</AlertDescription>
         </Alert>
       ) : null}
@@ -140,7 +185,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
       <Form method="post" {...getFormProps(form)} className="space-y-4">
         <HoneypotInputs token={loaderData.honeypot} />
 
-        <Field
+        <PasswordField
           label="Nova lozinka"
           errors={fields.password.errors}
           hint="Minimalno 10 znakova."
@@ -150,7 +195,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
           }}
         />
 
-        <Field
+        <PasswordField
           label="Potvrdite lozinku"
           errors={fields.confirmPassword.errors}
           inputProps={{
@@ -163,6 +208,6 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
           Spremi i prijavi se
         </Button>
       </Form>
-    </AuthPageShell>
+    </PublicAuthShell>
   );
 }
