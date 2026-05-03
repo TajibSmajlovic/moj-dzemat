@@ -276,15 +276,6 @@ function ImageLightbox({
   const canNavigate = images.length > 1;
 
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -313,7 +304,7 @@ function ImageLightbox({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={motionTransitions.lightbox}
-      className="text-primary-foreground fixed inset-0 z-10000 bg-[hsl(var(--foreground)/0.92)] p-3 backdrop-blur-md sm:p-6"
+      className="text-primary-foreground fixed inset-0 z-10000 overflow-hidden overscroll-none bg-[hsl(var(--foreground)/0.92)] p-3 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
       <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-5">
