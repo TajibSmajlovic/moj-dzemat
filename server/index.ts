@@ -9,10 +9,25 @@ import { env } from "../app/utils/env.server";
 import { logger } from "../app/utils/logger.server";
 import { securityHeaders } from "../app/utils/security.server";
 
-const { NODE_ENV, PORT } = env();
+// Attach a request-scoped child logger to every Express request. Declared
+// once here so route/middleware code can read `req.log` without per-call
+// type casts. Optional because the property is only populated after the
+// request-id middleware below has run.
+declare module "express-serve-static-core" {
+  // Module augmentation requires `interface` for declaration merging;
+  // a type alias cannot extend the upstream `Request`.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  interface Request {
+    log?: typeof logger;
+  }
+}
+
+const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
 const MAX_BODY_BYTES = 20 * 1024 * 1024; // 20 MB per request
 const HEALTHCHECK_PATH = "/resources/healthcheck";
+const canonicalUrl = new URL(APP_URL);
+const canonicalHost = canonicalUrl.host.toLowerCase();
 
 async function createServer(): Promise<express.Express> {
   const app = express();
@@ -50,12 +65,33 @@ async function createServer(): Promise<express.Express> {
 
     // Attach a request-scoped child logger so route code can log with
     // consistent metadata (filled in later todos).
-    (req as express.Request & { log: typeof logger }).log = logger.child({
+    req.log = logger.child({
       requestId,
       method: req.method,
       path: req.path,
     });
     next();
+  });
+
+  app.use((req, res, next) => {
+    if (req.path === HEALTHCHECK_PATH) return next();
+
+    const requestHost = req.get("host")?.toLowerCase();
+    if (!requestHost || requestHost === canonicalHost) return next();
+    if (!isProd) return next();
+
+    const target = new URL(req.originalUrl, canonicalUrl);
+    req.log?.info(
+      {
+        fromHost: requestHost,
+        toHost: canonicalHost,
+        path: req.path,
+        statusCode: 308,
+      },
+      "canonical host redirect",
+    );
+
+    return res.redirect(308, target.toString());
   });
 
   // Liveness + readiness probe. Fly hits this before routing traffic;
@@ -127,10 +163,7 @@ async function createServer(): Promise<express.Express> {
   // stack traces leaking out.
   app.use(
     (error: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      (req as express.Request & { log?: typeof logger }).log?.error(
-        { err: error },
-        "unhandled server error",
-      );
+      req.log?.error({ err: error }, "unhandled server error");
       if (!res.headersSent) {
         res.status(500).send("Internal server error");
       }
