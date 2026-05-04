@@ -142,3 +142,14 @@ model SiteAnnouncement {
 
   @@index([isActive, createdAt])
 }
+
+model FaqQuestion {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, createdAt])
+}
