@@ -1,8 +1,10 @@
-import { Link, useActionData, useNavigation } from "react-router";
+import { useActionData, useNavigation } from "react-router";
 
-import { ArrowLeft } from "lucide-react";
-
+import { AdminPageHeader } from "#app/components/admin/admin-page-header";
+import { AdminPanel } from "#app/components/admin/admin-panel";
 import { PostForm } from "#app/components/admin/post-form";
+import { invariantResponse } from "#app/lib/invariant";
+import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
@@ -22,15 +24,18 @@ const POST_FORM_SELECT = {
   pinned: true,
   images: {
     orderBy: { position: "asc" as const },
-    select: { id: true },
+    select: { id: true, altText: true },
   },
 } as const;
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.post) {
-    return [{ title: "Objava · Admin" }];
+    return [{ title: "Objava · Admin" }, { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW }];
   }
-  return [{ title: `Uredi „${data.post.title}" · Admin` }];
+  return [
+    { title: `Uredi „${data.post.title}" · Admin` },
+    { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW },
+  ];
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -41,9 +46,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     select: POST_FORM_SELECT,
   });
 
-  if (!post) {
-    throw new Response("Objava nije pronađena.", { status: 404 });
-  }
+  invariantResponse(post, "Objava nije pronađena.", { status: 404 });
 
   return { post };
 }
@@ -58,9 +61,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === "delete-image") {
     const postId = requireId(formData.get("id"));
-    if (postId !== routePostId) {
-      throw new Response("Neispravan zahtjev.", { status: 400 });
-    }
+    invariantResponse(postId === routePostId, "Neispravan zahtjev.");
     const imageId = requireId(formData.get("imageId"));
     const result = await prisma.postImage.deleteMany({
       where: { id: imageId, postId },
@@ -76,9 +77,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === "update") {
     const bodyPostId = requireId(formData.get("id"));
-    if (bodyPostId !== routePostId) {
-      throw new Response("Neispravan zahtjev.", { status: 400 });
-    }
+    invariantResponse(bodyPostId === routePostId, "Neispravan zahtjev.");
     return createOrUpdatePostFromForm({
       request,
       authorId: user.id,
@@ -98,31 +97,22 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Link
-          to="/admin/objave"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Nazad na listu
-        </Link>
-      </div>
+      <AdminPageHeader
+        className="mb-6"
+        backTo="/admin/objave"
+        backLabel="Nazad na listu"
+        title="Uredi objavu"
+        description={`Uređujete "${post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.`}
+      />
 
-      <div className="mb-6">
-        <h1 className="font-display text-foreground text-2xl font-semibold">Uredi objavu</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Uređujete "{post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.
-        </p>
-      </div>
-
-      <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
+      <AdminPanel>
         <PostForm
           post={post}
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
           cancelTo="/admin/objave"
         />
-      </div>
+      </AdminPanel>
     </main>
   );
 }

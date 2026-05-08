@@ -7,6 +7,16 @@ describe("plainExcerpt", () => {
     expect(plainExcerpt("<p>Prva</p>\n\n<p>  druga  </p>")).toBe("Prva druga");
   });
 
+  it("decodes HTML entities before normalizing whitespace", () => {
+    expect(plainExcerpt("<p>Hvala&nbsp;Allahu,&nbsp;Gospodaru &amp; Stvoritelju.</p>")).toBe(
+      "Hvala Allahu, Gospodaru & Stvoritelju.",
+    );
+  });
+
+  it("decodes numeric HTML entities", () => {
+    expect(plainExcerpt("Prva&#160;druga&#xA0;treća")).toBe("Prva druga treća");
+  });
+
   it("truncates long content with an ellipsis", () => {
     expect(plainExcerpt("abcdefgh", 5)).toBe("abcde…");
   });

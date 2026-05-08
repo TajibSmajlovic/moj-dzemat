@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { PAGE_SIZE } from "../../app/lib/pagination";
 import { POSTS_TITLES } from "./global-setup";
 import { loginAsAdmin } from "./utils/admin";
+import { fillPostForm, uploadTinyPng } from "./utils/post-form";
 
 const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(PAGE_SIZE);
 const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
@@ -49,6 +50,71 @@ test.describe("posts", () => {
     await expect(
       page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
     ).toBeVisible();
+  });
+
+  test("admin can toggle featured / pinned / status from the list with optimistic UI", async ({
+    page,
+  }) => {
+    await loginAsAdmin(page);
+    await page.goto("/admin/objave");
+    await page.waitForLoadState("networkidle");
+
+    // POSTS_TITLES[0] is the newest seeded post and lives on page 1.
+    // Each flag is toggled on then back off so the post-test DB state
+    // matches the seed (the delete test that follows targets page 2,
+    // which is unaffected, but we still want to be neighbourly).
+    const targetTitle = POSTS_TITLES[0];
+    if (!targetTitle) {
+      throw new Error("Expected at least one seeded post to toggle.");
+    }
+    const targetRow = page.getByRole("row").filter({ hasText: targetTitle });
+    await expect(targetRow).toBeVisible();
+
+    // Featured: starts off → on → off.
+    await targetRow.getByRole("button", { name: "Istakni" }).click();
+    await expect(page.getByText("Objava istaknuta.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Ukloni istaknuto" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await targetRow.getByRole("button", { name: "Ukloni istaknuto" }).click();
+    await expect(page.getByText("Uklonjeno iz istaknutih.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Istakni" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+
+    // Pinned: starts off → on → off.
+    await targetRow.getByRole("button", { name: "Stavi na vrh" }).click();
+    await expect(page.getByText("Objava je stavljena na vrh.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Ukloni sa vrha" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await targetRow.getByRole("button", { name: "Ukloni sa vrha" }).click();
+    await expect(page.getByText("Objava više nije na vrhu.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Stavi na vrh" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+
+    // Status: schema defaults posts to "published", so the active button
+    // reads "Sakrij objavu". Hide it then re-publish to restore.
+    await targetRow.getByRole("button", { name: "Sakrij objavu" }).click();
+    await expect(page.getByText("Objava je sakrivena.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Objavi" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+
+    await targetRow.getByRole("button", { name: "Objavi" }).click();
+    await expect(page.getByText("Objava je objavljena.")).toBeVisible();
+    await expect(targetRow.getByRole("button", { name: "Sakrij objavu" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   test("admin confirms deletion through the custom dialog", async ({ page }) => {
@@ -123,26 +189,26 @@ test.describe("posts", () => {
     await page.goto("/admin/objave/nova");
     await expect(page).toHaveURL(/\/admin\/objave\/nova$/);
 
-    await page.getByRole("textbox", { name: "Naslov" }).fill(title);
-    await page.getByLabel("URL slug").fill(slug);
-    await page.getByLabel("Vrsta").selectOption("obavijest");
-    await page.locator(".ProseMirror").waitFor({ state: "visible" });
-    await page.locator(".ProseMirror").fill("E2E sadržaj sa uploadovanom slikom.");
-    await page.getByLabel("Objavi odmah").click();
-
-    await page.locator('input[type="file"][name="images"]').setInputFiles({
-      name: "e2e-image.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z8W0AAAAASUVORK5CYII=",
-        "base64",
-      ),
+    await fillPostForm(page, {
+      title,
+      slug,
+      type: "obavijest",
+      body: "E2E sadržaj sa uploadovanom slikom.",
+      publish: true,
     });
+
+    await uploadTinyPng(page);
 
     await page.getByRole("button", { name: "Sačuvaj" }).click();
 
     await expect(page).toHaveURL(new RegExp(`/objave/${slug}$`));
     await expect(page.locator('img[src^="/slike/"]')).toHaveCount(1);
+    await page.getByRole("button", { name: "Otvori sliku 1 preko cijelog ekrana" }).click();
+    const lightbox = page.getByRole("dialog", { name: "Pregled slike preko cijelog ekrana" });
+    await expect(lightbox).toBeVisible();
+    await expect(lightbox.locator('img[src^="/slike/"]')).toBeVisible();
+    await lightbox.getByRole("button", { name: "Zatvori prikaz slike" }).click();
+    await expect(lightbox).toBeHidden();
     await expect(page.getByRole("link", { name: "Uredi" })).toBeVisible();
 
     await page.getByRole("link", { name: "Uredi" }).click();
@@ -168,11 +234,12 @@ test.describe("posts", () => {
     await page.goto("/admin/objave/nova");
     await expect(page).toHaveURL(/\/admin\/objave\/nova$/);
 
-    await page.getByRole("textbox", { name: "Naslov" }).fill(title);
-    await page.getByLabel("URL slug").fill(slug);
-    await page.getByLabel("Vrsta").selectOption("obavijest");
-    await page.locator(".ProseMirror").waitFor({ state: "visible" });
-    await page.locator(".ProseMirror").fill("Ovaj tekst je prvo skriven od javnosti.");
+    await fillPostForm(page, {
+      title,
+      slug,
+      type: "obavijest",
+      body: "Ovaj tekst je prvo skriven od javnosti.",
+    });
 
     await page.getByRole("button", { name: "Sačuvaj" }).click();
 
@@ -220,10 +287,11 @@ test.describe("posts", () => {
 
     await expect(page).toHaveURL(/\/admin\/objave\/[^/]+$/);
 
-    await page.getByRole("textbox", { name: "Naslov" }).fill(updatedTitle);
-    await page.getByLabel("URL slug").fill(updatedSlug);
-    await page.locator(".ProseMirror").waitFor({ state: "visible" });
-    await page.locator(".ProseMirror").fill("Ažurirani E2E sadržaj objave.");
+    await fillPostForm(page, {
+      title: updatedTitle,
+      slug: updatedSlug,
+      body: "Ažurirani E2E sadržaj objave.",
+    });
 
     await page.getByRole("button", { name: "Spremi izmjene" }).click();
 
@@ -253,10 +321,12 @@ test.describe("posts", () => {
     // Conform can't catch this client-side (it has no view of the DB),
     // so the round-trip exercises post-admin.server's slug-conflict path.
     await page.goto("/admin/objave/nova");
-    await page.getByRole("textbox", { name: "Naslov" }).fill(`Drugi pokušaj ${unique}`);
-    await page.getByLabel("URL slug").fill(slug);
-    await page.getByLabel("Vrsta").selectOption("obavijest");
-    await page.locator(".ProseMirror").fill("Pokušaj ponovne upotrebe sluga.");
+    await fillPostForm(page, {
+      title: `Drugi pokušaj ${unique}`,
+      slug,
+      type: "obavijest",
+      body: "Pokušaj ponovne upotrebe sluga.",
+    });
 
     await page.getByRole("button", { name: "Sačuvaj" }).click();
 
@@ -282,14 +352,13 @@ async function createPostThroughAdmin(
   await page.goto("/admin/objave/nova");
   await expect(page).toHaveURL(/\/admin\/objave\/nova$/);
 
-  await page.getByRole("textbox", { name: "Naslov" }).fill(options.title);
-  await page.getByLabel("URL slug").fill(options.slug);
-  await page.getByLabel("Vrsta").selectOption("obavijest");
-  await page.locator(".ProseMirror").waitFor({ state: "visible" });
-  await page
-    .locator(".ProseMirror")
-    .fill(options.body ?? "Ovo je jednostavan E2E test sadržaj objave.");
-  await page.getByLabel("Objavi odmah").click();
+  await fillPostForm(page, {
+    title: options.title,
+    slug: options.slug,
+    type: "obavijest",
+    body: options.body ?? "Ovo je jednostavan E2E test sadržaj objave.",
+    publish: true,
+  });
 
   await page.getByRole("button", { name: "Sačuvaj" }).click();
 

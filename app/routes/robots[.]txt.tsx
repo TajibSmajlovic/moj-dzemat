@@ -1,9 +1,8 @@
 import { env } from "#app/utils/env.server";
 
 /**
- * Minimal robots.txt. Public feed + post pages are indexable; admin
- * area and the per-image byte route are not (no linking surfaces, but
- * explicit disallow lines save crawler budget).
+ * Minimal robots.txt. Public feed, post pages and images are indexable;
+ * admin area and auth routes are not.
  */
 export function loader() {
   const body = [
@@ -15,7 +14,6 @@ export function loader() {
     "Disallow: /odjava",
     "Disallow: /zaboravljena-lozinka",
     "Disallow: /nova-lozinka/",
-    "Disallow: /slike/",
     "",
     `Sitemap: ${env().APP_URL}/sitemap.xml`,
     "",

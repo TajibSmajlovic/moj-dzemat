@@ -1,14 +1,17 @@
-import { useEffect, useRef } from "react";
-import { Form, Link, redirect, useActionData, useFetcher, useNavigation } from "react-router";
+import { Link, redirect, useActionData, useNavigation } from "react-router";
 
-import { Eye, EyeOff, Pencil, Pin, Plus, Star, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Pencil, Pin, Plus, Star } from "lucide-react";
 
+import { AdminPageHeader } from "#app/components/admin/admin-page-header";
+import { AdminPanel } from "#app/components/admin/admin-panel";
+import { DeleteRecordButton } from "#app/components/admin/delete-record-button";
+import { EmptyState } from "#app/components/admin/empty-state";
+import { IconActionButton } from "#app/components/admin/icon-action-button";
+import { OptimisticToggleIconButton } from "#app/components/admin/optimistic-toggle-button";
 import { PaginationControls } from "#app/components/admin/pagination-controls";
 import { PostStatusBadge } from "#app/components/admin/post-status-badge";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { Button } from "#app/components/ui/button";
-import { ConfirmAction } from "#app/components/ui/confirm-action";
-import { showToast } from "#app/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -17,10 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from "#app/components/ui/table";
-import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
 import { getPaginationState, PAGE_SIZE, parsePageParam } from "#app/lib/pagination";
 import { createActionToast } from "#app/lib/toast";
+import { useActionToast } from "#app/lib/use-action-toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { logger } from "#app/utils/logger.server";
@@ -159,38 +162,27 @@ export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
 
-  // Show toast when the main Form (delete action) completes.
-  const lastActionData = useRef(actionData);
+  useActionToast(actionData);
+
   const deletingId =
     navigation.formData?.get("intent") === "delete"
       ? (navigation.formData.get("id") as string | null)
       : null;
 
-  useEffect(() => {
-    if (actionData && actionData !== lastActionData.current) {
-      if (actionData.ok && actionData.toast) {
-        showToast(actionData.toast);
-      }
-      lastActionData.current = actionData;
-    }
-  }, [actionData]);
-
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-foreground text-2xl font-semibold">Objave</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Objave na vrhu se prikazuju prve. Istaknuto se prikazuje u hero sekciji.
-          </p>
-        </div>
-        <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" asChild>
-          <Link to="/admin/objave/nova">
-            <Plus className="h-5 w-5" aria-hidden="true" />
-            Nova objava
-          </Link>
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Objave"
+        description="Objave na vrhu se prikazuju prve. Istaknuto se prikazuje u hero sekciji."
+        actions={
+          <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" asChild>
+            <Link to="/admin/objave/nova">
+              <Plus className="h-5 w-5" aria-hidden="true" />
+              Nova objava
+            </Link>
+          </Button>
+        }
+      />
 
       <PostsTable posts={posts} pagination={pagination} deletingId={deletingId} />
     </main>
@@ -208,7 +200,7 @@ function PostsTable({
 }) {
   if (posts.length === 0) {
     return (
-      <div className="border-border bg-card rounded-2xl border p-12 text-center">
+      <EmptyState>
         <p className="text-muted-foreground">
           Još nema objava.{" "}
           <Link to="/admin/objave/nova" className="text-primary font-medium hover:underline">
@@ -216,12 +208,12 @@ function PostsTable({
           </Link>
           .
         </p>
-      </div>
+      </EmptyState>
     );
   }
 
   return (
-    <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
+    <AdminPanel>
       <div className="overflow-x-auto">
         <Table className="table-fixed">
           <TableHeader>
@@ -279,57 +271,57 @@ function PostsTable({
 
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
-                    <ToggleButton
+                    <OptimisticToggleIconButton
                       intent="toggle-featured"
                       id={post.id}
                       active={post.featured}
-                      title={post.featured ? "Ukloni istaknuto" : "Istakni"}
-                      activeClasses="text-secondary bg-secondary/10"
-                      inactiveClasses="text-muted-foreground hover:text-secondary hover:bg-secondary/10"
-                    >
-                      <Star className="h-4 w-4" aria-hidden="true" />
-                    </ToggleButton>
+                      tone="secondary"
+                      activeLabel="Ukloni istaknuto"
+                      inactiveLabel="Istakni"
+                      activeIcon={<Star className="h-4 w-4" aria-hidden="true" />}
+                    />
 
-                    <ToggleButton
+                    <OptimisticToggleIconButton
                       intent="toggle-pinned"
                       id={post.id}
                       active={post.pinned}
-                      title={post.pinned ? "Ukloni sa vrha" : "Stavi na vrh"}
-                      activeClasses="text-primary bg-primary/10"
-                      inactiveClasses="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    >
-                      <Pin className="h-4 w-4" aria-hidden="true" />
-                    </ToggleButton>
+                      tone="primary"
+                      activeLabel="Ukloni sa vrha"
+                      inactiveLabel="Stavi na vrh"
+                      activeIcon={<Pin className="h-4 w-4" aria-hidden="true" />}
+                    />
 
-                    <ToggleButton
+                    <OptimisticToggleIconButton
                       intent="toggle-status"
                       id={post.id}
                       active={post.status === "published"}
-                      title={post.status === "published" ? "Sakrij objavu" : "Objavi"}
-                      activeClasses="text-primary bg-primary/10"
-                      inactiveClasses="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    >
-                      {post.status === "published" ? (
-                        <Eye className="h-4 w-4" aria-hidden="true" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" aria-hidden="true" />
-                      )}
-                    </ToggleButton>
+                      tone="primary"
+                      activeLabel="Sakrij objavu"
+                      inactiveLabel="Objavi"
+                      activeIcon={<Eye className="h-4 w-4" aria-hidden="true" />}
+                      inactiveIcon={<EyeOff className="h-4 w-4" aria-hidden="true" />}
+                    />
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Uredi"
-                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      asChild
-                    >
+                    <IconActionButton label="Uredi" tone="primary" asChild>
                       <Link to={`/admin/objave/${post.id}`}>
                         <Pencil className="h-4 w-4" aria-hidden="true" />
-                        <span className="sr-only">Uredi</span>
                       </Link>
-                    </Button>
-                    <DeletePostButton postId={post.id} postTitle={post.title} />
+                    </IconActionButton>
+
+                    <DeleteRecordButton
+                      id={post.id}
+                      formIdPrefix="delete-post"
+                      title="Obrisati objavu?"
+                      description={
+                        <>
+                          Objava <strong className="text-foreground">"{post.title}"</strong> biće
+                          trajno uklonjena iz javne stranice i administracije. Ovu radnju nije
+                          moguće vratiti.
+                        </>
+                      }
+                      confirmLabel="Obriši objavu"
+                      iconLabel={`Obriši "${post.title}"`}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -346,98 +338,10 @@ function PostsTable({
         nextHref={getPageHref(pagination.page + 1)}
         ariaLabel="Paginacija objava"
       />
-    </div>
+    </AdminPanel>
   );
 }
 
 function getPageHref(page: number) {
   return page <= 1 ? ADMIN_POSTS_PATH : `${ADMIN_POSTS_PATH}?page=${page}`;
-}
-
-function DeletePostButton({ postId, postTitle }: { postId: string; postTitle: string }) {
-  const formId = `delete-post-${postId}`;
-
-  return (
-    <Form id={formId} method="post" className="inline">
-      <input type="hidden" name="intent" value="delete" />
-      <input type="hidden" name="id" value={postId} />
-
-      <ConfirmAction
-        form={formId}
-        title="Obrisati objavu?"
-        description={
-          <>
-            Objava <strong className="text-foreground">"{postTitle}"</strong> biće trajno uklonjena
-            iz javne stranice i administracije. Ovu radnju nije moguće vratiti.
-          </>
-        }
-        confirmLabel="Obriši objavu"
-      >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title={`Obriši "${postTitle}"`}
-          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">Obriši objavu</span>
-        </Button>
-      </ConfirmAction>
-    </Form>
-  );
-}
-
-type ToggleButtonProps = {
-  intent: "toggle-featured" | "toggle-pinned" | "toggle-status";
-  id: string;
-  active: boolean;
-  title: string;
-  activeClasses: string;
-  inactiveClasses: string;
-  children: React.ReactNode;
-};
-
-function ToggleButton({
-  intent,
-  id,
-  active,
-  title,
-  activeClasses,
-  inactiveClasses,
-  children,
-}: ToggleButtonProps) {
-  const fetcher = useFetcher<typeof action>();
-  const optimistic =
-    fetcher.formData?.get("intent") === intent && fetcher.formData.get("id") === id
-      ? !active
-      : active;
-
-  const lastData = useRef(fetcher.data);
-  useEffect(() => {
-    if (fetcher.data && fetcher.data !== lastData.current) {
-      if (fetcher.data.ok && fetcher.data.toast) {
-        showToast(fetcher.data.toast);
-      }
-      lastData.current = fetcher.data;
-    }
-  }, [fetcher.data]);
-
-  return (
-    <fetcher.Form method="post" className="inline">
-      <input type="hidden" name="intent" value={intent} />
-      <input type="hidden" name="id" value={id} />
-
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon-sm"
-        title={title}
-        className={cn(optimistic ? activeClasses : inactiveClasses)}
-      >
-        {children}
-        <span className="sr-only">{title}</span>
-      </Button>
-    </fetcher.Form>
-  );
 }

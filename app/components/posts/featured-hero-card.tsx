@@ -3,27 +3,31 @@ import { Link } from "react-router";
 import { Star } from "lucide-react";
 import { motion } from "motion/react";
 
+import type { PostCardData } from "#app/components/posts/post-card";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import type { PostTypeValue } from "#app/lib/post-type";
+import {
+  featuredHeroExcerptReveal,
+  featuredHeroEyebrowReveal,
+  featuredHeroMetaReveal,
+  featuredHeroReveal,
+  featuredHeroTitleReveal,
+} from "#app/lib/motion";
+
+type FeaturedHeroCardPost = Pick<
+  PostCardData,
+  "slug" | "title" | "excerpt" | "type" | "publishedAt"
+>;
 
 type FeaturedHeroCardProps = {
   className?: string;
-  post: {
-    slug: string;
-    title: string;
-    excerpt: string;
-    type: PostTypeValue;
-    publishedAt: Date | string;
-  };
+  post: FeaturedHeroCardPost;
 };
 
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
+      {...featuredHeroReveal}
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}
@@ -45,9 +49,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
 
           <div className="relative z-10 flex h-full flex-1 flex-col">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              {...featuredHeroEyebrowReveal}
               className="mb-3 flex items-center gap-2 sm:mb-4"
             >
               <Star
@@ -60,27 +62,21 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             </motion.div>
 
             <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              {...featuredHeroTitleReveal}
               className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
             >
               {post.title}
             </motion.h2>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.55, duration: 0.5 }}
-              className="text-primary-foreground/80 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
+              {...featuredHeroExcerptReveal}
+              className="text-primary-foreground/90 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.65, duration: 0.5 }}
+              {...featuredHeroMetaReveal}
               className="mt-auto flex flex-wrap items-center gap-2.5 sm:gap-4"
             >
               <PostTypeBadge
@@ -90,7 +86,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               />
               <time
                 dateTime={toIsoDate(post.publishedAt)}
-                className="text-primary-foreground/70 text-xs sm:text-sm"
+                className="text-primary-foreground/85 text-xs sm:text-sm"
               >
                 {formatDateLong(post.publishedAt)}
               </time>

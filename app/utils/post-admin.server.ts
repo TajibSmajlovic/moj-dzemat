@@ -4,7 +4,12 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { parseFormData } from "@mjackson/form-data-parser";
 import { Prisma } from "@prisma/client";
 
-import { MAX_IMAGES_PER_POST, PostFormSchema } from "#app/lib/post-schema";
+import { invariant, invariantResponse } from "#app/lib/invariant";
+import {
+  MAX_IMAGES_PER_POST,
+  MAX_IMAGE_ALT_TEXT_LENGTH,
+  PostFormSchema,
+} from "#app/lib/post-schema";
 import type { PostStatusValue } from "#app/lib/post-status";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { createActionToast } from "#app/lib/toast";
@@ -17,6 +22,7 @@ import { redirectWithToast } from "#app/utils/toast.server";
 const MAX_UPLOAD_SIZE = 15 * 1024 * 1024;
 
 type ProcessedImage = Awaited<ReturnType<typeof processImage>>;
+type ProcessedPostImage = ProcessedImage & { altText: string | null };
 type UploadedPart = {
   arrayBuffer(): Promise<ArrayBuffer>;
   readonly size: number;
@@ -35,9 +41,7 @@ class FormError extends Error {
 }
 
 export function requireId(value: unknown): string {
-  if (typeof value !== "string" || !value) {
-    throw new Response("Missing id", { status: 400 });
-  }
+  invariantResponse(typeof value === "string" && value.length > 0, "Missing id");
 
   return value;
 }
@@ -58,18 +62,58 @@ function uploadedFiles(formData: FormData, name: string): UploadedPart[] {
   return out.filter((file) => file.size > 0);
 }
 
-async function processUploadedImages(formData: FormData): Promise<ProcessedImage[]> {
+function normalizeAltText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  const normalized = value.replaceAll(/\s+/g, " ").trim();
+  if (!normalized) return null;
+
+  if (normalized.length > MAX_IMAGE_ALT_TEXT_LENGTH) {
+    throw new FormError(`Opis slike može imati najviše ${MAX_IMAGE_ALT_TEXT_LENGTH} znakova.`);
+  }
+
+  return normalized;
+}
+
+function newImageAltTexts(formData: FormData, imageCount: number): (string | null)[] {
+  const rawValues = formData.getAll("newImageAltText");
+
+  return Array.from({ length: imageCount }, (_, index) =>
+    normalizeAltText(rawValues[index] ?? null),
+  );
+}
+
+function existingImageAltTextUpdates(formData: FormData) {
+  const updates: { id: string; altText: string | null }[] = [];
+
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("imageAltText:")) continue;
+
+    const id = key.slice("imageAltText:".length);
+    if (!id) continue;
+
+    updates.push({ id, altText: normalizeAltText(value) });
+  }
+
+  return updates;
+}
+
+async function processUploadedImages(formData: FormData): Promise<ProcessedPostImage[]> {
   const realFiles = uploadedFiles(formData, "images");
   if (realFiles.length === 0) {
     return [];
   }
 
-  const processedImages: ProcessedImage[] = [];
-  for (const file of realFiles) {
+  const altTexts = newImageAltTexts(formData, realFiles.length);
+  const processedImages: ProcessedPostImage[] = [];
+
+  for (const [index, file] of realFiles.entries()) {
     try {
-      processedImages.push(
-        await processImage(await file.arrayBuffer(), file.type || "application/octet-stream"),
+      const processed = await processImage(
+        await file.arrayBuffer(),
+        file.type || "application/octet-stream",
       );
+      processedImages.push({ ...processed, altText: altTexts[index] ?? null });
     } catch (error) {
       logger.warn(
         { contentType: file.type || "application/octet-stream", byteSize: file.size },
@@ -83,10 +127,15 @@ async function processUploadedImages(formData: FormData): Promise<ProcessedImage
   }
 
   logger.debug({ count: processedImages.length }, "post images preprocessed");
+
   return processedImages;
 }
 
-async function createImageRows(tx: TxClient, postId: string, processedImages: ProcessedImage[]) {
+async function createImageRows(
+  tx: TxClient,
+  postId: string,
+  processedImages: ProcessedPostImage[],
+) {
   if (processedImages.length === 0) return;
 
   const currentCount = await tx.postImage.count({ where: { postId } });
@@ -95,6 +144,7 @@ async function createImageRows(tx: TxClient, postId: string, processedImages: Pr
   if (remaining <= 0) {
     throw new FormError(`Objava već ima maksimalan broj slika (${MAX_IMAGES_PER_POST}).`);
   }
+
   if (processedImages.length > remaining) {
     throw new FormError(
       `Možete dodati još najviše ${remaining} ${remaining === 1 ? "sliku" : "slike"}.`,
@@ -107,6 +157,7 @@ async function createImageRows(tx: TxClient, postId: string, processedImages: Pr
         data: {
           postId,
           contentType: processed.contentType,
+          altText: processed.altText,
           data: processed.data,
           byteSize: processed.byteSize,
           width: processed.width,
@@ -125,7 +176,8 @@ async function persistPostAndImages(args: {
   featured: boolean;
   intent: "create" | "update";
   pinned: boolean;
-  processedImages: ProcessedImage[];
+  processedImages: ProcessedPostImage[];
+  imageAltTextUpdates: { id: string; altText: string | null }[];
   slug: string;
   status: PostStatusValue;
   title: string;
@@ -140,6 +192,7 @@ async function persistPostAndImages(args: {
       intent,
       pinned,
       processedImages,
+      imageAltTextUpdates,
       slug,
       status,
       title,
@@ -188,6 +241,17 @@ async function persistPostAndImages(args: {
           });
 
     await createImageRows(tx, post.id, processedImages);
+
+    if (intent === "update" && existingId && imageAltTextUpdates.length > 0) {
+      await Promise.all(
+        imageAltTextUpdates.map((image) =>
+          tx.postImage.updateMany({
+            where: { id: image.id, postId: existingId },
+            data: { altText: image.altText },
+          }),
+        ),
+      );
+    }
 
     return post;
   });
@@ -252,8 +316,11 @@ export async function createOrUpdatePostFromForm({
   const status: PostStatusValue = publish ? "published" : "draft";
   const existingId = intent === "update" ? requireId(formData.get("id")) : null;
 
-  let processedImages: ProcessedImage[];
+  let processedImages: ProcessedPostImage[];
+  let imageAltTextUpdates: { id: string; altText: string | null }[] = [];
+
   try {
+    imageAltTextUpdates = existingImageAltTextUpdates(formData);
     processedImages = await processUploadedImages(formData);
   } catch (error) {
     if (error instanceof FormError) {
@@ -278,11 +345,13 @@ export async function createOrUpdatePostFromForm({
       intent,
       pinned,
       processedImages,
+      imageAltTextUpdates,
       slug,
       status,
       title,
       type,
     });
+
     logger.info(
       {
         authorId,
@@ -333,17 +402,16 @@ export async function createOrUpdatePostFromForm({
     throw error;
   }
 
-  if (!savedPost) {
-    throw new Error("Post save completed without a saved post payload.");
-  }
+  invariant(savedPost, "Post save completed without a saved post payload.");
 
   const redirectTo =
     savedPost.status === "published"
       ? `/objave/${savedPost.slug}`
       : `/admin/objave/${savedPost.id}/pregled`;
 
-  return redirectWithToast(redirectTo, {
-    ...(intent === "create"
+  return redirectWithToast(
+    redirectTo,
+    intent === "create"
       ? createActionToast({
           action: "create",
           description: "Objava je uspješno kreirana.",
@@ -351,6 +419,6 @@ export async function createOrUpdatePostFromForm({
       : createActionToast({
           action: "update",
           description: "Objava je uspješno ažurirana.",
-        })),
-  });
+        }),
+  );
 }

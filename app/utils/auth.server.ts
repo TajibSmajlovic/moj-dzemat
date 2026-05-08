@@ -64,6 +64,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
     if (!response.ok) {
       // HIBP unreachable - fail open (length check still applied).
       logger.warn({ status: response.status }, "HIBP lookup failed");
+
       return null;
     }
 
@@ -73,6 +74,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
     return breached ? { kind: "breached" } : null;
   } catch (error) {
     logger.warn({ err: error }, "HIBP lookup threw");
+
     return null;
   }
 }
@@ -111,7 +113,9 @@ export async function requireAdmin(request: Request) {
   if (!user) {
     const url = new URL(request.url);
     const params = new URLSearchParams({ redirectTo: url.pathname + url.search });
+
     logger.warn({ path: url.pathname, search: url.search }, "admin access denied");
+
     throw redirect(`/prijava?${params.toString()}`);
   }
 
@@ -158,6 +162,7 @@ export async function login({
 
   const headers = new Headers();
   headers.append("Set-Cookie", await commitSession(cookieSession));
+
   logger.info({ email: normalizedEmail, userId: user.id }, "login succeeded");
 
   return { ok: true, headers };
@@ -169,6 +174,7 @@ export async function logout(request: Request): Promise<Headers> {
 
   const headers = new Headers();
   headers.append("Set-Cookie", await destroySession(cookieSession));
+
   logger.info({ userId }, "logout succeeded");
 
   return headers;

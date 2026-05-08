@@ -1,57 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { action as siteAnnouncementAction } from "#app/routes/admin.obavijesna-traka";
 import { prisma } from "#app/utils/db.server";
-import { honeypotToken } from "#app/utils/honeypot.server";
-import { commitSession, getSession } from "#app/utils/session.server";
 
 import { createSiteAnnouncement, createUser } from "../factories";
+import { withHoneypot } from "../helpers/honeypot";
+import { callAction as runAction } from "../helpers/route";
+import { sessionCookieFor } from "../helpers/session";
 
 const ENDPOINT = "http://localhost/admin/obavijesna-traka";
 
-/**
- * Build a session cookie tied to `userId` so `requireAdmin` inside the
- * route action accepts the call. Returns the cookie pair (`mdz_session=...`)
- * suitable for a `Cookie:` request header.
- */
-async function sessionCookieFor(userId: string): Promise<string> {
-  const session = await getSession(null);
-  session.set("userId", userId);
-  const setCookie = await commitSession(session);
-
-  return setCookie.split(";")[0]!;
-}
-
-/**
- * The honeypot's `assertHoneypot` requires the form to be at least
- * `MIN_AGE_MS` (500ms) old. Mocking that constant would mean reaching
- * into module internals; instead we issue the token a second in the
- * "past" with fake timers, then jump back to "now" before submitting.
- * That keeps real wall-clock waits out of the suite.
- */
-function freshHoneypotFields(): Record<string, string> {
-  vi.useFakeTimers();
-  const now = Date.now();
-  // Issue the token 600ms in the past relative to whatever "now" is.
-  vi.setSystemTime(now - 600);
-  const token = honeypotToken();
-  vi.setSystemTime(now);
-  vi.useRealTimers();
-
-  return token;
-}
-
-type ActionArgs = Parameters<typeof siteAnnouncementAction>[0];
-
-async function callAction(formData: FormData, cookie: string) {
-  const request = new Request(ENDPOINT, {
-    method: "POST",
-    body: formData,
-    headers: { Cookie: cookie },
-  });
-
-  return siteAnnouncementAction({ request, params: {}, context: {} } as ActionArgs);
-}
+const callAction = (formData: FormData, cookie: string) =>
+  runAction(siteAnnouncementAction, { url: ENDPOINT, formData, cookie });
 
 describe("site announcement action", () => {
   let cookie: string;
@@ -76,9 +36,7 @@ describe("site announcement action", () => {
       formData.set("intent", "create");
       formData.set("message", "Nova poruka koja nije aktivna");
       // isActive omitted -> shim treats it as false
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       const result = await callAction(formData, cookie);
       expect(result).toBeInstanceOf(Response);
@@ -103,10 +61,7 @@ describe("site announcement action", () => {
       formData.set("intent", "create");
       formData.set("message", "Nova aktivna poruka");
       formData.set("isActive", "on");
-
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       await callAction(formData, cookie);
 
@@ -130,10 +85,7 @@ describe("site announcement action", () => {
       const formData = new FormData();
       formData.set("intent", "toggle");
       formData.set("id", target.id);
-
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       await callAction(formData, cookie);
 
@@ -153,10 +105,7 @@ describe("site announcement action", () => {
       const formData = new FormData();
       formData.set("intent", "toggle");
       formData.set("id", target.id);
-
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       await callAction(formData, cookie);
 
@@ -180,9 +129,7 @@ describe("site announcement action", () => {
       formData.set("id", target.id);
       formData.set("message", "Target updated");
       formData.set("isActive", "on");
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       const result = await callAction(formData, cookie);
       expect(result).toBeInstanceOf(Response);
@@ -206,10 +153,7 @@ describe("site announcement action", () => {
       const formData = new FormData();
       formData.set("intent", "delete");
       formData.set("id", victim.id);
-
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
+      withHoneypot(formData);
 
       await callAction(formData, cookie);
 
@@ -223,14 +167,10 @@ describe("site announcement action", () => {
       const formData = new FormData();
       formData.set("intent", "delete");
       formData.set("id", "anything");
-
-      for (const [key, value] of Object.entries(freshHoneypotFields())) {
-        formData.set(key, value);
-      }
-      const request = new Request(ENDPOINT, { method: "POST", body: formData });
+      withHoneypot(formData);
 
       await expect(
-        siteAnnouncementAction({ request, params: {}, context: {} } as ActionArgs),
+        runAction(siteAnnouncementAction, { url: ENDPOINT, formData }),
       ).rejects.toBeInstanceOf(Response);
     });
   });

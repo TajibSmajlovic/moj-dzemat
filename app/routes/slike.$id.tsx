@@ -1,3 +1,4 @@
+import { invariantResponse } from "#app/lib/invariant";
 import { getCurrentUser } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 
@@ -32,13 +33,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     },
   });
 
-  if (!image) {
-    throw new Response("Not found", { status: 404 });
-  }
+  invariantResponse(image, "Not found", { status: 404 });
 
-  if (image.post.status !== "published" && !(await getCurrentUser(request))) {
-    throw new Response("Not found", { status: 404 });
-  }
+  invariantResponse(
+    image.post.status === "published" || (await getCurrentUser(request)),
+    "Not found",
+    { status: 404 },
+  );
 
   const body = toResponseBody(image.data);
   const contentType = image.contentType?.startsWith("image/") ? image.contentType : "image/webp";

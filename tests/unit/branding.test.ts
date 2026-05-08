@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SITE_NAME,
   formatPageTitle,
+  formatSiteDescription,
   formatSiteName,
-  getSiteNameFromMatches,
-  getSiteNameFromRootData,
+  getSiteNameParts,
 } from "#app/lib/branding";
 
 describe("formatSiteName", () => {
@@ -32,51 +32,39 @@ describe("formatPageTitle", () => {
   });
 });
 
-describe("getSiteNameFromRootData", () => {
-  it("falls back to the default for null, undefined, and primitives", () => {
-    expect(getSiteNameFromRootData(null)).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromRootData(undefined)).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromRootData("string")).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromRootData(42)).toBe(DEFAULT_SITE_NAME);
+describe("formatSiteDescription", () => {
+  it("keeps the description general when no dzemat name is configured", () => {
+    expect(formatSiteDescription()).toBe(
+      "Zvanična stranica džemata za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
+    );
   });
 
-  it("falls back when the object has no siteName or it is non-string", () => {
-    expect(getSiteNameFromRootData({})).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromRootData({ siteName: 123 })).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromRootData({ siteName: null })).toBe(DEFAULT_SITE_NAME);
-  });
-
-  it("returns the siteName when it is a string", () => {
-    expect(getSiteNameFromRootData({ siteName: "Moj Džemat - Donje Mostre" })).toBe(
-      "Moj Džemat - Donje Mostre",
+  it("personalizes the description with the configured dzemat name", () => {
+    expect(formatSiteDescription("Moj Džemat - Donje Mostre")).toBe(
+      "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
     );
   });
 });
 
-describe("getSiteNameFromMatches", () => {
-  it("returns the default when there is no root match", () => {
-    expect(getSiteNameFromMatches([])).toBe(DEFAULT_SITE_NAME);
-    expect(getSiteNameFromMatches([{ id: "other", data: { siteName: "X" } }])).toBe(
-      DEFAULT_SITE_NAME,
-    );
+describe("getSiteNameParts", () => {
+  it("keeps a bare site name as the brand", () => {
+    expect(getSiteNameParts("Moj Džemat")).toEqual({
+      brandName: "Moj Džemat",
+      dzematName: null,
+    });
   });
 
-  it("ignores undefined entries and finds the root match", () => {
-    expect(getSiteNameFromMatches([undefined, { id: "root", data: { siteName: "Site" } }])).toBe(
-      "Site",
-    );
+  it("splits the default brand from the configured dzemat name", () => {
+    expect(getSiteNameParts("Moj Džemat - Donje Mostre")).toEqual({
+      brandName: "Moj Džemat",
+      dzematName: "Donje Mostre",
+    });
   });
 
-  it("returns the siteName from the root match data", () => {
-    expect(
-      getSiteNameFromMatches([
-        { id: "root", data: { siteName: "Moj Džemat - Donje Mostre" } },
-        { id: "_public", data: {} },
-      ]),
-    ).toBe("Moj Džemat - Donje Mostre");
-  });
-
-  it("falls back when the root match has no data", () => {
-    expect(getSiteNameFromMatches([{ id: "root" }])).toBe(DEFAULT_SITE_NAME);
+  it("does not split unrelated site names", () => {
+    expect(getSiteNameParts("Džemat Donje Mostre")).toEqual({
+      brandName: "Džemat Donje Mostre",
+      dzematName: null,
+    });
   });
 });
