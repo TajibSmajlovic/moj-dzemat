@@ -6,7 +6,7 @@ import { isPostType, type PostTypeValue } from "#app/lib/post-type";
 import { prisma } from "#app/utils/db.server";
 
 export const HOME_POST_LIMIT = 20;
-export const FEATURED_POST_LIMIT = 5;
+const FEATURED_POST_LIMIT = 5;
 
 const publicPostCardSelect = {
   slug: true,
