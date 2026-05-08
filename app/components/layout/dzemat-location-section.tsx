@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 
 import { Button } from "#app/components/ui/button";
 import type { DzematLocation } from "#app/lib/maps";
+import { scrollReveal } from "#app/lib/motion";
 
 type DzematLocationSectionProps = {
   location: DzematLocation;
@@ -11,13 +12,7 @@ type DzematLocationSectionProps = {
 
 export function DzematLocationSection({ location, siteName }: DzematLocationSectionProps) {
   return (
-    <motion.section
-      aria-label="Lokacija džemata"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2, duration: 0.45, ease: "easeOut" }}
-      className="mt-10 sm:mt-14"
-    >
+    <motion.section aria-label="Lokacija džemata" {...scrollReveal} className="mt-10 sm:mt-14">
       <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
         <div
           aria-hidden="true"

@@ -1,15 +1,17 @@
-import { Link, useActionData, useNavigation } from "react-router";
+import { useActionData, useNavigation } from "react-router";
 
-import { ArrowLeft } from "lucide-react";
-
+import { AdminPageHeader } from "#app/components/admin/admin-page-header";
+import { AdminPanel } from "#app/components/admin/admin-panel";
 import { PostForm } from "#app/components/admin/post-form";
+import { invariantResponse } from "#app/lib/invariant";
+import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { requireAdmin } from "#app/utils/auth.server";
 import { createOrUpdatePostFromForm } from "#app/utils/post-admin.server";
 
 import type { Route } from "./+types/admin.objave.nova";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Nova objava · Admin" }];
+  return [{ title: "Nova objava · Admin" }, { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -21,9 +23,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.clone().formData();
   const intent = formData.get("intent");
-  if (intent !== "create") {
-    throw new Response("Unsupported intent", { status: 400 });
-  }
+  invariantResponse(intent === "create", "Unsupported intent");
 
   return createOrUpdatePostFromForm({
     request,
@@ -40,32 +40,27 @@ export default function AdminNewPost() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Link
-          to="/admin/objave"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Nazad na listu
-        </Link>
-      </div>
+      <AdminPageHeader
+        className="mb-6"
+        backTo="/admin/objave"
+        backLabel="Nazad na listu"
+        title="Nova objava"
+        description={
+          <>
+            Popunite polja i po želji dodajte slike (do 3). Ukoliko želite da objavite odmah,
+            označite opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i napraviti
+            dodatne izmjene po potrebi.
+          </>
+        }
+      />
 
-      <div className="mb-6">
-        <h1 className="font-display text-foreground text-2xl font-semibold">Nova objava</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Popunite polja i po želji dodajte slike (do 3). Ukoliko želite da objavite odmah, označite
-          opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i napraviti dodatne
-          izmjene po potrebi.
-        </p>
-      </div>
-
-      <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
+      <AdminPanel>
         <PostForm
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
           cancelTo="/admin/objave"
         />
-      </div>
+      </AdminPanel>
     </main>
   );
 }

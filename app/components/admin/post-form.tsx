@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Link, useFetcher } from "react-router";
 
 import {
@@ -13,17 +13,23 @@ import { Eye, ImagePlus, Pin, Star, Trash2 } from "lucide-react";
 
 import { RichEditor } from "#app/components/admin/rich-editor";
 import { Field } from "#app/components/forms/field";
+import { FormActions } from "#app/components/forms/form-actions";
+import { SelectField } from "#app/components/forms/select-field";
 import { Button } from "#app/components/ui/button";
 import { Checkbox } from "#app/components/ui/checkbox";
 import { ConfirmAction } from "#app/components/ui/confirm-action";
 import { Label } from "#app/components/ui/label";
-import { showToast } from "#app/components/ui/sonner";
-import { MAX_IMAGES_PER_POST, PostFormSchema } from "#app/lib/post-schema";
+import { Textarea } from "#app/components/ui/textarea";
+import {
+  MAX_IMAGES_PER_POST,
+  MAX_IMAGE_ALT_TEXT_LENGTH,
+  PostFormSchema,
+} from "#app/lib/post-schema";
 import type { PostStatusValue } from "#app/lib/post-status";
 import { POST_TYPES, POST_TYPE_LABEL } from "#app/lib/post-type";
-import type { Toast } from "#app/lib/toast";
+import { useFetcherToast } from "#app/lib/use-action-toast";
 
-type PostFormImage = { id: string };
+type PostFormImage = { id: string; altText: string | null };
 
 type PostFormProps = {
   /**
@@ -106,23 +112,18 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
           }}
         />
 
-        <div className="space-y-1.5">
-          <Label htmlFor={fields.type.id}>Vrsta</Label>
-          <select
-            {...getSelectProps(fields.type)}
-            className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          >
-            <option value="">— Odaberite —</option>
-            {POST_TYPES.map((value) => (
-              <option key={value} value={value}>
-                {POST_TYPE_LABEL[value]}
-              </option>
-            ))}
-          </select>
-          {fields.type.errors?.length ? (
-            <p className="text-destructive text-xs">{fields.type.errors[0]}</p>
-          ) : null}
-        </div>
+        <SelectField
+          label="Vrsta"
+          errors={fields.type.errors}
+          selectProps={getSelectProps(fields.type)}
+        >
+          <option value="">— Odaberite —</option>
+          {POST_TYPES.map((value) => (
+            <option key={value} value={value}>
+              {POST_TYPE_LABEL[value]}
+            </option>
+          ))}
+        </SelectField>
 
         <div className="flex flex-wrap gap-5 pt-1">
           <FlagToggle
@@ -165,7 +166,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         <ImagesSection post={post} remainingSlots={remainingSlots} />
       </div>
 
-      <div className="border-border bg-muted/40 flex items-center justify-end gap-2 border-t px-5 py-3">
+      <FormActions>
         {cancelTo ? (
           <Button type="button" variant="ghost" asChild>
             <Link to={cancelTo}>Odustani</Link>
@@ -182,7 +183,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         <Button type="submit" disabled={submitting}>
           {submitting ? "Spremanje…" : isEdit ? "Spremi izmjene" : "Sačuvaj"}
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }
@@ -261,7 +262,7 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
       {post && post.images.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-3">
           {post.images.map((image) => (
-            <ExistingImage key={image.id} postId={post.id} imageId={image.id} />
+            <ExistingImage key={image.id} postId={post.id} image={image} />
           ))}
         </ul>
       ) : null}
@@ -293,7 +294,7 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
               </div>
 
               <ul className="grid gap-3 sm:grid-cols-3">
-                {pending.map((image) => (
+                {pending.map((image, index) => (
                   <li
                     key={`${image.file.name}-${image.file.lastModified}-${image.file.size}`}
                     className="border-border bg-card overflow-hidden rounded-xl border shadow-sm"
@@ -315,6 +316,12 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
                       <p className="text-muted-foreground text-xs">
                         {formatFileSize(image.file.size)}
                       </p>
+                      <div className="space-y-1 pt-1 text-left">
+                        <Label htmlFor={`new-image-alt-${index}`} className="text-xs">
+                          Opis slike
+                        </Label>
+                        <ImageAltTextarea id={`new-image-alt-${index}`} name="newImageAltText" />
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -339,27 +346,41 @@ function formatFileSize(bytes: number) {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+function ImageAltTextarea({
+  defaultValue,
+  id,
+  name,
+}: {
+  defaultValue?: string | null;
+  id: string;
+  name: string;
+}) {
+  return (
+    <Textarea
+      id={id}
+      name={name}
+      defaultValue={defaultValue ?? ""}
+      maxLength={MAX_IMAGE_ALT_TEXT_LENGTH}
+      rows={2}
+      placeholder="Kratak opis slike"
+      className="resize-none px-2 py-1.5 text-xs leading-relaxed"
+    />
+  );
+}
+
 type ExistingImageProps = {
   postId: string;
-  imageId: string;
+  image: PostFormImage;
 };
 
-function ExistingImage({ postId, imageId }: ExistingImageProps) {
+function ExistingImage({ postId, image }: ExistingImageProps) {
   const fetcher = useFetcher();
+
+  useFetcherToast(fetcher);
+
   const pending = fetcher.state !== "idle";
-
-  type DeleteResult = { ok?: boolean; toast?: Toast };
-  const lastData = useRef<DeleteResult | undefined>(undefined);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.data !== lastData.current) {
-      const data = fetcher.data as DeleteResult;
-      if (data.ok && data.toast) {
-        showToast(data.toast);
-      }
-      lastData.current = data;
-    }
-  }, [fetcher.data]);
+  const imageId = image.id;
+  const altInputId = `image-alt-${imageId}`;
 
   const requestDelete = () => {
     const body = new FormData();
@@ -373,28 +394,40 @@ function ExistingImage({ postId, imageId }: ExistingImageProps) {
     <li className="border-border bg-background overflow-hidden rounded-md border">
       <img
         src={`/slike/${imageId}`}
-        alt=""
+        alt={image.altText ?? ""}
         loading="lazy"
         className="aspect-video w-full object-cover"
       />
-      <div className="border-border border-t p-2 text-right">
-        <ConfirmAction
-          onConfirm={requestDelete}
-          title="Obrisati sliku?"
-          description="Slika će biti trajno uklonjena iz ove objave. Ako se predomislite, moraćete je ponovo dodati."
-          confirmLabel="Obriši sliku"
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={pending}
-            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+      <div className="border-border space-y-2 border-t p-2">
+        <div className="space-y-1 text-left">
+          <Label htmlFor={altInputId} className="text-xs">
+            Opis slike
+          </Label>
+          <ImageAltTextarea
+            id={altInputId}
+            name={`imageAltText:${imageId}`}
+            defaultValue={image.altText ?? ""}
+          />
+        </div>
+        <div className="text-right">
+          <ConfirmAction
+            onConfirm={requestDelete}
+            title="Obrisati sliku?"
+            description="Slika će biti trajno uklonjena iz ove objave. Ako se predomislite, moraćete je ponovo dodati."
+            confirmLabel="Obriši sliku"
           >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-            {pending ? "Brisanje…" : "Obriši"}
-          </Button>
-        </ConfirmAction>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={pending}
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              {pending ? "Brisanje…" : "Obriši"}
+            </Button>
+          </ConfirmAction>
+        </div>
       </div>
     </li>
   );

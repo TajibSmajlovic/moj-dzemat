@@ -1,5 +1,6 @@
 import { createCookie, createSessionStorage } from "react-router";
 
+import { invariant } from "#app/lib/invariant";
 import { prisma } from "#app/utils/db.server";
 import { env } from "#app/utils/env.server";
 
@@ -43,14 +44,15 @@ type SessionFlashData = {
 const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
   cookie: sessionCookie,
   async createData(data, expires) {
-    if (!data.userId) {
-      throw new Error("userId required to create a session");
-    }
+    invariant(data.userId, "userId required to create a session");
+
     const expirationDate = expires ?? new Date(Date.now() + THIRTY_DAYS_MS);
+
     const session = await prisma.session.create({
       data: { userId: data.userId, expirationDate },
       select: { id: true },
     });
+
     return session.id;
   },
   async readData(id) {
@@ -58,16 +60,20 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
       where: { id },
       select: { userId: true, expirationDate: true },
     });
+
     if (!session) return null;
     if (session.expirationDate.getTime() < Date.now()) {
       await prisma.session.deleteMany({ where: { id } });
       return null;
     }
+
     return { userId: session.userId };
   },
   async updateData(id, data, expires) {
     if (!data.userId) return;
+
     const expirationDate = expires ?? new Date(Date.now() + THIRTY_DAYS_MS);
+
     await prisma.session.update({
       where: { id },
       data: { expirationDate },

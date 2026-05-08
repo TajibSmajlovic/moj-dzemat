@@ -1,10 +1,10 @@
-import { Form, Link, NavLink, Outlet, useMatches } from "react-router";
+import { Form, Link, NavLink, Outlet } from "react-router";
 
 import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo.js";
+import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
 import { Button } from "#app/components/ui/button";
-import { getSiteNameFromMatches } from "#app/lib/branding";
+import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { requireAdmin } from "#app/utils/auth.server";
 
@@ -18,7 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
-  const siteName = getSiteNameFromMatches(useMatches());
+  const siteName = useRootSiteName();
 
   return (
     <div className="bg-background min-h-screen">

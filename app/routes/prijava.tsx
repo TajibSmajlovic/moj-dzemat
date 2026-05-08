@@ -1,19 +1,20 @@
-import { Form, data, redirect, useActionData } from "react-router";
-import { Link } from "react-router";
+import { Form, Link, data, redirect, useActionData } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { ArrowLeft, Lock } from "lucide-react";
-import { motion } from "motion/react";
+import { FileText, LogIn, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
 import { Field } from "#app/components/forms/field";
 import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PasswordField } from "#app/components/forms/password-field";
+import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { formatPageTitle, getSiteNameFromMatches } from "#app/lib/branding";
+import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
+import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { getAuthPage } from "#app/utils/auth-page.server";
 import { login } from "#app/utils/auth.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
 import { logger } from "#app/utils/logger.server";
@@ -29,13 +30,16 @@ const LoginSchema = z.object({
 
 export function meta({ matches }: Route.MetaArgs) {
   return [
-    { title: formatPageTitle("Prijava", getSiteNameFromMatches(matches)) },
-    { name: "robots", content: "noindex" },
+    { title: formatPageTitle("Prijava", getRootSiteName(matches)) },
+    { name: "robots", content: ROBOTS_NOINDEX },
   ];
 }
 
-export function loader(_args: Route.LoaderArgs) {
-  return { honeypot: honeypotToken() };
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    honeypot: honeypotToken(),
+    ...(await getAuthPage(request)),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -94,89 +98,83 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <main className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-sm"
-      >
-        <Link
-          to="/"
-          className="text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-2 text-sm transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Nazad
-        </Link>
+    <PublicAuthShell
+      announcement={loaderData.announcement}
+      isAdminLoggedIn={loaderData.isAdminLoggedIn}
+      eyebrow="Admin panel"
+      title="Prijava za uredništvo"
+      description="Upravljajte objavama, obavijesnom trakom i sadržajem džematske stranice iz zaštićenog administrativnog prostora."
+      panelTitle="Prijavite se"
+      panelDescription="Unesite administratorski email i lozinku."
+      details={[
+        {
+          icon: <FileText className="size-4" />,
+          title: "Objave i obavijesti",
+          description: "Administracija je namijenjena urednicima stranice.",
+        },
+        {
+          icon: <ShieldCheck className="size-4" />,
+          title: "Zaštićen pristup",
+          description: "Nalozi se aktiviraju kroz sigurni tok za postavljanje lozinke.",
+        },
+      ]}
+    >
+      {actionData?.formError ? (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{actionData.formError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-        <div className="border-border bg-card rounded-2xl border p-8 shadow-lg">
-          <div className="mb-6 flex flex-col items-center">
-            <div className="bg-primary text-primary-foreground mb-3 flex h-14 w-14 items-center justify-center rounded-2xl">
-              <Lock className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <h1 className="font-display text-foreground text-2xl font-bold">Admin Panel</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Prijavite se za upravljanje objavama
-            </p>
-          </div>
+      {form.errors?.length ? (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{form.errors[0]}</AlertDescription>
+        </Alert>
+      ) : null}
 
-          {actionData?.formError ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{actionData.formError}</AlertDescription>
-            </Alert>
-          ) : null}
+      <Form method="post" {...getFormProps(form)} className="space-y-4">
+        <HoneypotInputs token={loaderData.honeypot} />
 
-          {form.errors?.length ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{form.errors[0]}</AlertDescription>
-            </Alert>
-          ) : null}
+        <Field
+          label="Email"
+          errors={fields.email.errors}
+          inputProps={{
+            ...getInputProps(fields.email, { type: "email" }),
+            autoComplete: "email",
+            placeholder: "admin@dzemat.ba",
+          }}
+        />
 
-          <Form method="post" {...getFormProps(form)} className="space-y-4">
-            <HoneypotInputs token={loaderData.honeypot} />
+        <PasswordField
+          label="Lozinka"
+          errors={fields.password.errors}
+          inputProps={{
+            ...getInputProps(fields.password, { type: "password" }),
+            autoComplete: "current-password",
+            placeholder: "••••••••",
+          }}
+        />
 
-            <Field
-              label="Email"
-              errors={fields.email.errors}
-              inputProps={{
-                ...getInputProps(fields.email, { type: "email" }),
-                autoComplete: "email",
-                placeholder: "admin@dzemat.ba",
-              }}
-            />
+        <input
+          type="hidden"
+          name="redirectTo"
+          defaultValue={fields.redirectTo.initialValue ?? ""}
+        />
 
-            <PasswordField
-              label="Lozinka"
-              errors={fields.password.errors}
-              inputProps={{
-                ...getInputProps(fields.password, { type: "password" }),
-                autoComplete: "current-password",
-                placeholder: "••••••••",
-              }}
-            />
+        <Button type="submit" className="w-full">
+          <LogIn className="size-4" />
+          Prijavi se
+        </Button>
 
-            <input
-              type="hidden"
-              name="redirectTo"
-              defaultValue={fields.redirectTo.initialValue ?? ""}
-            />
-
-            <Button type="submit" className="w-full">
-              Prijavi se
-            </Button>
-
-            <p className="text-muted-foreground text-center text-sm">
-              <Link
-                className="hover:text-foreground underline-offset-4 hover:underline"
-                to="/zaboravljena-lozinka"
-              >
-                Zaboravili ste lozinku?
-              </Link>
-            </p>
-          </Form>
-        </div>
-      </motion.div>
-    </main>
+        <p className="text-muted-foreground text-center text-sm">
+          <Link
+            className="hover:text-foreground underline-offset-4 hover:underline"
+            to="/zaboravljena-lozinka"
+          >
+            Zaboravili ste lozinku?
+          </Link>
+        </p>
+      </Form>
+    </PublicAuthShell>
   );
 }
 

@@ -1,9 +1,7 @@
-import { useEffect, useRef } from "react";
 import {
   Form,
   data,
   useActionData,
-  useFetcher,
   useNavigate,
   useNavigation,
   useSearchParams,
@@ -11,13 +9,19 @@ import {
 
 import { getFormProps, getInputProps, useForm, type SubmissionResult } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus } from "lucide-react";
 import { z } from "zod";
 
+import { AdminPageHeader } from "#app/components/admin/admin-page-header";
+import { AdminPanel } from "#app/components/admin/admin-panel";
+import { DeleteRecordButton } from "#app/components/admin/delete-record-button";
+import { EmptyState } from "#app/components/admin/empty-state";
+import { IconActionButton } from "#app/components/admin/icon-action-button";
+import { OptimisticToggleIconButton } from "#app/components/admin/optimistic-toggle-button";
 import { Field } from "#app/components/forms/field";
+import { FormActions } from "#app/components/forms/form-actions";
 import { Button } from "#app/components/ui/button";
 import { Checkbox } from "#app/components/ui/checkbox";
-import { ConfirmAction } from "#app/components/ui/confirm-action";
 import { Label } from "#app/components/ui/label";
 import {
   Sheet,
@@ -26,7 +30,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "#app/components/ui/sheet";
-import { showToast } from "#app/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -39,9 +42,11 @@ import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
 import { requiredString } from "#app/lib/form-schema";
 import { createActionToast } from "#app/lib/toast";
+import { useActionToast } from "#app/lib/use-action-toast";
 import { requireAdmin } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { logger } from "#app/utils/logger.server";
+import { requireId } from "#app/utils/post-admin.server";
 import { redirectWithToast } from "#app/utils/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
@@ -135,12 +140,10 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     const { message, isActive } = submission.value;
-    let announcementId: string;
 
-    await prisma.$transaction(async (tx) => {
+    const announcementId = await prisma.$transaction(async (tx) => {
       if (intent === "update") {
         const id = requireId(formData.get("id"));
-        announcementId = id;
         if (isActive) {
           await tx.siteAnnouncement.updateMany({
             where: { id: { not: id }, isActive: true },
@@ -151,6 +154,7 @@ export async function action({ request }: Route.ActionArgs) {
           where: { id },
           data: { message, isActive },
         });
+        return id;
       } else {
         if (isActive) {
           await tx.siteAnnouncement.updateMany({
@@ -161,12 +165,12 @@ export async function action({ request }: Route.ActionArgs) {
         const created = await tx.siteAnnouncement.create({
           data: { message, isActive },
         });
-        announcementId = created.id;
+        return created.id;
       }
     });
     logger.info(
       {
-        announcementId: announcementId!,
+        announcementId,
         userId: user.id,
         intent,
         isActive,
@@ -175,8 +179,9 @@ export async function action({ request }: Route.ActionArgs) {
       "site announcement saved",
     );
 
-    return redirectWithToast("/admin/obavijesna-traka", {
-      ...(intent === "create"
+    return redirectWithToast(
+      "/admin/obavijesna-traka",
+      intent === "create"
         ? createActionToast({
             action: "create",
             description: "Poruka na obavijesnoj traci je uspješno kreirana.",
@@ -184,18 +189,11 @@ export async function action({ request }: Route.ActionArgs) {
         : createActionToast({
             action: "update",
             description: "Poruka na obavijesnoj traci je uspješno ažurirana.",
-          })),
-    });
+          }),
+    );
   }
 
   throw new Response("Unsupported intent", { status: 400 });
-}
-
-function requireId(value: FormDataEntryValue | null): string {
-  if (typeof value !== "string" || !value) {
-    throw new Response("Missing id", { status: 400 });
-  }
-  return value;
 }
 
 type AnnouncementRow = Awaited<ReturnType<typeof loader>>["announcements"][number];
@@ -207,21 +205,7 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const lastActionData = useRef(actionData);
-
-  useEffect(() => {
-    if (actionData && actionData !== lastActionData.current) {
-      if (
-        "ok" in actionData &&
-        actionData.ok &&
-        "toast" in actionData &&
-        typeof actionData.toast === "object"
-      ) {
-        showToast(actionData.toast);
-      }
-      lastActionData.current = actionData;
-    }
-  }, [actionData]);
+  useActionToast(actionData);
 
   const deletingId =
     navigation.formData?.get("intent") === "delete"
@@ -252,28 +236,25 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-foreground text-2xl font-semibold">Obavijesna traka</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Traka na vrhu javne stranice. Samo jedna poruka može biti aktivna, a nova aktivacija
-            automatski deaktivira prethodnu.
-          </p>
-        </div>
-        <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" onClick={openNew}>
-          <Plus className="h-5 w-5" aria-hidden="true" />
-          Nova poruka
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Obavijesna traka"
+        description="Traka na vrhu javne stranice. Samo jedna poruka može biti aktivna, a nova aktivacija automatski deaktivira prethodnu."
+        actions={
+          <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" onClick={openNew}>
+            <Plus className="h-5 w-5" aria-hidden="true" />
+            Nova poruka
+          </Button>
+        }
+      />
 
       {announcements.length === 0 ? (
-        <div className="border-border bg-card rounded-2xl border p-12 text-center">
+        <EmptyState>
           <p className="text-muted-foreground">
             Još nema poruka na traci. Kliknite 'Nova poruka' za početak.
           </p>
-        </div>
+        </EmptyState>
       ) : (
-        <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
+        <AdminPanel>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -321,19 +302,31 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
-                        <ToggleActive announcement={announcement} />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          title="Uredi"
+                        <OptimisticToggleIconButton
+                          intent="toggle"
+                          id={announcement.id}
+                          active={announcement.isActive}
+                          tone="primary"
+                          activeLabel="Deaktiviraj"
+                          inactiveLabel="Aktiviraj"
+                          activeIcon={<Eye className="h-4 w-4" aria-hidden="true" />}
+                          inactiveIcon={<EyeOff className="h-4 w-4" aria-hidden="true" />}
+                        />
+                        <IconActionButton
+                          label="Uredi"
+                          tone="primary"
                           onClick={() => openEdit(announcement.id)}
-                          className="text-muted-foreground hover:text-primary hover:bg-primary/10"
                         >
                           <Pencil className="h-4 w-4" aria-hidden="true" />
-                          <span className="sr-only">Uredi</span>
-                        </Button>
-                        <DeleteAnnouncementButton announcement={announcement} />
+                        </IconActionButton>
+                        <DeleteRecordButton
+                          id={announcement.id}
+                          formIdPrefix="delete-announcement"
+                          title="Obrisati poruku na traci?"
+                          description="Poruka će biti trajno uklonjena iz administracije i više se neće moći ponovo aktivirati. Ovu radnju nije moguće vratiti."
+                          confirmLabel="Obriši poruku"
+                          iconLabel="Obriši"
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -341,7 +334,7 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
               </TableBody>
             </Table>
           </div>
-        </div>
+        </AdminPanel>
       )}
 
       <Sheet
@@ -370,88 +363,6 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
         </SheetContent>
       </Sheet>
     </main>
-  );
-}
-
-function DeleteAnnouncementButton({ announcement }: { announcement: AnnouncementRow }) {
-  const formId = `delete-announcement-${announcement.id}`;
-
-  return (
-    <Form id={formId} method="post" className="inline">
-      <input type="hidden" name="intent" value="delete" />
-      <input type="hidden" name="id" value={announcement.id} />
-
-      <ConfirmAction
-        form={formId}
-        title="Obrisati poruku na traci?"
-        description="Poruka će biti trajno uklonjena iz administracije i više se neće moći ponovo aktivirati. Ovu radnju nije moguće vratiti."
-        confirmLabel="Obriši poruku"
-      >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          title="Obriši"
-          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">Obriši poruku</span>
-        </Button>
-      </ConfirmAction>
-    </Form>
-  );
-}
-
-type ToggleActiveProps = {
-  announcement: AnnouncementRow;
-};
-
-function ToggleActive({ announcement }: ToggleActiveProps) {
-  const fetcher = useFetcher<typeof action>();
-  const optimistic =
-    fetcher.formData?.get("intent") === "toggle" && fetcher.formData.get("id") === announcement.id
-      ? !announcement.isActive
-      : announcement.isActive;
-
-  const lastData = useRef(fetcher.data);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.data !== lastData.current) {
-      if (
-        "ok" in fetcher.data &&
-        fetcher.data.ok &&
-        "toast" in fetcher.data &&
-        typeof fetcher.data.toast === "object"
-      ) {
-        showToast(fetcher.data.toast);
-      }
-      lastData.current = fetcher.data;
-    }
-  }, [fetcher.data]);
-
-  return (
-    <fetcher.Form method="post" className="inline">
-      <input type="hidden" name="intent" value="toggle" />
-      <input type="hidden" name="id" value={announcement.id} />
-      <Button
-        type="submit"
-        variant="ghost"
-        size="icon-sm"
-        title={optimistic ? "Deaktiviraj" : "Aktiviraj"}
-        className={cn(
-          optimistic
-            ? "text-primary hover:bg-primary/10"
-            : "text-muted-foreground hover:text-primary hover:bg-primary/10",
-        )}
-      >
-        {optimistic ? (
-          <Eye className="h-4 w-4" aria-hidden="true" />
-        ) : (
-          <EyeOff className="h-4 w-4" aria-hidden="true" />
-        )}
-        <span className="sr-only">{optimistic ? "Deaktiviraj" : "Aktiviraj"}</span>
-      </Button>
-    </fetcher.Form>
   );
 }
 
@@ -511,14 +422,14 @@ function AnnouncementForm({
         </div>
       </div>
 
-      <div className="border-border bg-muted/40 flex items-center justify-end gap-2 border-t px-5 py-3">
+      <FormActions>
         <Button type="button" variant="ghost" onClick={onCancel}>
           Odustani
         </Button>
         <Button type="submit" disabled={submitting}>
           {submitting ? "Spremanje…" : announcement ? "Spremi izmjene" : "Sačuvaj"}
         </Button>
-      </div>
+      </FormActions>
     </Form>
   );
 }

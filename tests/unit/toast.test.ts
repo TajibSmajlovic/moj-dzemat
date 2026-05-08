@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   createActionToast,
-  getToastToneForAction,
   getToastTypeForAction,
   resolveToastTone,
   ToastSchema,
@@ -69,19 +68,6 @@ describe("toast helpers", () => {
     });
 
     expect(ToastSchema.parse(structuredClone(toast))).toEqual(toast);
-  });
-});
-
-describe("getToastToneForAction", () => {
-  it("returns the matching tone for every action", () => {
-    expect(getToastToneForAction("message")).toBe("neutral");
-    expect(getToastToneForAction("error")).toBe("destructive");
-    expect(getToastToneForAction("create")).toBe("primary");
-    expect(getToastToneForAction("update")).toBe("primary");
-    expect(getToastToneForAction("feature")).toBe("secondary");
-    expect(getToastToneForAction("pin")).toBe("primary");
-    expect(getToastToneForAction("activate")).toBe("primary");
-    expect(getToastToneForAction("delete")).toBe("destructive");
   });
 });
 

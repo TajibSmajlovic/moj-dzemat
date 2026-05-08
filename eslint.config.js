@@ -228,13 +228,16 @@ export default tseslint.config(
 
   // `throw new Response(...)` is React Router's official short-circuit
   // idiom in both loaders/actions (routes) and server utilities. Allow
-  // it wherever route/server code runs, but keep the strict default
-  // everywhere else so random components can't throw raw strings.
+  // it wherever route/server code runs, plus inside the shared
+  // `invariantResponse` wrapper that re-exports the same idiom. Keep
+  // the strict default everywhere else so random components can't
+  // throw raw strings.
   {
     files: [
       "app/routes/**/*.{ts,tsx}",
       "app/**/*.server.ts",
       "app/**/*.server.tsx",
+      "app/lib/invariant.ts",
       "server/**/*.ts",
     ],
     rules: {

@@ -30,6 +30,14 @@ const siteCalendarFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
+/** 24-hour clock in the site TZ; en-GB never differs across runtimes. */
+const siteTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: SITE_TIMEZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
 function getSiteCalendarYmd(value: Date | string | number): {
   year: number;
   month: number;
@@ -50,6 +58,26 @@ function getSiteCalendarYmd(value: Date | string | number): {
   }
 
   return { year, month, day };
+}
+
+function getSiteHourMinute(value: Date | string | number): {
+  hour: number;
+  minute: number;
+} | null {
+  const instant = new Date(value);
+  if (Number.isNaN(instant.getTime())) {
+    return null;
+  }
+
+  const parts = siteTimeFormatter.formatToParts(instant);
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null;
+  }
+
+  return { hour, minute };
 }
 
 function pad2(n: number): string {
@@ -77,6 +105,28 @@ export function formatDateShort(value: Date | string | number): string {
   }
 
   return `${pad2(ymd.day)}.${pad2(ymd.month)}.${ymd.year}`;
+}
+
+/**
+ * Long Bosnian date with 24-hour time, e.g. `30. april 2026. u 10:42`.
+ * Built from the same site-TZ parts machinery as `formatDateLong` so
+ * server and browser always produce identical output (`bs-BA` ICU data
+ * is incomplete in some browser builds and would otherwise render
+ * placeholders like `M04`).
+ */
+export function formatDateTimeLong(value: Date | string | number): string {
+  const ymd = getSiteCalendarYmd(value);
+  const hm = getSiteHourMinute(value);
+  if (!ymd || !hm) {
+    return "";
+  }
+
+  const monthName = MONTHS_LONG_BS[ymd.month - 1];
+  if (!monthName) {
+    return "";
+  }
+
+  return `${ymd.day}. ${monthName} ${ymd.year}. u ${pad2(hm.hour)}:${pad2(hm.minute)}`;
 }
 
 export function toIsoDate(value: Date | string | number): string {

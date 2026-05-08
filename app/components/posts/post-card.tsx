@@ -1,11 +1,13 @@
-import { Link } from "react-router";
+import { Link, NavigationType, useNavigationType } from "react-router";
 
 import { Pin } from "lucide-react";
 import { motion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
+import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
+import { cardReveal, motionTransitions } from "#app/lib/motion";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { shareOnFacebook } from "#app/lib/share";
 
@@ -21,19 +23,25 @@ export type PostCardData = {
 
 type PostCardProps = {
   post: PostCardData;
-  index?: number;
+  /** Mark as the LCP image candidate — uses eager loading + fetchpriority high */
+  priority?: boolean;
 };
 
-export function PostCard({ post, index = 0 }: PostCardProps) {
+export function PostCard({ post, priority }: PostCardProps) {
   const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
+  const navigationType = useNavigationType();
+  const skipEntrance = navigationType === NavigationType.Pop;
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group border-border bg-card relative flex h-full flex-col overflow-visible rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+      {...(skipEntrance ? {} : cardReveal)}
+      whileHover={{ y: -2, transition: motionTransitions.hover }}
+      className={cn(
+        "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
+        "transition-shadow duration-200 ease-out hover:shadow-md hover:will-change-transform",
+        "motion-reduce:transition-none",
+        !thumbnail && "min-h-92 sm:min-h-0",
+      )}
     >
       {post.pinned && (
         <div className="bg-secondary text-secondary-foreground absolute -top-2 -right-2 z-20 flex items-center gap-1 rounded-full px-2 py-0.5 shadow-md sm:px-2.5 sm:py-1">
@@ -46,17 +54,21 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
       <Link
         to={`/objave/${post.slug}`}
+        prefetch="intent"
         state={{ fromList: true }}
-        className="focus-visible:ring-ring flex h-full flex-col rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="focus-visible:ring-ring flex h-full flex-col overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         {thumbnail ? (
           <div className="relative isolate aspect-video w-full overflow-hidden rounded-t-xl">
             <img
               src={thumbnail}
               alt=""
-              loading="lazy"
+              width={756}
+              height={425}
+              loading={priority ? "eager" : "lazy"}
               decoding="async"
-              className="h-full w-full rounded-t-xl object-cover transition-transform duration-300 ease-out will-change-transform group-hover:scale-105"
+              fetchPriority={priority ? "high" : undefined}
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:will-change-transform motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
             />
             <div className="absolute top-2.5 left-2.5 z-10 sm:top-3 sm:left-3">
               <PostTypeBadge
@@ -78,13 +90,13 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             </div>
           )}
 
-          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 text-base font-semibold text-balance transition-colors sm:mb-2 sm:text-lg">
+          <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 line-clamp-2 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg">
             {post.title}
           </h3>
 
           <p
-            className={`text-muted-foreground mb-3 text-sm leading-relaxed hyphens-auto sm:mb-4 ${
-              thumbnail ? "line-clamp-2" : "line-clamp-4 sm:line-clamp-6"
+            className={`text-muted-foreground mb-3 text-sm leading-relaxed wrap-break-word hyphens-auto sm:mb-4 ${
+              thumbnail ? "line-clamp-2" : "line-clamp-9 sm:line-clamp-8"
             }`}
           >
             {post.excerpt}
@@ -106,7 +118,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
                   shareOnFacebook(`/objave/${post.slug}`);
                 }}
                 aria-label="Podijeli na Facebooku"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground hover:text-primary flex h-11 w-11 items-center justify-center transition-colors"
               >
                 <FacebookIcon className="h-4 w-4" />
               </button>
