@@ -1,13 +1,15 @@
 import { useRef } from "react";
-import { useMatches } from "react-router";
+import { Link, useMatches } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
+import { ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
 import { FeaturedHeroCard } from "#app/components/posts/featured-hero-card";
 import { PostCard, type PostCardData } from "#app/components/posts/post-card";
 import { PostFilter } from "#app/components/posts/post-filter";
+import { Button } from "#app/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -140,6 +142,15 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </p>
         </motion.div>
       )}
+
+      <div className="mt-6 flex justify-center sm:mt-8">
+        <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
+          <Link to="/objave" prefetch="intent">
+            Učitaj više objava
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
 
       {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
     </main>
