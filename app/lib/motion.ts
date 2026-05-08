@@ -75,13 +75,9 @@ export const featuredHeroReveal = {
   initial: "hidden",
   animate: "show",
   variants: {
-    hidden: { opacity: 0, y: 18 },
     show: {
-      opacity: 1,
-      y: 0,
       transition: {
-        delayChildren: 0.1,
-        duration: 0.6,
+        duration: 0.5,
         ease: easeOut,
         staggerChildren: 0.075,
       },
