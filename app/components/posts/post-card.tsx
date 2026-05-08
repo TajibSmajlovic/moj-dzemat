@@ -7,7 +7,7 @@ import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { cardReveal, motionTransitions } from "#app/lib/motion";
+import { cardReveal } from "#app/lib/motion";
 import type { PostTypeValue } from "#app/lib/post-type";
 import { shareOnFacebook } from "#app/lib/share";
 
@@ -35,7 +35,6 @@ export function PostCard({ post, priority }: PostCardProps) {
   return (
     <motion.article
       {...(skipEntrance ? {} : cardReveal)}
-      whileHover={{ y: -2, transition: motionTransitions.hover }}
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
         "transition-shadow duration-200 ease-out hover:shadow-md hover:will-change-transform",
