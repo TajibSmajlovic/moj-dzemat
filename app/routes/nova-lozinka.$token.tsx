@@ -14,12 +14,11 @@ import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { getAuthPage } from "#app/utils/auth-page.server";
-import { hashPassword, validateNewPassword } from "#app/utils/auth.server";
+import { hashPassword, startSessionFor, validateNewPassword } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
 import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
 import { logger } from "#app/utils/logger.server";
 import { verifyResetToken } from "#app/utils/reset-token.server";
-import { commitSession, getSession } from "#app/utils/session.server";
 
 import type { Route } from "./+types/nova-lozinka.$token";
 
@@ -94,12 +93,10 @@ export async function action({ params, request }: Route.ActionArgs) {
     update: { hash },
   });
 
-  // Log the admin in immediately.
-  const cookieSession = await getSession(request.headers.get("Cookie"));
-  cookieSession.set("userId", verification.userId);
-
-  const headers = new Headers();
-  headers.append("Set-Cookie", await commitSession(cookieSession));
+  // Log the admin in immediately. Rotate the session id so any
+  // pre-existing cookie from the same browser is invalidated alongside
+  // the password change.
+  const headers = await startSessionFor(request, verification.userId);
   logger.info({ userId: verification.userId }, "password reset completed");
 
   return redirect("/admin", { headers });

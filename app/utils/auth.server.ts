@@ -8,6 +8,27 @@ import { logger } from "#app/utils/logger.server";
 import { commitSession, destroySession, getSession } from "#app/utils/session.server";
 
 /**
+  Always discards the inbound session id and starts a new one for the
+  given userId. Used on every authentication boundary (login,
+  password-reset completion) so a pre-auth cookie cannot survive into
+  the authenticated context — defends against session fixation.
+ */
+async function rotateUserSession(request: Request, userId: string): Promise<Headers> {
+  const oldSession = await getSession(request.headers.get("Cookie"));
+  const destroyCookie = await destroySession(oldSession);
+
+  const newSession = await getSession();
+  newSession.set("userId", userId);
+  const commitCookie = await commitSession(newSession);
+
+  const headers = new Headers();
+  headers.append("Set-Cookie", destroyCookie);
+  headers.append("Set-Cookie", commitCookie);
+
+  return headers;
+}
+
+/**
  * Authentication primitives. `moj-dzemat` only ever has admin sessions -
  * public visitors never log in, so every protected route uses
  * `requireAdmin()`. There is no public signup; admins are provisioned
@@ -157,15 +178,19 @@ export async function login({
     return { ok: false, reason: "invalid-credentials" };
   }
 
-  const cookieSession = await getSession(request.headers.get("Cookie"));
-  cookieSession.set("userId", user.id);
-
-  const headers = new Headers();
-  headers.append("Set-Cookie", await commitSession(cookieSession));
+  const headers = await rotateUserSession(request, user.id);
 
   logger.info({ email: normalizedEmail, userId: user.id }, "login succeeded");
 
   return { ok: true, headers };
+}
+
+/**
+  Public wrapper around `rotateUserSession` for flows that authenticate
+  outside of `login()` (e.g. password-reset completion).
+ */
+export async function startSessionFor(request: Request, userId: string): Promise<Headers> {
+  return rotateUserSession(request, userId);
 }
 
 export async function logout(request: Request): Promise<Headers> {
