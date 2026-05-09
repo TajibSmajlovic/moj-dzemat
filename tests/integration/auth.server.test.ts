@@ -10,6 +10,7 @@ import {
   verifyPassword,
 } from "#app/utils/auth.server";
 import { prisma } from "#app/utils/db.server";
+import { getSession } from "#app/utils/session.server";
 
 import { createUser } from "../factories";
 
@@ -17,16 +18,27 @@ function makeRequest(url = "http://localhost/prijava", init: RequestInit = {}) {
   return new Request(url, { method: "POST", ...init });
 }
 
+/**
+ * `login()` issues two Set-Cookie headers (destroy old + commit new).
+ * `Headers.get("Set-Cookie")` would join them with a comma, which
+ * mangles `Expires=...` values, so we always use `getSetCookie()` and
+ * keep the *last* entry — that is the freshly-issued session cookie.
+ */
+function newSessionCookie(headers: Headers): string {
+  const cookies = headers.getSetCookie();
+  if (cookies.length === 0) {
+    throw new Error("expected at least one Set-Cookie header");
+  }
+  const latest = cookies.at(-1)!;
+  return latest.split(";")[0]!;
+}
+
 async function loginAndGetCookie(email: string, password: string): Promise<string> {
   const result = await login({ request: makeRequest(), email, password });
   if (!result.ok) {
     throw new Error("login() unexpectedly failed during test setup");
   }
-  const setCookie = result.headers.get("Set-Cookie");
-  if (!setCookie) {
-    throw new Error("login() returned no Set-Cookie header");
-  }
-  return setCookie.split(";")[0]!;
+  return newSessionCookie(result.headers);
 }
 
 function authedRequest(cookie: string, url = "http://localhost/admin/objave") {
@@ -95,6 +107,42 @@ describe("auth.server", () => {
         password: "wrongpass99",
       });
       expect(result.ok).toBe(false);
+    });
+
+    it("rotates the session id on every login (defends against fixation)", async () => {
+      const { user } = await createUser({ password: "hunter2pass1" });
+
+      // Establish a baseline session A from a first login.
+      const cookieA = await loginAndGetCookie(user.email, "hunter2pass1");
+      const sessionA = await getSession(cookieA);
+      const idA = sessionA.id;
+      expect(idA).toBeTruthy();
+      expect(await prisma.session.findUnique({ where: { id: idA } })).not.toBeNull();
+
+      // A second login that *carries cookie A* must NOT reuse session A.
+      // The old row gets destroyed and a brand new row replaces it.
+      const second = await login({
+        request: makeRequest("http://localhost/prijava", {
+          headers: { Cookie: cookieA },
+        }),
+        email: user.email,
+        password: "hunter2pass1",
+      });
+      if (!second.ok) {
+        throw new Error("expected second login to succeed");
+      }
+
+      const cookieB = newSessionCookie(second.headers);
+      expect(cookieB).not.toBe(cookieA);
+
+      const sessionB = await getSession(cookieB);
+      expect(sessionB.id).toBeTruthy();
+      expect(sessionB.id).not.toBe(idA);
+
+      expect(await prisma.session.findUnique({ where: { id: idA } })).toBeNull();
+      expect(await prisma.session.findUnique({ where: { id: sessionB.id } })).toMatchObject({
+        userId: user.id,
+      });
     });
   });
 

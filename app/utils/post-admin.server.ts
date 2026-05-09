@@ -16,6 +16,7 @@ import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/utils/db.server";
 import { processImage } from "#app/utils/image.server";
 import { logger } from "#app/utils/logger.server";
+import { sanitizePostBody } from "#app/utils/post-sanitize.server";
 import { redirectWithToast } from "#app/utils/toast.server";
 
 /** Maximum raw upload size we pass through the multipart parser (15 MB). */
@@ -312,7 +313,19 @@ export async function createOrUpdatePostFromForm({
     return data({ result: submission.reply() }, { status: 400 });
   }
 
-  const { title, slug, type, body, publish, featured, pinned } = submission.value;
+  const { title, slug, type, body: rawBody, publish, featured, pinned } = submission.value;
+  const body = sanitizePostBody(rawBody);
+  if (!body) {
+    return data(
+      {
+        result: submission.reply({
+          fieldErrors: { body: ["Tekst je obavezan."] },
+        }),
+      },
+      { status: 400 },
+    );
+  }
+
   const status: PostStatusValue = publish ? "published" : "draft";
   const existingId = intent === "update" ? requireId(formData.get("id")) : null;
 

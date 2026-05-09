@@ -80,6 +80,8 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
     });
   },
   async deleteData(id) {
+    if (!id) return;
+
     await prisma.session.deleteMany({ where: { id } });
   },
 });
