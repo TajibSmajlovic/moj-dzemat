@@ -35,7 +35,7 @@ export function SiteFooter() {
             <a
               href="https://islamskazajednica.ba/"
               target="_blank"
-              rel="noreferrer"
+              rel="noreferrer noopener"
               className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               Rijaseta Islamske zajednice u Bosni i Hercegovini
@@ -46,7 +46,7 @@ export function SiteFooter() {
             <a
               href="https://muftijstvosarajevsko.ba/"
               target="_blank"
-              rel="noreferrer"
+              rel="noreferrer noopener"
               className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               Muftijstva sarajevskog
@@ -57,7 +57,7 @@ export function SiteFooter() {
             <a
               href="https://muftijstvosarajevsko.ba/medzlis-islamske-zajednice-visoko/"
               target="_blank"
-              rel="noreferrer"
+              rel="noreferrer noopener"
               className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               Medžlisa Islamske zajednice Visoko
