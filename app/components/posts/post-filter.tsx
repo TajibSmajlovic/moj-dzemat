@@ -15,13 +15,14 @@ import {
 
 type PostFilterProps = {
   active: PostTypeValue | "all";
+  basePath?: "/" | "/objave";
 };
 
 type Tab = { value: PostTypeValue | "all"; label: string; Icon: LucideIcon };
 
 const ALL: Tab = { value: "all", label: "Sve", Icon: Sparkles };
 
-export function PostFilter({ active }: PostFilterProps) {
+export function PostFilter({ active, basePath = "/" }: PostFilterProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [edgeFade, setEdgeFade] = useState({ left: false, right: false });
 
@@ -68,7 +69,8 @@ export function PostFilter({ active }: PostFilterProps) {
       >
         <div className="flex w-max min-w-full gap-2 sm:w-auto sm:min-w-0 sm:flex-wrap">
           {tabs.map((tab) => {
-            const href = tab.value === "all" ? "/" : `/?vrsta=${encodeURIComponent(tab.value)}`;
+            const href =
+              tab.value === "all" ? basePath : `${basePath}?vrsta=${encodeURIComponent(tab.value)}`;
             const isActive = active === tab.value;
             const { Icon } = tab;
 
