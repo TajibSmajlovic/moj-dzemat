@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const ToastToneSchema = z.enum(["neutral", "primary", "secondary", "destructive"]);
-export const ToastActionSchema = z.enum([
+const ToastToneSchema = z.enum(["neutral", "primary", "secondary", "destructive"]);
+const _ToastActionSchema = z.enum([
   "message",
   "error",
   "create",
@@ -23,7 +23,7 @@ export const ToastSchema = z.object({
 export type Toast = z.infer<typeof ToastSchema>;
 export type ToastInput = z.input<typeof ToastSchema>;
 export type ToastTone = z.infer<typeof ToastToneSchema>;
-export type ToastAction = z.infer<typeof ToastActionSchema>;
+export type ToastAction = z.infer<typeof _ToastActionSchema>;
 
 const TOAST_TONE_BY_ACTION = {
   message: "neutral",

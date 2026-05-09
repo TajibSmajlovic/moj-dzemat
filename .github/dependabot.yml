@@ -23,6 +23,11 @@ updates:
       prefix: chore
       prefix-development: chore
       include: scope
+    ignore:
+      # Keep Prisma on v6.x for now; ignore v7.x major version bumps.
+      - dependency-name: prisma
+        update-types:
+          - version-update:semver-major
     groups:
       production-minor-and-patch:
         dependency-type: production
