@@ -36,23 +36,34 @@ test.describe("public", () => {
     await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
   });
 
-  test("mobile navigation opens a fluid drawer and navigates to posts", async ({ page }) => {
+  test("mobile navigation opens a top dropdown and navigates to posts", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
 
-    await page.getByRole("button", { name: "Otvori meni" }).click();
+    const menuButton = page.getByRole("button", { name: "Otvori meni" });
+    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByRole("navigation", { name: "Mobilna navigacija" })).toHaveCount(0);
 
-    const drawer = page.getByRole("dialog", { name: "Glavna navigacija" });
-    await expect(drawer).toBeVisible();
-    await expect(drawer.getByRole("link", { name: "Početna" })).toBeVisible();
-    await expect(drawer.getByRole("link", { name: "Objave" })).toBeVisible();
-    await expect(drawer.getByRole("link", { name: "Facebook" })).toBeVisible();
-    await expect(drawer.getByRole("link", { name: "Admin" })).toBeVisible();
+    await menuButton.click();
 
-    await drawer.getByRole("link", { name: "Objave" }).click();
+    const dropdown = page.getByRole("navigation", { name: "Mobilna navigacija" });
+    await expect(page.getByRole("button", { name: "Zatvori meni" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(dropdown).toBeVisible();
+    await expect(dropdown.getByRole("link", { name: "Početna" })).toBeVisible();
+    await expect(dropdown.getByRole("link", { name: "Objave" })).toBeVisible();
+    await expect(dropdown.getByRole("link", { name: "Admin" })).toBeVisible();
+
+    await dropdown.getByRole("link", { name: "Objave" }).click();
 
     await expect(page).toHaveURL(/\/objave$/);
-    await expect(page.getByRole("dialog", { name: "Glavna navigacija" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Otvori meni" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await expect(page.getByRole("navigation", { name: "Mobilna navigacija" })).toHaveCount(0);
   });
 
   test("filter query string scopes the feed", async ({ page }) => {
