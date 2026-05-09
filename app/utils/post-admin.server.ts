@@ -56,7 +56,7 @@ function uploadedFiles(formData: FormData, name: string): UploadedPart[] {
       "arrayBuffer" in entry &&
       typeof (entry as UploadedPart).arrayBuffer === "function"
     ) {
-      out.push(entry as UploadedPart);
+      out.push(entry);
     }
   }
 

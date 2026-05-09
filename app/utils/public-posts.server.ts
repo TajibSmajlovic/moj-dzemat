@@ -67,7 +67,7 @@ function toPublicPostCard(post: PublicPostCardRecord): PostCardData {
     slug: post.slug,
     title: post.title,
     excerpt: plainExcerpt(post.body),
-    type: post.type as PostTypeValue,
+    type: post.type,
     publishedAt: post.publishedAt,
     pinned: post.pinned,
     thumbnailId: post.images[0]?.id ?? null,

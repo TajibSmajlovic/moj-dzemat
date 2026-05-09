@@ -65,7 +65,7 @@ export function PostFilter({ active, basePath = "/" }: PostFilterProps) {
       <div
         ref={scrollRef}
         onScroll={updateEdgeFade}
-        className="overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-0 [&::-webkit-scrollbar]:hidden"
+        className="[scrollbar-width:none] overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] sm:px-0 [&::-webkit-scrollbar]:hidden"
       >
         <div className="flex w-max min-w-full gap-2 sm:w-auto sm:min-w-0 sm:flex-wrap">
           {tabs.map((tab) => {
