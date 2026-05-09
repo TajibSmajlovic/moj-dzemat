@@ -40,6 +40,7 @@ export default defineConfig({
       DZEMAT_NAME: "Donje Mostre",
       DZEMAT_ADDRESS: "Džamija Donje Moštre, R445, Donje Moštre, Visoko, Bosna i Hercegovina",
       DZEMAT_MAP_QUERY: "Džamija Donje Moštre, R445, Visoko, Bosna i Hercegovina",
+      FACEBOOK_PAGE_URL: "https://www.facebook.com/profile.php?id=100085095166223",
       PORT,
     },
   },

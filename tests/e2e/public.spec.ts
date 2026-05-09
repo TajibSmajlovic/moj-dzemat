@@ -10,15 +10,49 @@ test.describe("public", () => {
     await expect(
       page.getByRole("banner").getByRole("link", { name: "Moj Džemat - Donje Mostre" }),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Objave" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Najnovije objave" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Gdje se nalazimo" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Otvori u Google Maps" })).toBeVisible();
     await expect(page.getByText("Džuma namaz u 13:00")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Pogledaj sve objave" })).toBeVisible();
 
-    // First 6 post cards are can be seein in the viewport, the rest can be seen by scrolling
+    // First 6 post cards can be seen in the viewport, the rest can be seen by scrolling.
     for (const title of POSTS_TITLES.slice(0, 6)) {
       await expect(page.getByRole("heading", { level: 3, name: title })).toBeVisible();
     }
+  });
+
+  test("desktop navigation exposes primary links and secondary actions", async ({ page }) => {
+    await page.goto("/");
+
+    const banner = page.getByRole("banner");
+    await expect(
+      banner.getByRole("navigation", { name: "Glavna navigacija" }).getByRole("link", {
+        name: "Početna",
+      }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(banner.getByRole("link", { name: "Objave" })).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Facebook" })).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
+  });
+
+  test("mobile navigation opens a fluid drawer and navigates to posts", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Otvori meni" }).click();
+
+    const drawer = page.getByRole("dialog", { name: "Glavna navigacija" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Početna" })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Objave" })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Facebook" })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Admin" })).toBeVisible();
+
+    await drawer.getByRole("link", { name: "Objave" }).click();
+
+    await expect(page).toHaveURL(/\/objave$/);
+    await expect(page.getByRole("dialog", { name: "Glavna navigacija" })).toHaveCount(0);
   });
 
   test("filter query string scopes the feed", async ({ page }) => {

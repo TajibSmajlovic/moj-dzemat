@@ -1,8 +1,6 @@
 import { Info } from "lucide-react";
-import { motion } from "motion/react";
 
 import { cn } from "#app/lib/cn";
-import { motionTransitions } from "#app/lib/motion";
 
 type AnnouncementBarProps = {
   announcement: {
@@ -15,12 +13,9 @@ export function AnnouncementBar({ announcement, className }: AnnouncementBarProp
   if (!announcement) return null;
 
   return (
-    <motion.div
+    <div
       role="region"
       aria-label="Obavijest zajednice"
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={motionTransitions.micro}
       className={cn("bg-secondary text-secondary-foreground z-9999", className)}
     >
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2 sm:gap-2.5 sm:py-2.5">
@@ -29,6 +24,6 @@ export function AnnouncementBar({ announcement, className }: AnnouncementBarProp
           {announcement.message}
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }
