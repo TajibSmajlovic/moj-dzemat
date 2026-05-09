@@ -5,6 +5,7 @@
     "app/**/*.server.ts",
     "app/**/*.server.tsx",
     "prisma/seed.ts",
+    "scripts/**/*.ts",
     "tests/e2e/**/*"
   ],
   "compilerOptions": {
