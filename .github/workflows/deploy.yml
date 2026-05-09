@@ -31,7 +31,7 @@ jobs:
         )
       }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Deploy the exact commit that passed CI rather than whatever happens
           # to be at the branch tip when this workflow starts.
