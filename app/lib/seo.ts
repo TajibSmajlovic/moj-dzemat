@@ -29,7 +29,7 @@ export function getDefaultSocialImageUrl(siteUrl?: string): string {
 }
 
 export function formatDefaultSocialImageAlt(siteName: string): string {
-  return `${siteName} - nova online platforma za dzemat`;
+  return `${siteName} - nova online platforma za džemat`;
 }
 
 export function buildSocialMeta({

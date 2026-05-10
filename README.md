@@ -1,6 +1,6 @@
-# Moj Dzemat
+# Moj Džemat
 
-`Moj Dzemat` is a community publishing app with two main surfaces:
+`Moj Džemat` is a community publishing app with two main surfaces:
 
 - a public website for browsing community posts
 - a simple admin area for managing posts and the site-wide announcement banner

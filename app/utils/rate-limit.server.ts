@@ -64,8 +64,7 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
   };
 }
 
-// Shared limiters. Login and forgot-password share per-IP scope so
-// brute-forcers can't pivot between flows with a fresh counter.
+// Separate per-IP limiters for the two public auth write flows.
 const HOUR = 60 * 60 * 1000;
 
 export const loginLimiter = createRateLimiter({

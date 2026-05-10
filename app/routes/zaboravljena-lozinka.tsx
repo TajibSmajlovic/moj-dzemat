@@ -83,7 +83,6 @@ export async function action({ request }: Route.ActionArgs) {
     await sendEmail({ to: user.email, ...email });
     logger.info({ email: user.email, userId: user.id }, "password reset email sent");
   } else {
-    // Still burn the same timing budget to avoid leaking existence.
     logger.info({ email }, "forgot-password requested for unknown email");
   }
 
