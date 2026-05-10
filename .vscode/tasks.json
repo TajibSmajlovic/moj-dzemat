@@ -97,9 +97,15 @@
       "problemMatcher": []
     },
     {
-      "label": "verify: pr",
+      "label": "verify: fast",
       "dependsOrder": "sequence",
-      "dependsOn": ["check", "knip", "test: run", "test: e2e"],
+      "dependsOn": ["check", "knip", "test: run", "build"],
+      "problemMatcher": []
+    },
+    {
+      "label": "verify: full",
+      "dependsOrder": "sequence",
+      "dependsOn": ["verify: fast", "test: e2e"],
       "problemMatcher": []
     }
   ]
