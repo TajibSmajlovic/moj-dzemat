@@ -35,20 +35,22 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   invariantResponse(image, "Not found", { status: 404 });
 
-  invariantResponse(
-    image.post.status === "published" || (await getCurrentUser(request)),
-    "Not found",
-    { status: 404 },
-  );
+  const isPublished = image.post.status === "published";
+  const currentUser = isPublished ? null : await getCurrentUser(request);
+
+  invariantResponse(isPublished || currentUser, "Not found", { status: 404 });
 
   const body = toResponseBody(image.data);
   const contentType = image.contentType?.startsWith("image/") ? image.contentType : "image/webp";
+  const cacheControl = isPublished
+    ? `public, max-age=${ONE_YEAR_SECONDS}, immutable`
+    : "private, no-store";
 
   return new Response(body, {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": `public, max-age=${ONE_YEAR_SECONDS}, immutable`,
+      "Cache-Control": cacheControl,
     },
   });
 }

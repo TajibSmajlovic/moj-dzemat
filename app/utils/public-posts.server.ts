@@ -21,7 +21,9 @@ const publicPostCardSelect = {
 
 const publicPostOrderBy: Prisma.PostOrderByWithRelationInput[] = [
   { pinned: "desc" },
+  { publishedAt: "desc" },
   { createdAt: "desc" },
+  { id: "desc" },
 ];
 
 type PublicPostCardRecord = Prisma.PostGetPayload<{ select: typeof publicPostCardSelect }>;

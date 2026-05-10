@@ -8,6 +8,7 @@ import { prisma } from "#app/utils/db.server";
 
 import { createPost, createUser } from "../factories";
 import { callLoader } from "../helpers/route";
+import { sessionCookieFor } from "../helpers/session";
 
 const callHomeLoader = (url = "http://localhost/") => callLoader(publicHomeLoader, { url });
 
@@ -17,8 +18,8 @@ const callPostLoader = (slug: string) =>
     params: { slug },
   });
 
-const callImageLoader = (id: string) =>
-  callLoader(imageLoader, { url: `http://localhost/slike/${id}`, params: { id } });
+const callImageLoader = (id: string, cookie?: string) =>
+  callLoader(imageLoader, { url: `http://localhost/slike/${id}`, params: { id }, cookie });
 
 describe("public post visibility", () => {
   it("shows published posts and hides drafts from the homepage", async () => {
@@ -43,6 +44,30 @@ describe("public post visibility", () => {
     expect(result.posts.map((post) => post.title)).toContain("Javna objava");
     expect(result.posts.map((post) => post.title)).not.toContain("Sakriven nacrt");
     expect(result.featured.map((post) => post.title)).toEqual(["Javna objava"]);
+  });
+
+  it("orders public posts by published date after pinned status", async () => {
+    const { user } = await createUser();
+    await createPost({
+      authorId: user.id,
+      title: "Recently created, older publish date",
+      slug: "older-published",
+      status: "published",
+      createdAt: new Date("2026-05-02T10:00:00Z"),
+      publishedAt: new Date("2026-04-15T10:00:00Z"),
+    });
+    await createPost({
+      authorId: user.id,
+      title: "Older draft, newly published",
+      slug: "newly-published",
+      status: "published",
+      createdAt: new Date("2026-04-01T10:00:00Z"),
+      publishedAt: new Date("2026-05-01T10:00:00Z"),
+    });
+
+    const result = await callHomeLoader();
+
+    expect(result.posts.map((post) => post.slug)).toEqual(["newly-published", "older-published"]);
   });
 
   it("returns 404 for a draft on the public detail route", async () => {
@@ -98,6 +123,9 @@ describe("public post visibility", () => {
 
     const publishedResponse = await callImageLoader(publishedImage.id);
     expect(publishedResponse.status).toBe(200);
+    expect(publishedResponse.headers.get("Cache-Control")).toBe(
+      "public, max-age=31536000, immutable",
+    );
 
     try {
       await callImageLoader(draftImage.id);
@@ -106,5 +134,12 @@ describe("public post visibility", () => {
       expect(error).toBeInstanceOf(Response);
       expect((error as Response).status).toBe(404);
     }
+
+    const draftAdminResponse = await callImageLoader(
+      draftImage.id,
+      await sessionCookieFor(user.id),
+    );
+    expect(draftAdminResponse.status).toBe(200);
+    expect(draftAdminResponse.headers.get("Cache-Control")).toBe("private, no-store");
   });
 });
