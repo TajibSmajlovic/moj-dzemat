@@ -33,7 +33,7 @@ describe("seo helpers", () => {
 
   it("formats default social image alt text", () => {
     expect(formatDefaultSocialImageAlt("Moj Džemat - Donje Mostre")).toBe(
-      "Moj Džemat - Donje Mostre - nova online platforma za dzemat",
+      "Moj Džemat - Donje Mostre - nova online platforma za džemat",
     );
   });
 
