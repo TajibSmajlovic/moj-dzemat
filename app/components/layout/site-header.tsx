@@ -356,6 +356,7 @@ function useMobileMenu({
 
     function handlePointerDown(event: PointerEvent) {
       const target = event.target;
+
       if (target instanceof Node && !headerRef.current?.contains(target)) {
         setMenuOpen(false);
       }
@@ -363,6 +364,7 @@ function useMobileMenu({
 
     globalThis.addEventListener("keydown", handleKeyDown);
     document.addEventListener("pointerdown", handlePointerDown);
+
     return () => {
       globalThis.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("pointerdown", handlePointerDown);
