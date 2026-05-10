@@ -82,23 +82,25 @@ The app reads runtime environment variables from [`app/utils/env.server.ts`](app
 
 These are the variables that matter most for local development:
 
-| Variable                         | Local guidance                                                                                                             |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                   | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                    |
-| `ADMIN_SEED_EMAILS`              | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                     |
-| `SESSION_SECRET`                 | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.               |
-| `PASSWORD_RESET_SECRET`          | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                         |
-| `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                  |
-| `EMAIL_FROM`                     | Required even in local dev. Any reasonable sender value is fine locally.                                                   |
-| `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                     |
-| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work. |
-| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                   |
-| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                  |
-| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                              |
-| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                   |
-| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                   |
-| `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.       |
-| `PORT`                           | Defaults to `3000`.                                                                                                        |
+| Variable                         | Local guidance                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`                   | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                              |
+| `ADMIN_SEED_EMAILS`              | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                               |
+| `SESSION_SECRET`                 | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.                         |
+| `PASSWORD_RESET_SECRET`          | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                                   |
+| `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                            |
+| `EMAIL_FROM`                     | Required even in local dev. Use a provider-compatible `From` value; keep the display name ASCII if your provider rejects diacritics. |
+| `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                               |
+| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work.           |
+| `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
+| `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
+| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                             |
+| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                            |
+| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
+| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |
+| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                             |
+| `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.                 |
+| `PORT`                           | Defaults to `3000`.                                                                                                                  |
 
 Useful secret generator:
 
@@ -169,12 +171,18 @@ On Linux CI or bare Linux machines you may need:
 npx playwright install --with-deps chromium
 ```
 
-Recommended local verification before opening a PR:
+Fast local verification before opening a PR:
 
 ```bash
 npm run check
 npm run knip
 npm run test:run
+npm run build
+```
+
+Run browser tests for UI/routing/auth changes, or when you want to mirror CI's full gate locally:
+
+```bash
 npm run test:e2e
 ```
 
@@ -196,13 +204,13 @@ public/                static assets
 
 Useful route groups:
 
-| Area      | Routes                                                                                |
-| --------- | ------------------------------------------------------------------------------------- |
-| Public    | `/`, `/objave/:slug`, `robots.txt`, `sitemap.xml`                                     |
-| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                |
-| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/obavijesna-traka` |
-| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                      |
-| Resources | `/slike/:id`, `/resources/healthcheck`                                                |
+| Area      | Routes                                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------------------------ |
+| Public    | `/`, `/objave`, `/objave/:slug`, `/robots.txt`, `/sitemap.xml`                                                     |
+| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                             |
+| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/obavijesna-traka` |
+| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                   |
+| Resources | `/slike/:id`, `/resources/healthcheck`                                                                             |
 
 ## How Testing Works
 
@@ -219,6 +227,13 @@ A few implementation details that help when debugging:
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and `DISABLE_RATE_LIMITING`
 - the e2e global setup seeds a deterministic admin user plus post fixtures
 
+## Quality Gates
+
+- pre-commit runs `npm run check`
+- pre-push runs `npm run knip` and `npm run test:run`
+- CI runs typecheck, lint, format check, Knip, build, Vitest, and Playwright e2e
+- automatic deploys wait for a successful CI run on `master`
+
 ## Deployment Notes
 
 Production is designed for Fly.io with LiteFS:
@@ -229,6 +244,16 @@ Production is designed for Fly.io with LiteFS:
 - Fly health checks hit `/resources/healthcheck`
 
 You do not need LiteFS locally. Standard SQLite via `DATABASE_URL="file:./data.db"` is enough for development.
+
+Production configuration lives outside the repo. Before deploying, make sure these values are set in Fly secrets or environment configuration:
+
+- `APP_URL`
+- `SESSION_SECRET`, `PASSWORD_RESET_SECRET`, and `HONEYPOT_SECRET`
+- `ADMIN_SEED_EMAILS`
+- `RESEND_API_KEY` and `EMAIL_FROM`
+- optional branding and integrations: `DZEMAT_NAME`, `DZEMAT_ADDRESS`, `DZEMAT_MAP_QUERY`, `FACEBOOK_PAGE_URL`, `CLOUDFLARE_WEB_ANALYTICS_TOKEN`
+
+Leave `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and `DISABLE_RATE_LIMITING` unset or `false` in production.
 
 ## Branching And PRs
 
@@ -261,3 +286,7 @@ A few team rules:
 - use lowercase and hyphenated descriptions
 - do not commit directly to `master`
 - if you skip tests in a PR, explain why
+
+## License
+
+MIT
