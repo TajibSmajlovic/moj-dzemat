@@ -57,13 +57,12 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselRootProps>(function Ca
     { ...opts, axis: orientation === "horizontal" ? "x" : "y" },
     plugins,
   );
-  const [canScrollPrev, setCanScrollPrev] = React.useState(false);
-  const [canScrollNext, setCanScrollNext] = React.useState(false);
+  const [, setSelectionVersion] = React.useState(0);
+  const canScrollPrev = api?.canScrollPrev() ?? false;
+  const canScrollNext = api?.canScrollNext() ?? false;
 
-  const onSelect = React.useCallback((current: CarouselApi | undefined) => {
-    if (!current) return;
-    setCanScrollPrev(current.canScrollPrev());
-    setCanScrollNext(current.canScrollNext());
+  const handleSelect = React.useCallback(() => {
+    setSelectionVersion((version) => version + 1);
   }, []);
 
   const scrollPrev = React.useCallback(() => api?.scrollPrev(), [api]);
@@ -89,14 +88,13 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselRootProps>(function Ca
 
   React.useEffect(() => {
     if (!api) return;
-    onSelect(api);
-    api.on("reInit", onSelect);
-    api.on("select", onSelect);
+    api.on("reInit", handleSelect);
+    api.on("select", handleSelect);
     return () => {
-      api.off("select", onSelect);
-      api.off("reInit", onSelect);
+      api.off("select", handleSelect);
+      api.off("reInit", handleSelect);
     };
-  }, [api, onSelect]);
+  }, [api, handleSelect]);
 
   return (
     <CarouselContext.Provider
