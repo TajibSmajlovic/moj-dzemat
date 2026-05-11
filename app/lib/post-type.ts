@@ -36,6 +36,12 @@ export const POST_TYPE_ICON: Record<PostTypeValue, LucideIcon> = {
   hutba: BookOpenText,
 };
 
+export function formatPostArchiveTitle(type: PostTypeValue | "all"): string {
+  if (type === "all") return "Sve objave";
+
+  return `Sve ${POST_TYPE_LABEL_PLURAL[type].toLocaleLowerCase("bs-BA")}`;
+}
+
 export function isPostType(value: unknown): value is PostTypeValue {
   return typeof value === "string" && (POST_TYPES as readonly string[]).includes(value);
 }

@@ -4,6 +4,7 @@ import { PostCard } from "#app/components/posts/post-card";
 import { PostFilter } from "#app/components/posts/post-filter";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { softFade } from "#app/lib/motion";
+import { formatPostArchiveTitle } from "#app/lib/post-type";
 import {
   ROBOTS_NOINDEX_FOLLOW,
   THEME_COLOR,
@@ -52,13 +53,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function ObjavePage({ loaderData }: Route.ComponentProps) {
   const { activeType, posts } = loaderData;
+  const archiveTitle = formatPostArchiveTitle(activeType);
 
   return (
     <main className="mx-auto min-h-[40vh] max-w-5xl px-4 py-6 sm:py-8">
       <section className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
         <div className="space-y-1">
           <h1 className="font-display text-foreground text-2xl font-semibold text-balance sm:text-3xl">
-            Sve objave
+            {archiveTitle}
           </h1>
           <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">
             Pregled svih obavijesti, hutbi, sergija i smrtovnica.
