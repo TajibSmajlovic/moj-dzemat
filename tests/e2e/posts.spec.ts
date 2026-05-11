@@ -8,6 +8,7 @@ import { fillPostForm, uploadTinyPng } from "./utils/post-form";
 const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(PAGE_SIZE);
 const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
 const FIRST_PAGE_OLDEST_TITLE = POSTS_TITLES[PAGE_SIZE - 1];
+const SEEDED_POST_COUNT = POSTS_TITLES.length;
 
 test.describe("posts", () => {
   test("admin can navigate paginated post results", async ({ page }) => {
@@ -17,7 +18,7 @@ test.describe("posts", () => {
 
     await expect(page).toHaveURL(/\/admin\/objave$/);
     await expect(page.getByText("Stranica 1 od 2")).toBeVisible();
-    await expect(page.getByText("Prikaz 1-20 od 24 objava")).toBeVisible();
+    await expect(page.getByText(`Prikaz 1-20 od ${SEEDED_POST_COUNT} objava`)).toBeVisible();
     await expect(
       page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
     ).toBeVisible();
@@ -32,7 +33,9 @@ test.describe("posts", () => {
 
     await expect(page).toHaveURL(/\/admin\/objave\?page=2$/);
     await expect(page.getByText("Stranica 2 od 2")).toBeVisible();
-    await expect(page.getByText("Prikaz 21-24 od 24 objava")).toBeVisible();
+    await expect(
+      page.getByText(`Prikaz 21-${SEEDED_POST_COUNT} od ${SEEDED_POST_COUNT} objava`),
+    ).toBeVisible();
     await expect(
       page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES[0], exact: true }),
     ).toBeVisible();

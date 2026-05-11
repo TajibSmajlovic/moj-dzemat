@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getPaginationState, parsePageParam } from "#app/lib/pagination";
+import {
+  getLoadMorePaginationState,
+  getPaginationState,
+  parsePageParam,
+} from "#app/lib/pagination";
 
 describe("parsePageParam", () => {
   it("falls back to page 1 for missing and invalid values", () => {
@@ -59,6 +63,34 @@ describe("getPaginationState", () => {
       rangeStart: 0,
       rangeEnd: 0,
       hasPreviousPage: false,
+      hasNextPage: false,
+    });
+  });
+});
+
+describe("getLoadMorePaginationState", () => {
+  it("calculates the amount to load for progressive lists", () => {
+    const pagination = getLoadMorePaginationState({ page: 2, pageSize: 10, totalItems: 25 });
+
+    expect(pagination).toMatchObject({
+      page: 2,
+      pageSize: 10,
+      totalItems: 25,
+      totalPages: 3,
+      take: 20,
+      visibleItems: 20,
+      hasPreviousPage: true,
+      hasNextPage: true,
+    });
+  });
+
+  it("caps visible items on the final progressive page", () => {
+    const pagination = getLoadMorePaginationState({ page: 3, pageSize: 10, totalItems: 25 });
+
+    expect(pagination).toMatchObject({
+      totalPages: 3,
+      take: 30,
+      visibleItems: 25,
       hasNextPage: false,
     });
   });

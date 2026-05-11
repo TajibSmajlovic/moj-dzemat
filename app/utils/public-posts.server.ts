@@ -46,6 +46,14 @@ export async function getFeaturedPostCards() {
   return posts.map((post) => toPublicPostCard(post));
 }
 
+function getPublicPostsWhere(activeType: PostTypeValue | "all"): Prisma.PostWhereInput {
+  return activeType === "all" ? { status: "published" } : { status: "published", type: activeType };
+}
+
+export async function countPublicPosts({ activeType }: { activeType: PostTypeValue | "all" }) {
+  return prisma.post.count({ where: getPublicPostsWhere(activeType) });
+}
+
 export async function getPublicPostCards({
   activeType,
   take,
@@ -54,10 +62,9 @@ export async function getPublicPostCards({
   take?: number;
 }) {
   const posts = await prisma.post.findMany({
-    where:
-      activeType === "all" ? { status: "published" } : { status: "published", type: activeType },
+    where: getPublicPostsWhere(activeType),
     orderBy: publicPostOrderBy,
-    ...(take ? { take } : {}),
+    ...(take === undefined ? {} : { take }),
     select: publicPostCardSelect,
   });
 

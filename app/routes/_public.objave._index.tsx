@@ -1,10 +1,15 @@
+import { Link, redirect } from "react-router";
+
+import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 
 import { PostCard } from "#app/components/posts/post-card";
 import { PostFilter } from "#app/components/posts/post-filter";
+import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { softFade } from "#app/lib/motion";
-import { formatPostArchiveTitle } from "#app/lib/post-type";
+import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
+import { formatPostArchiveTitle, type PostTypeValue } from "#app/lib/post-type";
 import {
   ROBOTS_NOINDEX_FOLLOW,
   THEME_COLOR,
@@ -12,9 +17,15 @@ import {
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import { getActivePostType, getPublicPostCards } from "#app/utils/public-posts.server";
+import {
+  countPublicPosts,
+  getActivePostType,
+  getPublicPostCards,
+} from "#app/utils/public-posts.server";
 
 import type { Route } from "./+types/_public.objave._index";
+
+const OBJAVE_PAGE_SIZE = 10;
 
 export function meta({ data, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
@@ -46,13 +57,27 @@ export function meta({ data, matches }: Route.MetaArgs) {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const activeType = getActivePostType(request);
-  const posts = await getPublicPostCards({ activeType });
+  const url = new URL(request.url);
+  const page = parsePageParam(url.searchParams.get("page"));
+  const totalPosts = await countPublicPosts({ activeType });
+  const pagination = getLoadMorePaginationState({
+    page,
+    pageSize: OBJAVE_PAGE_SIZE,
+    totalItems: totalPosts,
+  });
 
-  return { activeType, posts };
+  if (pagination.totalPages > 0 && page > pagination.totalPages) {
+    return redirect(getObjaveHref({ page: pagination.totalPages, activeType }));
+  }
+
+  const posts =
+    totalPosts > 0 ? await getPublicPostCards({ activeType, take: pagination.take }) : [];
+
+  return { activeType, posts, pagination };
 }
 
 export default function ObjavePage({ loaderData }: Route.ComponentProps) {
-  const { activeType, posts } = loaderData;
+  const { activeType, posts, pagination } = loaderData;
   const archiveTitle = formatPostArchiveTitle(activeType);
 
   return (
@@ -71,14 +96,31 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
       </section>
 
       {posts.length > 0 ? (
-        <section
-          aria-label="Lista objava"
-          className="grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
-        >
-          {posts.map((post, index) => (
-            <PostCard key={post.slug} post={post} priority={index === 0 && !!post.thumbnailId} />
-          ))}
-        </section>
+        <>
+          <section
+            aria-label="Lista objava"
+            className="grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
+          >
+            {posts.map((post, index) => (
+              <PostCard key={post.slug} post={post} priority={index === 0 && !!post.thumbnailId} />
+            ))}
+          </section>
+
+          {pagination.hasNextPage ? (
+            <div className="mt-6 flex justify-center sm:mt-8">
+              <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
+                <Link
+                  to={getObjaveHref({ page: pagination.page + 1, activeType })}
+                  preventScrollReset
+                  prefetch="intent"
+                >
+                  Učitaj više
+                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          ) : null}
+        </>
       ) : (
         <motion.div {...softFade} className="py-20 text-center">
           <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
@@ -88,4 +130,19 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
       )}
     </main>
   );
+}
+
+function getObjaveHref({ page, activeType }: { page: number; activeType: PostTypeValue | "all" }) {
+  const params = new URLSearchParams();
+
+  if (activeType !== "all") {
+    params.set("vrsta", activeType);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  const query = params.toString();
+  return query ? `/objave?${query}` : "/objave";
 }
