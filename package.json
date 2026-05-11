@@ -55,7 +55,7 @@
     "@fontsource-variable/lora": "^5.2.8",
     "@isaacs/ttlcache": "^2.1.4",
     "@mjackson/form-data-parser": "^0.9.1",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^7.8.0",
     "@react-router/express": "7.15.0",
     "@react-router/fs-routes": "7.15.0",
     "@react-router/node": "7.15.0",
