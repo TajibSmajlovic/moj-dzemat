@@ -339,26 +339,22 @@ function useMobileMenu({
   headerRef: React.RefObject<HTMLElement | null>;
   pathname: string;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Close when navigating to a new route.
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  const [openForPathname, setOpenForPathname] = useState<string | null>(null);
+  const menuOpen = openForPathname === pathname;
 
   // Close on Escape and on pointer-down outside the header.
   useEffect(() => {
     if (!menuOpen) return;
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") setOpenForPathname(null);
     }
 
     function handlePointerDown(event: PointerEvent) {
       const target = event.target;
 
       if (target instanceof Node && !headerRef.current?.contains(target)) {
-        setMenuOpen(false);
+        setOpenForPathname(null);
       }
     }
 
@@ -373,8 +369,8 @@ function useMobileMenu({
 
   return {
     menuOpen,
-    toggleMenu: () => setMenuOpen((open) => !open),
-    closeMenu: () => setMenuOpen(false),
+    toggleMenu: () => setOpenForPathname((current) => (current === pathname ? null : pathname)),
+    closeMenu: () => setOpenForPathname(null),
   };
 }
 

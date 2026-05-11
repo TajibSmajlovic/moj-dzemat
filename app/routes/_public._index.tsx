@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
@@ -221,8 +221,9 @@ function HomeStructuredData({
 
 function Featured({ featured }: { featured: PostCardData[] }) {
   const shouldReduceMotion = useReducedMotion();
-  const autoplay = useRef(
-    Autoplay({ delay: 8000, stopOnInteraction: true, stopOnMouseEnter: true }),
+  const autoplayPlugin = useMemo(
+    () => Autoplay({ delay: 8000, stopOnInteraction: true, stopOnMouseEnter: true }),
+    [],
   );
 
   const [only] = featured;
@@ -239,7 +240,7 @@ function Featured({ featured }: { featured: PostCardData[] }) {
       <Carousel
         className="w-full"
         opts={{ loop: true, duration: shouldReduceMotion ? 0 : 32 }}
-        plugins={shouldReduceMotion ? [] : [autoplay.current]}
+        plugins={shouldReduceMotion ? [] : [autoplayPlugin]}
       >
         <CarouselContent className="items-stretch">
           {featured.map((post) => (
