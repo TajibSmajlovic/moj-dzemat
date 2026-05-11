@@ -43,18 +43,32 @@ const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
 ];
 
 export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: boolean }) {
-  const headerRef = useRef<HTMLElement>(null);
-  const mobileMenuId = useId();
   const { pathname } = useLocation();
-
-  const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef, pathname });
-
   const siteName = useRootSiteName();
   const facebookPageUrl = useRootFacebookPageUrl();
   const navItems = buildNavItems({
     adminHref: isAdminLoggedIn ? "/admin/objave" : "/prijava",
     facebookPageUrl,
   });
+
+  // Reset menu state on route changes without a setState effect.
+  return (
+    <SiteHeaderContent key={pathname} navItems={navItems} pathname={pathname} siteName={siteName} />
+  );
+}
+
+function SiteHeaderContent({
+  navItems,
+  pathname,
+  siteName,
+}: {
+  navItems: HeaderNavItem[];
+  pathname: string;
+  siteName: string;
+}) {
+  const headerRef = useRef<HTMLElement>(null);
+  const mobileMenuId = useId();
+  const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef });
 
   return (
     <header
@@ -332,19 +346,8 @@ function MobileSocialLink({
   );
 }
 
-function useMobileMenu({
-  headerRef,
-  pathname,
-}: {
-  headerRef: React.RefObject<HTMLElement | null>;
-  pathname: string;
-}) {
+function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement | null> }) {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // Close when navigating to a new route.
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   // Close on Escape and on pointer-down outside the header.
   useEffect(() => {
@@ -417,5 +420,6 @@ function isNavItemActive(item: HeaderNavItem, pathname: string) {
 
 function isActivePath(pathname: string, to: string) {
   if (to === "/") return pathname === "/";
+
   return pathname === to || pathname.startsWith(`${to}/`);
 }
