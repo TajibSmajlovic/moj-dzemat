@@ -28,7 +28,7 @@ updates:
       - dependency-name: prisma
         update-types:
           - version-update:semver-major
-      - dependency-name: "@prisma/client"
+      - dependency-name: "@prisma/*"
         update-types:
           - version-update:semver-major
       # Keep Node runtime types aligned with package.json#engines.
@@ -72,7 +72,7 @@ updates:
       - dependency-name: eslint
         update-types:
           - version-update:semver-major
-      - dependency-name: "@eslint/js"
+      - dependency-name: "@eslint/*"
         update-types:
           - version-update:semver-major
       - dependency-name: "@typescript-eslint/*"
@@ -81,7 +81,7 @@ updates:
       - dependency-name: typescript-eslint
         update-types:
           - version-update:semver-major
-      - dependency-name: eslint-config-prettier
+      - dependency-name: eslint-config-*
         update-types:
           - version-update:semver-major
       - dependency-name: eslint-plugin-*
@@ -192,6 +192,8 @@ updates:
       include: scope
     groups:
       actions-minor-and-patch:
+        patterns:
+          - "*"
         update-types:
           - minor
           - patch
