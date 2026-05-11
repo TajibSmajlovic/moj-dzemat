@@ -43,18 +43,32 @@ const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
 ];
 
 export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: boolean }) {
-  const headerRef = useRef<HTMLElement>(null);
-  const mobileMenuId = useId();
   const { pathname } = useLocation();
-
-  const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef, pathname });
-
   const siteName = useRootSiteName();
   const facebookPageUrl = useRootFacebookPageUrl();
   const navItems = buildNavItems({
     adminHref: isAdminLoggedIn ? "/admin/objave" : "/prijava",
     facebookPageUrl,
   });
+
+  // Reset menu state on route changes without a setState effect.
+  return (
+    <SiteHeaderContent key={pathname} navItems={navItems} pathname={pathname} siteName={siteName} />
+  );
+}
+
+function SiteHeaderContent({
+  navItems,
+  pathname,
+  siteName,
+}: {
+  navItems: HeaderNavItem[];
+  pathname: string;
+  siteName: string;
+}) {
+  const headerRef = useRef<HTMLElement>(null);
+  const mobileMenuId = useId();
+  const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef });
 
   return (
     <header
@@ -332,29 +346,22 @@ function MobileSocialLink({
   );
 }
 
-function useMobileMenu({
-  headerRef,
-  pathname,
-}: {
-  headerRef: React.RefObject<HTMLElement | null>;
-  pathname: string;
-}) {
-  const [openForPathname, setOpenForPathname] = useState<string | null>(null);
-  const menuOpen = openForPathname === pathname;
+function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement | null> }) {
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Close on Escape and on pointer-down outside the header.
   useEffect(() => {
     if (!menuOpen) return;
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpenForPathname(null);
+      if (event.key === "Escape") setMenuOpen(false);
     }
 
     function handlePointerDown(event: PointerEvent) {
       const target = event.target;
 
       if (target instanceof Node && !headerRef.current?.contains(target)) {
-        setOpenForPathname(null);
+        setMenuOpen(false);
       }
     }
 
@@ -369,8 +376,8 @@ function useMobileMenu({
 
   return {
     menuOpen,
-    toggleMenu: () => setOpenForPathname((current) => (current === pathname ? null : pathname)),
-    closeMenu: () => setOpenForPathname(null),
+    toggleMenu: () => setMenuOpen((open) => !open),
+    closeMenu: () => setMenuOpen(false),
   };
 }
 
@@ -413,5 +420,6 @@ function isNavItemActive(item: HeaderNavItem, pathname: string) {
 
 function isActivePath(pathname: string, to: string) {
   if (to === "/") return pathname === "/";
+
   return pathname === to || pathname.startsWith(`${to}/`);
 }
