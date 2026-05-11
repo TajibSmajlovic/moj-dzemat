@@ -24,11 +24,145 @@ updates:
       prefix-development: chore
       include: scope
     ignore:
-      # Keep Prisma on v6.x for now; ignore v7.x major version bumps.
+      # Keep Prisma CLI and client on v6.x for now; ignore v7.x major bumps.
       - dependency-name: prisma
         update-types:
           - version-update:semver-major
+      - dependency-name: "@prisma/*"
+        update-types:
+          - version-update:semver-major
+      # Keep Node runtime types aligned with package.json#engines.
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
+      # Treat major framework/tooling upgrades as deliberate migrations.
+      - dependency-name: react
+        update-types:
+          - version-update:semver-major
+      - dependency-name: react-dom
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@types/react"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@types/react-dom"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: react-router
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@react-router/*"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+      - dependency-name: vite
+        update-types:
+          - version-update:semver-major
+      - dependency-name: vitest
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@vitest/*"
+        update-types:
+          - version-update:semver-major
+      # Keep the lint toolchain on the current ESLint 9-compatible line.
+      # Dependabot cannot evaluate cross-package ESLint peer ranges, so
+      # major lint-package bumps should be handled as a deliberate migration.
+      - dependency-name: eslint
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@eslint/*"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@typescript-eslint/*"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: typescript-eslint
+        update-types:
+          - version-update:semver-major
+      - dependency-name: eslint-config-*
+        update-types:
+          - version-update:semver-major
+      - dependency-name: eslint-plugin-*
+        update-types:
+          - version-update:semver-major
+      - dependency-name: globals
+        update-types:
+          - version-update:semver-major
     groups:
+      react-router-stack:
+        patterns:
+          - react-router
+          - "@react-router/*"
+        update-types:
+          - minor
+          - patch
+      prisma-stack:
+        patterns:
+          - prisma
+          - "@prisma/client"
+        update-types:
+          - minor
+          - patch
+      eslint-stack:
+        patterns:
+          - eslint
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - typescript-eslint
+          - eslint-config-*
+          - eslint-plugin-*
+          - globals
+        update-types:
+          - minor
+          - patch
+      vite-vitest-stack:
+        patterns:
+          - vite
+          - vitest
+          - "@vitest/*"
+          - "@vitejs/*"
+        update-types:
+          - minor
+          - patch
+      react-stack:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - minor
+          - patch
+      tiptap-stack:
+        patterns:
+          - "@tiptap/*"
+        update-types:
+          - minor
+          - patch
+      embla-stack:
+        patterns:
+          - embla-carousel*
+        update-types:
+          - minor
+          - patch
+      tailwind-stack:
+        patterns:
+          - tailwindcss
+          - "@tailwindcss/*"
+          - tailwind-merge
+          - tw-animate-css
+          - prettier-plugin-tailwindcss
+        update-types:
+          - minor
+          - patch
+      conform-stack:
+        patterns:
+          - "@conform-to/*"
+        update-types:
+          - minor
+          - patch
       production-minor-and-patch:
         dependency-type: production
         update-types:
@@ -58,6 +192,8 @@ updates:
       include: scope
     groups:
       actions-minor-and-patch:
+        patterns:
+          - "*"
         update-types:
           - minor
           - patch
