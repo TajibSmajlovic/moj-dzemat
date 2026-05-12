@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 const ADMIN_EMAIL = "admin@dzemat.ba";
 const ADMIN_PASSWORD = "#tajnaLozinkaZaE2ETestove2024";
 const BASE_TIME = Date.parse("2026-04-22T12:00:00Z");
+const SEEDED_POST_COUNT = 35;
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const dbPath = path.join(projectRoot, "prisma", "e2e.db");
@@ -68,29 +69,7 @@ export default async function globalSetup() {
   process.env.E2E_ADMIN_PASSWORD = ADMIN_PASSWORD;
 }
 
-export const POSTS_TITLES = [
-  "E2E objava 01",
-  "E2E objava 02",
-  "E2E objava 03",
-  "E2E objava 04",
-  "E2E objava 05",
-  "E2E objava 06",
-  "E2E objava 07",
-  "E2E objava 08",
-  "E2E objava 09",
-  "E2E objava 10",
-  "E2E objava 11",
-  "E2E objava 12",
-  "E2E objava 13",
-  "E2E objava 14",
-  "E2E objava 15",
-  "E2E objava 16",
-  "E2E objava 17",
-  "E2E objava 18",
-  "E2E objava 19",
-  "E2E objava 20",
-  "E2E objava 21",
-  "E2E objava 22",
-  "E2E objava 23",
-  "E2E objava 24",
-] as const;
+export const POSTS_TITLES = Array.from(
+  { length: SEEDED_POST_COUNT },
+  (_, index) => `E2E objava ${String(index + 1).padStart(2, "0")}`,
+) as [string, ...string[]];

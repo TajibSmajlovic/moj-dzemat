@@ -33,3 +33,19 @@ export function getPaginationState({ page, pageSize, totalItems }: PaginationSta
     hasNextPage: totalPages > 0 && page < totalPages,
   };
 }
+
+export function getLoadMorePaginationState({ page, pageSize, totalItems }: PaginationStateArgs) {
+  const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
+  const take = page * pageSize;
+
+  return {
+    page,
+    pageSize,
+    totalItems,
+    totalPages,
+    take,
+    visibleItems: Math.min(take, totalItems),
+    hasPreviousPage: page > 1,
+    hasNextPage: totalPages > 0 && page < totalPages,
+  };
+}
