@@ -3,12 +3,12 @@ import {
   HandHeart,
   Megaphone,
   Moon,
-  MessagesSquare,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 
 /**
- * Human-facing labels for the four post kinds. Kept here (not in the
+ * Human-facing labels for the public post kinds. Kept here (not in the
  * schema) because localisation is presentation-layer concern - the DB
  * only knows the canonical enum identifier.
  */
@@ -43,13 +43,19 @@ export const POST_TYPE_ICON: Record<PostTypeValue, LucideIcon> = {
   smrtovnica: Moon,
   sergija: HandHeart,
   hutba: BookOpenText,
-  price: MessagesSquare,
+  price: ScrollText,
 };
 
 export function formatPostArchiveTitle(type: PostTypeValue | "all"): string {
   if (type === "all") return "Sve objave";
 
   return `Sve ${POST_TYPE_LABEL_PLURAL[type].toLocaleLowerCase("bs-BA")}`;
+}
+
+export function formatLatestPostsTitle(type: PostTypeValue | "all"): string {
+  if (type === "all") return "Najnovije objave";
+
+  return `Najnovije ${POST_TYPE_LABEL_PLURAL[type].toLocaleLowerCase("bs-BA")}`;
 }
 
 export function isPostType(value: unknown): value is PostTypeValue {

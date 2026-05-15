@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   POST_TYPES,
   POST_TYPE_ICON,
+  formatLatestPostsTitle,
   formatPostArchiveTitle,
   isPostType,
 } from "#app/features/posts/post-type";
@@ -32,6 +33,20 @@ describe("post-type", () => {
       expect(formatPostArchiveTitle("sergija")).toBe("Sve sergije");
       expect(formatPostArchiveTitle("smrtovnica")).toBe("Sve smrtovnice");
       expect(formatPostArchiveTitle("price")).toBe("Sve priče");
+    });
+  });
+
+  describe("formatLatestPostsTitle", () => {
+    it("uses the generic latest title for all posts", () => {
+      expect(formatLatestPostsTitle("all")).toBe("Najnovije objave");
+    });
+
+    it("uses the selected type plural in the latest title", () => {
+      expect(formatLatestPostsTitle("obavijest")).toBe("Najnovije obavijesti");
+      expect(formatLatestPostsTitle("hutba")).toBe("Najnovije hutbe");
+      expect(formatLatestPostsTitle("sergija")).toBe("Najnovije sergije");
+      expect(formatLatestPostsTitle("smrtovnica")).toBe("Najnovije smrtovnice");
+      expect(formatLatestPostsTitle("price")).toBe("Najnovije priče");
     });
   });
 

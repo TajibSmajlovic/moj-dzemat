@@ -17,6 +17,7 @@ import {
 import { FeaturedHeroCard } from "#app/features/posts/components/featured-hero-card";
 import { PostCard, type PostCardData } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
+import { formatLatestPostsTitle } from "#app/features/posts/post-type";
 import {
   getActivePostType,
   getFeaturedPostCards,
@@ -102,6 +103,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
   const facebookPageUrl = useRootFacebookPageUrl();
+  const latestTitle = formatLatestPostsTitle(activeType);
 
   return (
     <>
@@ -119,7 +121,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
         <section className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
           <h2 className="font-display text-foreground text-lg font-semibold text-balance sm:text-xl">
-            Najnovije objave
+            {latestTitle}
           </h2>
           <PostFilter active={activeType} />
         </section>
