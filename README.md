@@ -258,37 +258,12 @@ Production configuration lives outside the repo. Before deploying, make sure the
 
 Leave `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and `DISABLE_RATE_LIMITING` unset or `false` in production.
 
-## Branching And PRs
+## Community And Security
 
-This repo uses a simple branch naming convention:
-
-```text
-<type>/<issue-id>_<short-description>
-```
-
-Example:
-
-```text
-feat/123_add-admin-post-filters
-```
-
-Common types:
-
-- `feat`
-- `fix`
-- `chore`
-- `docs`
-- `test`
-- `refactor`
-- `ci`
-
-A few team rules:
-
-- branch from `master` unless there is a reason not to
-- keep one branch focused on one issue
-- use lowercase and hyphenated descriptions
-- do not commit directly to `master`
-- if you skip tests in a PR, explain why
+- [CONTRIBUTING.md](CONTRIBUTING.md) — local setup, testing, and PR expectations
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — community standards
+- [.github/SECURITY.md](.github/SECURITY.md) — how to report vulnerabilities privately
+- Use the issue templates under [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) for bugs, features, and other work
 
 ## License
 

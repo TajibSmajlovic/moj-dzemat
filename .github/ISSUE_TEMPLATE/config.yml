@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/TajibSmajlovic/moj-dzemat/security/advisories/new
+    about: Please report security issues privately, not as public issues. See SECURITY.md for details.
+  - name: Code of Conduct
+    url: https://github.com/TajibSmajlovic/moj-dzemat/blob/master/CODE_OF_CONDUCT.md
+    about: Community standards for participating in this repository.
