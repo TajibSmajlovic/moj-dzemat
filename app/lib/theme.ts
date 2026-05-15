@@ -1,6 +1,6 @@
 export const THEME_COOKIE_NAME = "mdz_theme";
 export const THEME_STORAGE_KEY = "moj-dzemat-theme";
-export const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 /**
    Custom DOM event the toggle dispatches after persisting a new preference.
@@ -9,9 +9,9 @@ export const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
  */
 export const THEME_CHANGE_EVENT = "moj-dzemat-theme-change";
 
-export const THEME_PREFERENCES = ["light", "dark"] as const;
+const _THEME_PREFERENCES = ["light", "dark"] as const;
 
-export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+export type ThemePreference = (typeof _THEME_PREFERENCES)[number];
 
 export const DEFAULT_THEME_PREFERENCE: ThemePreference = "light";
 
