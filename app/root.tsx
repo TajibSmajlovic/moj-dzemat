@@ -9,7 +9,9 @@ import { MotionConfig } from "motion/react";
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
 import { formatSiteName } from "#app/lib/branding";
+import { DEFAULT_THEME_PREFERENCE, THEME_COOKIE_NAME, THEME_STORAGE_KEY } from "#app/lib/theme";
 import { env } from "#app/utils/env.server";
+import { getThemePreference } from "#app/utils/theme.server";
 import { getToast } from "#app/utils/toast.server";
 
 import type { Route } from "./+types/root";
@@ -53,12 +55,14 @@ export const links: Route.LinksFunction = () => [
 export async function loader({ request }: Route.LoaderArgs) {
   const { toast, headers } = await getToast(request);
   const environment = env();
+  const themePreference = getThemePreference(request);
 
   return data(
     {
       siteName: formatSiteName(environment.DZEMAT_NAME),
       siteUrl: environment.APP_URL,
       facebookPageUrl: environment.FACEBOOK_PAGE_URL,
+      themePreference,
       toast,
     },
     {
@@ -72,11 +76,20 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const loaderData = useLoaderData<typeof loader>();
+  const themePreference = loaderData?.themePreference ?? DEFAULT_THEME_PREFERENCE;
+
   return (
-    <html lang="bs-BA">
+    <html
+      lang="bs-BA"
+      className={themePreference === "dark" ? "dark" : undefined}
+      suppressHydrationWarning
+    >
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light dark" />
+        <ThemeInitScript />
         <Meta />
         <Links />
       </head>
@@ -88,6 +101,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   );
+}
+
+function ThemeInitScript() {
+  const code = `
+(() => {
+  try {
+    const storageKey = ${JSON.stringify(THEME_STORAGE_KEY)};
+    const cookieName = ${JSON.stringify(THEME_COOKIE_NAME)};
+    const stored = localStorage.getItem(storageKey);
+    const cookieRaw = document.cookie
+      .split("; ")
+      .find((entry) => entry.startsWith(cookieName + "="))
+      ?.split("=")[1];
+    const cookie = cookieRaw ? decodeURIComponent(cookieRaw) : null;
+    const explicit = stored === "dark" || stored === "light"
+      ? stored
+      : (cookie === "dark" || cookie === "light" ? cookie : null);
+    const prefersDark = window.matchMedia
+      && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = explicit ?? (prefersDark ? "dark" : "light");
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  } catch {
+  }
+})();
+`.trim();
+
+  return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }
 
 export default function App() {

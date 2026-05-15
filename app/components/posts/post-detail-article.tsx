@@ -112,7 +112,7 @@ export function PostDetailArticle({
         <div className="bg-border mb-8 h-px" />
 
         <div
-          className="prose prose-stone text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
+          className="prose prose-stone prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-blockquote:border-primary/30 prose-blockquote:text-muted-foreground dark:prose-invert dark:prose-a:text-primary text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
       </article>
@@ -277,11 +277,11 @@ function ImageLightbox({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={motionTransitions.lightbox}
-      className="text-primary-foreground fixed inset-0 z-10000 overflow-hidden overscroll-none bg-[hsl(var(--foreground)/0.92)] p-3 backdrop-blur-md sm:p-6"
+      className="bg-lightbox/95 text-lightbox-foreground fixed inset-0 z-10000 overflow-hidden overscroll-none p-3 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
       <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-5">
-        <div className="border-primary-foreground/10 bg-background/10 text-primary-foreground/85 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md sm:text-sm">
+        <div className="border-lightbox-foreground/15 bg-lightbox-foreground/10 text-lightbox-foreground/85 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md sm:text-sm">
           Slika {activeIndex + 1}
           {canNavigate ? ` od ${images.length}` : null}
         </div>
@@ -290,7 +290,7 @@ function ImageLightbox({
           type="button"
           aria-label="Zatvori prikaz slike"
           onClick={onClose}
-          className="border-primary-foreground/10 bg-background/10 hover:bg-background/20 focus-visible:ring-ring text-primary-foreground/90 focus-visible:ring-offset-foreground inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="border-lightbox-foreground/15 bg-lightbox-foreground/10 text-lightbox-foreground/90 hover:bg-lightbox-foreground/20 focus-visible:ring-ring focus-visible:ring-offset-lightbox inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -308,7 +308,7 @@ function ImageLightbox({
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={motionTransitions.lightbox}
-          className="ring-primary-foreground/10 max-h-full max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.35)] ring-1"
+          className="ring-lightbox-foreground/10 max-h-full max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
         />
       </div>
 
@@ -320,7 +320,7 @@ function ImageLightbox({
       ) : null}
 
       {image.altText ? (
-        <p className="text-primary-foreground/80 absolute inset-x-4 bottom-4 text-center text-sm">
+        <p className="text-lightbox-foreground/80 absolute inset-x-4 bottom-4 text-center text-sm">
           {image.altText}
         </p>
       ) : null}
@@ -348,7 +348,7 @@ function LightboxNavButton({
         event.stopPropagation();
         onClick();
       }}
-      className={`border-primary-foreground/10 bg-background/10 hover:bg-background/20 focus-visible:ring-ring text-primary-foreground/90 focus-visible:ring-offset-foreground absolute top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:h-11 sm:w-11 ${
+      className={`border-lightbox-foreground/15 bg-lightbox-foreground/10 text-lightbox-foreground/90 hover:bg-lightbox-foreground/20 focus-visible:ring-ring focus-visible:ring-offset-lightbox absolute top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:h-11 sm:w-11 ${
         direction === "previous" ? "left-3 sm:left-5" : "right-3 sm:right-5"
       }`}
     >

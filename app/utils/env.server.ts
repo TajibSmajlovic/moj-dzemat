@@ -1,13 +1,14 @@
 import { z } from "zod";
 
 /**
- * Parse + validate process.env at startup. Anything missing or malformed
- * crashes the boot so we never run with half-configured secrets.
- *
- * Secrets that support rotation (`SESSION_SECRET`, `PASSWORD_RESET_SECRET`)
- * accept a comma-separated list: the first value is the current signer,
- * all values verify. That way rotation is "add the new value at the front,
- * deploy, wait a session window, remove the old value" with zero downtime.
+   Zod schema for `process.env`. Lives next to `env.server.ts` (which
+   does the parsing + caching) so the schema can be tested in isolation
+   and the parsing helper stays a one-screen file.
+
+   Secrets that support rotation (`SESSION_SECRET`, `PASSWORD_RESET_SECRET`)
+   accept a comma-separated list: the first value is the current signer,
+   all values verify. That way rotation is "add the new value at the front,
+   deploy, wait a session window, remove the old value" with zero downtime.
  */
 
 const csvSecret = z
@@ -33,7 +34,7 @@ const testOnlyProductionFlags = [
   "DISABLE_RATE_LIMITING",
 ] as const;
 
-const envSchema = z
+export const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
@@ -106,7 +107,14 @@ const envSchema = z
     }
   });
 
-type Env = z.infer<typeof envSchema>;
+export type Env = z.infer<typeof envSchema>;
+
+/**
+   Parse + validate process.env at startup. Anything missing or malformed
+   crashes the boot so we never run with half-configured secrets. The
+   actual schema lives in `env-schema.server.ts`; this file is just the
+   cached parse + accessor that the rest of the app imports.
+ */
 
 let cached: Env | undefined;
 

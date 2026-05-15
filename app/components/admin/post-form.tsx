@@ -20,6 +20,8 @@ import { Checkbox } from "#app/components/ui/checkbox";
 import { ConfirmAction } from "#app/components/ui/confirm-action";
 import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
+import { IntentInput } from "#app/lib/intent";
+import { PostAdminIntents } from "#app/lib/intents";
 import {
   MAX_IMAGES_PER_POST,
   MAX_IMAGE_ALT_TEXT_LENGTH,
@@ -33,9 +35,9 @@ type PostFormImage = { id: string; altText: string | null };
 
 type PostFormProps = {
   /**
-   * When present, the form is in "edit" mode: defaults prefill, the
-   * intent switches to `update`, and the existing image row is shown
-   * with per-image delete buttons.
+     When present, the form is in "edit" mode: defaults prefill, the
+     intent switches to `update`, and the existing image row is shown
+     with per-image delete buttons.
    */
   post?: {
     id: string;
@@ -55,9 +57,9 @@ type PostFormProps = {
 };
 
 /**
- * Multipart admin form for create/update on `/admin/objave/nova` and
- * `/admin/objave/:id`. New files ride in `images`; per-image deletes
- * use `useFetcher` so they do not reset the rest of the form.
+   Multipart admin form for create/update on `/admin/objave/nova` and
+   `/admin/objave/:id`. New files ride in `images`; per-image deletes
+   use `useFetcher` so they do not reset the rest of the form.
  */
 export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormProps) {
   const isEdit = Boolean(post);
@@ -86,7 +88,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
       encType="multipart/form-data"
       className="flex flex-col"
     >
-      <input type="hidden" name="intent" value={isEdit ? "update" : "create"} />
+      <IntentInput intent={isEdit ? PostAdminIntents.Update : PostAdminIntents.Create} />
       {isEdit ? <input type="hidden" name="id" value={post!.id} /> : null}
 
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
@@ -217,10 +219,10 @@ type PendingImagePreview = {
 };
 
 /**
- * Image row rendered inside the main post form. Newly attached files
- * ride along with the main `<form>` submission as `name="images"`; the
- * per-image delete action goes through a `useFetcher` so the admin
- * doesn't lose unsaved body text when they prune an existing image.
+   Image row rendered inside the main post form. Newly attached files
+   ride along with the main `<form>` submission as `name="images"`; the
+   per-image delete action goes through a `useFetcher` so the admin
+   doesn't lose unsaved body text when they prune an existing image.
  */
 function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
   const [pending, setPending] = useState<PendingImagePreview[]>([]);
@@ -384,7 +386,7 @@ function ExistingImage({ postId, image }: ExistingImageProps) {
 
   const requestDelete = () => {
     const body = new FormData();
-    body.append("intent", "delete-image");
+    body.append("intent", PostAdminIntents.DeleteImage);
     body.append("id", postId);
     body.append("imageId", imageId);
     void fetcher.submit(body, { method: "post" });

@@ -109,7 +109,19 @@ async function getUserIdFromSession(request: Request): Promise<string | null> {
   return userId ?? null;
 }
 
-export async function getCurrentUser(request: Request) {
+type CurrentUser = { id: string; email: string; name: string | null };
+
+/**
+   Per-request memo for the current user lookup. Keyed by the Request
+   object so identical concurrent calls within one loader/action chain
+   (e.g. `_public.tsx` + `requireAdmin` + downstream helpers) share a
+   single DB hit. WeakMap entries are released when the request object
+   is garbage-collected, which lines up with the React Router request
+   lifecycle.
+ */
+const currentUserMemo = new WeakMap<Request, Promise<CurrentUser | null>>();
+
+async function loadCurrentUser(request: Request): Promise<CurrentUser | null> {
   const userId = await getUserIdFromSession(request);
   if (!userId) return null;
 
@@ -125,9 +137,19 @@ export async function getCurrentUser(request: Request) {
   return user;
 }
 
+export function getCurrentUser(request: Request): Promise<CurrentUser | null> {
+  const cached = currentUserMemo.get(request);
+  if (cached) return cached;
+
+  const promise = loadCurrentUser(request);
+  currentUserMemo.set(request, promise);
+
+  return promise;
+}
+
 /**
- * Guard used on every `/admin/*` loader + action. Redirects to
- * `/prijava?redirectTo=<current>` if no valid session.
+   Guard used on every `/admin/*` loader + action. Redirects to
+   `/prijava?redirectTo=<current>` if no valid session.
  */
 export async function requireAdmin(request: Request) {
   const user = await getCurrentUser(request);

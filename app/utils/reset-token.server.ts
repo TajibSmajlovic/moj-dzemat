@@ -5,19 +5,19 @@ import { prisma } from "#app/utils/db.server";
 import { env } from "#app/utils/env.server";
 
 /**
- * Stateless password-reset tokens. We intentionally avoid a
- * `Verification` table - the only flow that needs verification in
- * moj-dzemat is forgot-password, and a signed URL captures everything
- * we need: user id, expiry, and a fingerprint of the current password
- * hash so that changing the password revokes every still-live link.
- *
- * Structure:
- *   payload: { sub: userId, pwfp: passwordFingerprint, iat, exp }
- *   sig:     HS256 with the current PASSWORD_RESET_SECRET (first csv entry)
- *   verify:  accept any csv entry so rotation is zero-downtime
+   Stateless password-reset tokens. We intentionally avoid a
+   `Verification` table - the only flow that needs verification in
+   moj-dzemat is forgot-password, and a signed URL captures everything
+   we need: user id, expiry, and a fingerprint of the current password
+   hash so that changing the password revokes every still-live link.
+
+   Structure:
+     payload: { sub: userId, pwfp: passwordFingerprint, iat, exp }
+     sig:     HS256 with the current PASSWORD_RESET_SECRET (first csv entry)
+     verify:  accept any csv entry so rotation is zero-downtime
  */
 
-const TTL_SECONDS = 60 * 60; // 1 hour
+const TTL_SECONDS = 10 * 60; // 10 minutes
 const ALG = "HS256";
 
 function encodeSecret(secret: string): Uint8Array {

@@ -126,7 +126,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 1 sat",
+            title: "Link vrijedi 10 minuta",
             description: "Istekli linkovi se odbijaju automatski.",
           },
           {

@@ -12,7 +12,7 @@ describe("buildPasswordResetEmail", () => {
 
     expect(email.subject).toBe("Postavljanje nove lozinke");
     expect(email.text).toContain("Postavite novu lozinku");
-    expect(email.text).toContain("Link vrijedi 1 sat");
+    expect(email.text).toContain("Link vrijedi 10 minuta");
     expect(email.text).toContain(resetUrl);
     expect(email.html).toContain("Moj Džemat - Donje Moštre");
     expect(email.html).toContain("Postavi novu lozinku");

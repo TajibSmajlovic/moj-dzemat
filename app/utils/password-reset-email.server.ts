@@ -9,7 +9,7 @@ type PasswordResetEmail = {
   html: string;
 };
 
-const PASSWORD_RESET_EXPIRES_IN = "1 sat";
+const PASSWORD_RESET_EXPIRES_IN = "10 minuta";
 const PASSWORD_RESET_SUBJECT = "Postavljanje nove lozinke";
 
 function escapeHtml(value: string): string {

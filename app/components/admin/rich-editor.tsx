@@ -81,7 +81,7 @@ export function RichEditor({
       attributes: {
         id: id ?? "",
         class:
-          "prose prose-stone max-w-none min-h-[240px] px-4 py-3 focus:outline-none " +
+          "prose prose-stone prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-blockquote:border-primary/30 dark:prose-invert dark:prose-a:text-primary max-w-none min-h-[240px] px-4 py-3 focus:outline-none " +
           "[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] " +
           "[&_p.is-editor-empty:first-child]:before:text-muted-foreground " +
           "[&_p.is-editor-empty:first-child]:before:pointer-events-none " +

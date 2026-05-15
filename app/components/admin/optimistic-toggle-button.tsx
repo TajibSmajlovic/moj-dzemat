@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useFetcher } from "react-router";
 
 import { IconActionButton } from "#app/components/admin/icon-action-button";
+import { IntentInput } from "#app/lib/intent";
 import { useFetcherToast } from "#app/lib/use-action-toast";
 
 type IconActionButtonTone = "default" | "primary" | "secondary" | "destructive";
@@ -22,6 +23,7 @@ type OptimisticToggleIconButtonProps = {
   activeIcon: ReactNode;
   /** Icon shown when inactive. Defaults to `activeIcon`. */
   inactiveIcon?: ReactNode;
+  className?: string;
 };
 
 /**
@@ -39,6 +41,7 @@ export function OptimisticToggleIconButton({
   inactiveLabel,
   activeIcon,
   inactiveIcon,
+  className,
 }: OptimisticToggleIconButtonProps) {
   const fetcher = useFetcher();
   useFetcherToast(fetcher);
@@ -53,7 +56,7 @@ export function OptimisticToggleIconButton({
 
   return (
     <fetcher.Form method="post" className="inline">
-      <input type="hidden" name="intent" value={intent} />
+      <IntentInput intent={intent} />
       <input type="hidden" name="id" value={id} />
 
       <IconActionButton
@@ -62,6 +65,7 @@ export function OptimisticToggleIconButton({
         tone={tone}
         active={optimisticActive}
         aria-pressed={optimisticActive}
+        className={className}
       >
         {icon}
       </IconActionButton>

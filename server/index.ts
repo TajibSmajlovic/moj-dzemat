@@ -5,6 +5,7 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 
+import { MAX_REQUEST_BYTES } from "../app/lib/limits";
 import { env } from "../app/utils/env.server";
 import { logger } from "../app/utils/logger.server";
 import { securityHeaders } from "../app/utils/security.server";
@@ -24,7 +25,6 @@ declare module "express-serve-static-core" {
 
 const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
-const MAX_BODY_BYTES = 20 * 1024 * 1024; // 20 MB per request
 const HEALTHCHECK_PATH = "/resources/healthcheck";
 const canonicalUrl = new URL(APP_URL);
 const canonicalHost = canonicalUrl.host.toLowerCase();
@@ -42,7 +42,7 @@ async function createServer(): Promise<express.Express> {
   app.use((req, res, next) => {
     if (req.method === "GET" || req.method === "HEAD") return next();
     const contentLength = Number(req.headers["content-length"] ?? 0);
-    if (contentLength > MAX_BODY_BYTES) {
+    if (contentLength > MAX_REQUEST_BYTES) {
       res.status(413).send("Payload too large");
       return;
     }

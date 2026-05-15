@@ -238,6 +238,7 @@ export default tseslint.config(
       "app/**/*.server.ts",
       "app/**/*.server.tsx",
       "app/lib/invariant.ts",
+      "app/lib/intent.tsx",
       "server/**/*.ts",
     ],
     rules: {
