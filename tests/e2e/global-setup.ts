@@ -32,7 +32,7 @@ export default async function globalSetup() {
 
   // Set DATABASE_URL before importing the shared client (adapter reads it at init).
   process.env.DATABASE_URL = databaseUrl;
-  const { prisma } = await import("../../app/utils/db.server");
+  const { prisma } = await import("../../app/server/db.server");
   const bcryptModule = await import("bcryptjs");
   const bcrypt = bcryptModule.default;
 

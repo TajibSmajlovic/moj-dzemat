@@ -2,11 +2,13 @@ import { useActionData, useNavigation } from "react-router";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
-import { PostForm } from "#app/components/admin/post-form";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostForm } from "#app/features/posts/admin/components/post-form";
+import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
+import { useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
-import { requireAdmin } from "#app/utils/auth.server";
-import { createOrUpdatePostFromForm } from "#app/utils/post-admin.server";
 
 import type { Route } from "./+types/admin.objave.nova";
 
@@ -23,7 +25,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.clone().formData();
   const intent = formData.get("intent");
-  invariantResponse(intent === "create", "Unsupported intent");
+  invariantResponse(intent === PostAdminIntents.Create, "Unsupported intent");
 
   return createOrUpdatePostFromForm({
     request,
@@ -35,8 +37,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function AdminNewPost() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const submitting =
-    navigation.state === "submitting" && navigation.formData?.get("intent") === "create";
+  const submitting = useIsSubmittingIntent(navigation, PostAdminIntents.Create);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">

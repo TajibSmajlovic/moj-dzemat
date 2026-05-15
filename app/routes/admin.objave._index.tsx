@@ -1,33 +1,19 @@
 import { Link, redirect, useActionData, useNavigation } from "react-router";
 
-import { Eye, EyeOff, Pencil, Pin, Plus, Star } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
-import { AdminPanel } from "#app/components/admin/admin-panel";
-import { DeleteRecordButton } from "#app/components/admin/delete-record-button";
-import { EmptyState } from "#app/components/admin/empty-state";
-import { IconActionButton } from "#app/components/admin/icon-action-button";
-import { OptimisticToggleIconButton } from "#app/components/admin/optimistic-toggle-button";
-import { PaginationControls } from "#app/components/admin/pagination-controls";
-import { PostStatusBadge } from "#app/components/admin/post-status-badge";
-import { PostTypeBadge } from "#app/components/posts/post-type-badge";
 import { Button } from "#app/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "#app/components/ui/table";
-import { formatDateShort } from "#app/lib/date";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
+import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
+import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { getPaginationState, PAGE_SIZE, parsePageParam } from "#app/lib/pagination";
 import { createActionToast } from "#app/lib/toast";
-import { useActionToast } from "#app/lib/use-action-toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { logger } from "#app/utils/logger.server";
-import { requireId, togglePostStatus } from "#app/utils/post-admin.server";
+import { useActionToast } from "#app/lib/toast";
+import { prisma } from "#app/server/db.server";
+import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave._index";
 
@@ -70,91 +56,108 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const user = await requireAdmin(request);
   const formData = await request.formData();
+  const intent = parseIntent(formData, PostAdminIntents);
 
-  const intent = formData.get("intent");
-
-  if (intent === "delete") {
-    const id = requireId(formData.get("id"));
-
-    const post = await prisma.post.findUnique({
-      where: { id },
-      select: { title: true, slug: true, type: true },
-    });
-    await prisma.post.delete({ where: { id } });
-
-    logger.info(
-      { postId: id, userId: user.id, slug: post?.slug, type: post?.type },
-      "post deleted",
-    );
-
-    return {
-      ok: true,
-      toast: createActionToast({
-        action: "delete",
-        description: `Objava "${post?.title}" obrisana.`,
-      }),
-    };
+  switch (intent) {
+    case PostAdminIntents.Delete: {
+      return handleDelete(formData, user.id);
+    }
+    case PostAdminIntents.ToggleFeatured: {
+      return handleToggleFeatured(formData, user.id);
+    }
+    case PostAdminIntents.TogglePinned: {
+      return handleTogglePinned(formData, user.id);
+    }
+    case PostAdminIntents.ToggleStatus: {
+      return handleToggleStatus(formData, user.id);
+    }
+    case PostAdminIntents.Create:
+    case PostAdminIntents.Update:
+    case PostAdminIntents.DeleteImage: {
+      // These intents belong to the create/edit routes, not the list.
+      throw new Response("Unsupported intent", { status: 400 });
+    }
+    default: {
+      assertUnreachable(intent);
+    }
   }
+}
 
-  if (intent === "toggle-featured") {
-    const id = requireId(formData.get("id"));
+async function handleDelete(formData: FormData, userId: string) {
+  const id = requireId(formData.get("id"));
 
-    const post = await prisma.post.findUniqueOrThrow({
-      where: { id },
-      select: { featured: true },
-    });
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { title: true, slug: true, type: true },
+  });
+  await prisma.post.delete({ where: { id } });
 
-    const next = !post.featured;
+  logger.info({ postId: id, userId, slug: post?.slug, type: post?.type }, "post deleted");
 
-    await prisma.post.update({ where: { id }, data: { featured: next } });
+  return {
+    ok: true,
+    toast: createActionToast({
+      action: "delete",
+      description: `Objava "${post?.title}" obrisana.`,
+    }),
+  };
+}
 
-    logger.info({ postId: id, userId: user.id, featured: next }, "post featured toggled");
+async function handleToggleFeatured(formData: FormData, userId: string) {
+  const id = requireId(formData.get("id"));
 
-    return {
-      ok: true,
-      toast: createActionToast({
-        action: "feature",
-        description: next ? "Objava istaknuta." : "Uklonjeno iz istaknutih.",
-      }),
-    };
-  }
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id },
+    select: { featured: true },
+  });
+  const next = !post.featured;
 
-  if (intent === "toggle-pinned") {
-    const id = requireId(formData.get("id"));
+  await prisma.post.update({ where: { id }, data: { featured: next } });
 
-    const post = await prisma.post.findUniqueOrThrow({
-      where: { id },
-      select: { pinned: true },
-    });
-    const next = !post.pinned;
+  logger.info({ postId: id, userId, featured: next }, "post featured toggled");
 
-    await prisma.post.update({ where: { id }, data: { pinned: next } });
+  return {
+    ok: true,
+    toast: createActionToast({
+      action: "feature",
+      description: next ? "Objava istaknuta." : "Uklonjeno iz istaknutih.",
+    }),
+  };
+}
 
-    logger.info({ postId: id, userId: user.id, pinned: next }, "post pinned toggled");
+async function handleTogglePinned(formData: FormData, userId: string) {
+  const id = requireId(formData.get("id"));
 
-    return {
-      ok: true,
-      toast: createActionToast({
-        action: "pin",
-        description: next ? "Objava je stavljena na vrh." : "Objava više nije na vrhu.",
-      }),
-    };
-  }
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id },
+    select: { pinned: true },
+  });
+  const next = !post.pinned;
 
-  if (intent === "toggle-status") {
-    const id = requireId(formData.get("id"));
-    const next = await togglePostStatus(id, user.id);
+  await prisma.post.update({ where: { id }, data: { pinned: next } });
 
-    return {
-      ok: true,
-      toast: createActionToast({
-        action: "update",
-        description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
-      }),
-    };
-  }
+  logger.info({ postId: id, userId, pinned: next }, "post pinned toggled");
 
-  throw new Response("Unsupported intent", { status: 400 });
+  return {
+    ok: true,
+    toast: createActionToast({
+      action: "pin",
+      description: next ? "Objava je stavljena na vrh." : "Objava više nije na vrhu.",
+    }),
+  };
+}
+
+async function handleToggleStatus(formData: FormData, userId: string) {
+  const id = requireId(formData.get("id"));
+  const next = await togglePostStatus(id, userId);
+
+  return {
+    ok: true,
+    toast: createActionToast({
+      action: "update",
+      description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
+    }),
+  };
 }
 
 export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
@@ -164,10 +167,7 @@ export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
 
   useActionToast(actionData);
 
-  const deletingId =
-    navigation.formData?.get("intent") === "delete"
-      ? (navigation.formData.get("id") as string | null)
-      : null;
+  const deletingId = useSubmittingRowId<PostAdminIntent>(navigation, PostAdminIntents.Delete);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -184,161 +184,13 @@ export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
         }
       />
 
-      <PostsTable posts={posts} pagination={pagination} deletingId={deletingId} />
-    </main>
-  );
-}
-
-function PostsTable({
-  posts,
-  pagination,
-  deletingId,
-}: {
-  posts: Route.ComponentProps["loaderData"]["posts"];
-  pagination: Route.ComponentProps["loaderData"]["pagination"];
-  deletingId: string | null;
-}) {
-  if (posts.length === 0) {
-    return (
-      <EmptyState>
-        <p className="text-muted-foreground">
-          Još nema objava.{" "}
-          <Link to="/admin/objave/nova" className="text-primary font-medium hover:underline">
-            Dodajte prvu objavu
-          </Link>
-          .
-        </p>
-      </EmptyState>
-    );
-  }
-
-  return (
-    <AdminPanel>
-      <div className="overflow-x-auto">
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead>Objava</TableHead>
-              <TableHead className="w-36">Vrsta</TableHead>
-              <TableHead className="w-36">Status</TableHead>
-              <TableHead className="w-32">Datum</TableHead>
-              <TableHead className="w-16 text-center">Slike</TableHead>
-              <TableHead className="w-60 text-right">Akcije</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {posts.map((post) => (
-              <TableRow key={post.id} className={deletingId === post.id ? "opacity-50" : undefined}>
-                <TableCell className="max-w-0">
-                  <div className="flex min-w-0 items-center gap-2">
-                    {post.featured ? (
-                      <Star
-                        className="fill-secondary text-secondary h-4 w-4 shrink-0"
-                        aria-label="Istaknuto"
-                      />
-                    ) : null}
-                    {post.pinned ? (
-                      <Pin
-                        className="fill-primary text-primary h-4 w-4 shrink-0"
-                        aria-label="Na vrhu"
-                      />
-                    ) : null}
-                    <Link
-                      to={`/admin/objave/${post.id}`}
-                      className="hover:text-primary min-w-0 truncate font-medium transition-colors"
-                    >
-                      {post.title}
-                    </Link>
-                  </div>
-
-                  <div className="text-muted-foreground mt-0.5 truncate text-xs">/{post.slug}</div>
-                </TableCell>
-
-                <TableCell>
-                  <PostTypeBadge type={post.type} />
-                </TableCell>
-
-                <TableCell>
-                  <PostStatusBadge status={post.status} />
-                </TableCell>
-
-                <TableCell className="text-muted-foreground text-sm">
-                  {formatDateShort(post.publishedAt)}
-                </TableCell>
-
-                <TableCell className="text-center text-sm">{post.images.length}</TableCell>
-
-                <TableCell>
-                  <div className="flex items-center justify-end gap-1">
-                    <OptimisticToggleIconButton
-                      intent="toggle-featured"
-                      id={post.id}
-                      active={post.featured}
-                      tone="secondary"
-                      activeLabel="Ukloni istaknuto"
-                      inactiveLabel="Istakni"
-                      activeIcon={<Star className="h-4 w-4" aria-hidden="true" />}
-                    />
-
-                    <OptimisticToggleIconButton
-                      intent="toggle-pinned"
-                      id={post.id}
-                      active={post.pinned}
-                      tone="primary"
-                      activeLabel="Ukloni sa vrha"
-                      inactiveLabel="Stavi na vrh"
-                      activeIcon={<Pin className="h-4 w-4" aria-hidden="true" />}
-                    />
-
-                    <OptimisticToggleIconButton
-                      intent="toggle-status"
-                      id={post.id}
-                      active={post.status === "published"}
-                      tone="primary"
-                      activeLabel="Sakrij objavu"
-                      inactiveLabel="Objavi"
-                      activeIcon={<Eye className="h-4 w-4" aria-hidden="true" />}
-                      inactiveIcon={<EyeOff className="h-4 w-4" aria-hidden="true" />}
-                    />
-
-                    <IconActionButton label="Uredi" tone="primary" asChild>
-                      <Link to={`/admin/objave/${post.id}`}>
-                        <Pencil className="h-4 w-4" aria-hidden="true" />
-                      </Link>
-                    </IconActionButton>
-
-                    <DeleteRecordButton
-                      id={post.id}
-                      formIdPrefix="delete-post"
-                      title="Obrisati objavu?"
-                      description={
-                        <>
-                          Objava <strong className="text-foreground">"{post.title}"</strong> biće
-                          trajno uklonjena iz javne stranice i administracije. Ovu radnju nije
-                          moguće vratiti.
-                        </>
-                      }
-                      confirmLabel="Obriši objavu"
-                      iconLabel={`Obriši "${post.title}"`}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <PaginationControls
-        page={pagination.page}
-        totalPages={pagination.totalPages}
-        summary={`Prikaz ${pagination.rangeStart}-${pagination.rangeEnd} od ${pagination.totalItems} objava`}
-        previousHref={getPageHref(pagination.page - 1)}
-        nextHref={getPageHref(pagination.page + 1)}
-        ariaLabel="Paginacija objava"
+      <PostsAdminTable
+        posts={posts}
+        pagination={pagination}
+        deletingId={deletingId}
+        getPageHref={getPageHref}
       />
-    </AdminPanel>
+    </main>
   );
 }
 

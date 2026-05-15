@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PostTypeValue } from "#app/lib/post-type";
+import type { PostTypeValue } from "#app/features/posts/post-type";
 import { loader as objaveLoader } from "#app/routes/_public.objave._index";
 
 import { createPost } from "../factories";

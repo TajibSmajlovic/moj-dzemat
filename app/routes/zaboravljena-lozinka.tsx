@@ -10,18 +10,18 @@ import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
+import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
+import { signResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
-import { getAuthPage } from "#app/utils/auth-page.server";
-import { prisma } from "#app/utils/db.server";
-import { sendEmail } from "#app/utils/email.server";
-import { env } from "#app/utils/env.server";
-import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
-import { logger } from "#app/utils/logger.server";
-import { buildPasswordResetEmail } from "#app/utils/password-reset-email.server";
-import { forgotPasswordLimiter, getClientIp } from "#app/utils/rate-limit.server";
-import { signResetToken } from "#app/utils/reset-token.server";
+import { prisma } from "#app/server/db.server";
+import { sendEmail } from "#app/server/email.server";
+import { env } from "#app/server/env.server";
+import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
+import { logger } from "#app/server/logger.server";
+import { forgotPasswordLimiter, getClientIp } from "#app/server/rate-limit.server";
 
 import type { Route } from "./+types/zaboravljena-lozinka";
 
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 1 sat",
+            title: "Link vrijedi 10 minuta",
             description: "Nakon isteka možete zatražiti novi link istim putem.",
           },
           {
@@ -150,12 +150,12 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
       title="Zaboravljena lozinka"
       description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
       panelTitle="Pošalji link"
-      panelDescription="Link za novu lozinku stiže na email i vrijedi 1 sat."
+      panelDescription="Link za novu lozinku stiže na email i vrijedi 10 minuta."
       details={[
         {
           icon: <Clock3 className="size-4" />,
           title: "Vremenski ograničen link",
-          description: "Svaki link vrijedi 1 sat i vezan je za trenutno stanje naloga.",
+          description: "Svaki link vrijedi 10 minuta i vezan je za trenutno stanje naloga.",
         },
         {
           icon: <ShieldCheck className="size-4" />,

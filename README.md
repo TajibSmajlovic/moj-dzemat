@@ -78,7 +78,7 @@ nvm use
 
 ## Local Environment Notes
 
-The app reads runtime environment variables from [`app/utils/env.server.ts`](app/utils/env.server.ts). The template lives in [`.env.example`](.env.example).
+The app reads runtime environment variables from [`app/server/env.server.ts`](app/server/env.server.ts). The template lives in [`.env.example`](.env.example).
 
 These are the variables that matter most for local development:
 
@@ -190,17 +190,20 @@ npm run test:e2e
 
 ```text
 app/
-  components/          reusable UI plus admin/public feature components
-  lib/                 shared browser-safe helpers, formatting, and schemas
+  components/          reusable UI primitives, layout chrome, forms, icons, and generic admin pieces
+  features/            vertical slices for posts, announcements, auth, and theme behavior
+  lib/                 small shared app helpers used across multiple slices
   routes/              file-based routes for public pages, auth, admin, sitemap, and dev helpers
+  server/              server infrastructure: Prisma, env, email, logging, security, image pipeline
   styles/              Tailwind theme and global CSS
-  utils/               server-only utilities such as auth, env, Prisma, email, security, and rate limiting
 prisma/                schema, migrations, seed script, and local SQLite files
 server/                Express entrypoint used by development and production server boot
 tests/                 unit, integration, e2e, and test factories
 scripts/               build orchestration and other repo scripts
 public/                static assets
 ```
+
+The route files intentionally stay thin. They compose loaders/actions, route metadata, and page UI while delegating domain work to `app/features/*`. Feature-owned schemas, intent constants, components, and server actions live together so a post change or announcement change is usually contained to one slice. Cross-cutting server pieces that should not know about a domain live in `app/server`, and generic UI remains in `app/components`.
 
 Useful route groups:
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { prisma } from "#app/utils/db.server";
+import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 

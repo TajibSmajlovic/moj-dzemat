@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 
-import { requireAdmin } from "#app/utils/auth.server";
+import { requireAdmin } from "#app/features/auth/auth.server";
 
 import type { Route } from "./+types/admin._index";
 

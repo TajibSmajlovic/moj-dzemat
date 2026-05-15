@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sanitizePostBody } from "#app/utils/post-sanitize.server";
+import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 
 /**
  * The sanitizer is the single trust boundary between admin input and

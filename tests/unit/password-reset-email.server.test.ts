@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildPasswordResetEmail } from "#app/utils/password-reset-email.server";
+import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
 
 describe("buildPasswordResetEmail", () => {
   it("builds a branded password reset email with a button and fallback link", () => {
@@ -12,7 +12,7 @@ describe("buildPasswordResetEmail", () => {
 
     expect(email.subject).toBe("Postavljanje nove lozinke");
     expect(email.text).toContain("Postavite novu lozinku");
-    expect(email.text).toContain("Link vrijedi 1 sat");
+    expect(email.text).toContain("Link vrijedi 10 minuta");
     expect(email.text).toContain(resetUrl);
     expect(email.html).toContain("Moj Džemat - Donje Moštre");
     expect(email.html).toContain("Postavi novu lozinku");

@@ -10,15 +10,15 @@ import { PasswordField } from "#app/components/forms/password-field";
 import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
+import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { hashPassword, startSessionFor, validateNewPassword } from "#app/features/auth/auth.server";
+import { verifyResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
-import { getAuthPage } from "#app/utils/auth-page.server";
-import { hashPassword, startSessionFor, validateNewPassword } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { assertHoneypot, honeypotToken } from "#app/utils/honeypot.server";
-import { logger } from "#app/utils/logger.server";
-import { verifyResetToken } from "#app/utils/reset-token.server";
+import { prisma } from "#app/server/db.server";
+import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
+import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/nova-lozinka.$token";
 
@@ -126,7 +126,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 1 sat",
+            title: "Link vrijedi 10 minuta",
             description: "Istekli linkovi se odbijaju automatski.",
           },
           {

@@ -1,5 +1,5 @@
-import { prisma } from "#app/utils/db.server";
-import { env } from "#app/utils/env.server";
+import { prisma } from "#app/server/db.server";
+import { env } from "#app/server/env.server";
 
 const MAX_ENTRIES = 10_000;
 

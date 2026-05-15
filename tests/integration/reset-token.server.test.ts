@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { hashPassword } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { signResetToken, verifyResetToken } from "#app/utils/reset-token.server";
+import { hashPassword } from "#app/features/auth/auth.server";
+import { signResetToken, verifyResetToken } from "#app/features/auth/reset-token.server";
+import { prisma } from "#app/server/db.server";
 
 import { createUser } from "../factories";
 

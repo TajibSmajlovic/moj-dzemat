@@ -34,7 +34,7 @@ function setEnv(overrides: Partial<Record<keyof typeof BASE_ENV, string>> = {}) 
 
 async function importEnvModule() {
   vi.resetModules();
-  return import("#app/utils/env.server");
+  return import("#app/server/env.server");
 }
 
 afterEach(() => {

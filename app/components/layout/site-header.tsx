@@ -12,8 +12,9 @@ import { Link, useLocation } from "react-router";
 import { ExternalLink, Home, LogIn, Menu, Newspaper, X, type LucideIcon } from "lucide-react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
+import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { Button } from "#app/components/ui/button";
+import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
@@ -78,15 +79,17 @@ function SiteHeaderContent({
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <BrandLink siteName={siteName} onClick={closeMenu} />
 
-        <DesktopNavigation items={navItems} pathname={pathname} />
-
-        <MobileMenuToggle controls={mobileMenuId} open={menuOpen} onToggle={toggleMenu} />
+        <div className="flex shrink-0 items-center gap-2">
+          <DesktopNavigation items={navItems} pathname={pathname} />
+          <ThemeToggle />
+          <MobileMenuToggle controls={mobileMenuId} open={menuOpen} onToggle={toggleMenu} />
+        </div>
       </div>
 
       <div
         aria-hidden={!menuOpen}
         className={cn(
-          "absolute inset-x-0 top-full grid px-4 pt-2 pb-4 transition-[grid-template-rows,opacity,transform] duration-300 ease-out lg:hidden",
+          "absolute inset-x-0 top-full grid px-4 pt-2 pb-4 transition-[grid-template-rows,opacity,transform] duration-300 ease-out xl:hidden",
           menuOpen
             ? "grid-rows-[1fr] opacity-100"
             : "pointer-events-none -translate-y-2 grid-rows-[0fr] opacity-0",
@@ -130,10 +133,10 @@ function BrandLink({ onClick, siteName }: { onClick?: () => void; siteName: stri
           ) : null}
         </span>
         <span className="text-muted-foreground mt-0.5 text-xs">
-          <span className="max-[389px]:hidden">
+          <span className="max-[450px]:hidden">
             Rijaset Islamske zajednice u Bosni i Hercegovini
           </span>
-          <span className="hidden max-[389px]:inline">Rijaset Islamske zajednice u BiH</span>
+          <span className="hidden max-[450px]:inline">Rijaset Islamske zajednice u BiH</span>
         </span>
       </span>
     </Link>
@@ -155,7 +158,7 @@ function MobileMenuToggle({
       variant="outline"
       size="icon-lg"
       className={cn(
-        "border-border bg-background hover:bg-accent relative shrink-0 overflow-hidden rounded-full transition-[background-color,color,box-shadow,transform] duration-300 lg:hidden",
+        "border-border bg-background hover:bg-accent relative shrink-0 overflow-hidden rounded-full transition-[background-color,color,box-shadow,transform] duration-300 xl:hidden",
         open && "bg-accent text-accent-foreground shadow-foreground/10 shadow-md",
       )}
       aria-controls={controls}
@@ -185,7 +188,7 @@ function DesktopNavigation({ items, pathname }: { items: HeaderNavItem[]; pathna
   return (
     <nav
       aria-label="Glavna navigacija"
-      className="border-border/70 bg-card/75 hidden shrink-0 items-center gap-1 rounded-full border p-1 shadow-sm lg:flex"
+      className="border-border/70 bg-card/75 hidden shrink-0 items-center gap-1 rounded-full border p-1 shadow-sm xl:flex"
     >
       {items.map((item) => (
         <DesktopNavItem key={navItemKey(item)} item={item} pathname={pathname} />

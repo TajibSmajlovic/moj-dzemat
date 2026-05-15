@@ -3,20 +3,22 @@ import { Form, Link, useNavigation } from "react-router";
 import { Eye, EyeOff, Pencil } from "lucide-react";
 import { motion } from "motion/react";
 
-import { PostStatusBadge } from "#app/components/admin/post-status-badge";
-import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostStatusBadge } from "#app/features/posts/admin/components/post-status-badge";
+import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
+import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
+import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { env } from "#app/utils/env.server";
-import { requireId, togglePostStatus } from "#app/utils/post-admin.server";
-import { redirectWithToast } from "#app/utils/toast.server";
+import { prisma } from "#app/server/db.server";
+import { env } from "#app/server/env.server";
+import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.objave.$id_.pregled";
 
@@ -65,7 +67,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  invariantResponse(intent === "toggle-status", "Unsupported intent");
+  invariantResponse(intent === PostAdminIntents.ToggleStatus, "Unsupported intent");
 
   const next = await togglePostStatus(id, user.id);
 
@@ -82,8 +84,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   const { post, siteUrl } = loaderData;
   const siteName = useRootSiteName();
   const navigation = useNavigation();
-  const toggling =
-    navigation.state === "submitting" && navigation.formData?.get("intent") === "toggle-status";
+  const toggling = useIsSubmittingIntent(navigation, PostAdminIntents.ToggleStatus);
   const isPublished = post.status === "published";
 
   return (
@@ -109,7 +110,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
 
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Form method="post">
-              <input type="hidden" name="intent" value="toggle-status" />
+              <IntentInput intent={PostAdminIntents.ToggleStatus} />
               <Button type="submit" disabled={toggling} className="gap-2">
                 {isPublished ? (
                   <EyeOff className="h-4 w-4" aria-hidden="true" />

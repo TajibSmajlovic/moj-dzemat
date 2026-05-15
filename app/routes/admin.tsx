@@ -2,11 +2,13 @@ import { Form, Link, NavLink, Outlet } from "react-router";
 
 import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
+import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { Button } from "#app/components/ui/button";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import { requireAdmin } from "#app/utils/auth.server";
 
 import type { Route } from "./+types/admin";
 
@@ -50,6 +52,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
             <span className="text-muted-foreground hidden text-sm sm:inline">
               {user.name ?? user.email}
             </span>
+            <ThemeToggle />
             <Form method="post" action="/odjava">
               <Button type="submit" variant="outline" size="sm" className="gap-2">
                 <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -69,6 +72,17 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
 
       <Outlet />
     </div>
+  );
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  return (
+    <SegmentErrorBoundary
+      error={error}
+      tone="admin"
+      backTo="/admin/objave"
+      backLabel="Nazad na listu objava"
+    />
   );
 }
 

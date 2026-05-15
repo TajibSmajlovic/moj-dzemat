@@ -82,6 +82,6 @@ test.describe("public", () => {
     const response = await page.goto("/objave/nepostojeci-slug");
 
     expect(response?.status()).toBe(404);
-    await expect(page.getByRole("heading", { name: /Stranica nije pronađena/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Sadržaj nije pronađen/ })).toBeVisible();
   });
 });
