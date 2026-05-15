@@ -3,21 +3,21 @@ import { Link, useRouteLoaderData } from "react-router";
 import { Pencil } from "lucide-react";
 
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
-import { PostDetailArticle } from "#app/components/posts/post-detail-article";
-import { ShareButton } from "#app/components/posts/share-button";
 import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
+import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
+import { ShareButton } from "#app/features/posts/components/share-button";
+import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { plainExcerpt } from "#app/lib/post-excerpt";
 import {
   THEME_COLOR,
   buildSocialMeta,
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import { prisma } from "#app/utils/db.server";
-import { env } from "#app/utils/env.server";
+import { prisma } from "#app/server/db.server";
+import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public.objave.$slug";
 

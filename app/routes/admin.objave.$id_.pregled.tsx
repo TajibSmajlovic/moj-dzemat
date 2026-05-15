@@ -3,22 +3,22 @@ import { Form, Link, useNavigation } from "react-router";
 import { Eye, EyeOff, Pencil } from "lucide-react";
 import { motion } from "motion/react";
 
-import { PostStatusBadge } from "#app/components/admin/post-status-badge";
-import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostStatusBadge } from "#app/features/posts/admin/components/post-status-badge";
+import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
+import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
-import { PostAdminIntents } from "#app/lib/intents";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { env } from "#app/utils/env.server";
-import { requireId, togglePostStatus } from "#app/utils/post-admin.server";
-import { redirectWithToast } from "#app/utils/toast.server";
+import { prisma } from "#app/server/db.server";
+import { env } from "#app/server/env.server";
+import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.objave.$id_.pregled";
 

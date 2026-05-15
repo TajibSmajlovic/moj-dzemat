@@ -3,13 +3,18 @@ import { Link, redirect } from "react-router";
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 
-import { PostCard } from "#app/components/posts/post-card";
-import { PostFilter } from "#app/components/posts/post-filter";
 import { Button } from "#app/components/ui/button";
+import { PostCard } from "#app/features/posts/components/post-card";
+import { PostFilter } from "#app/features/posts/components/post-filter";
+import { formatPostArchiveTitle, type PostTypeValue } from "#app/features/posts/post-type";
+import {
+  countPublicPosts,
+  getActivePostType,
+  getPublicPostCards,
+} from "#app/features/posts/public-posts.server";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { softFade } from "#app/lib/motion";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
-import { formatPostArchiveTitle, type PostTypeValue } from "#app/lib/post-type";
 import {
   ROBOTS_NOINDEX_FOLLOW,
   THEME_COLOR,
@@ -17,11 +22,6 @@ import {
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import {
-  countPublicPosts,
-  getActivePostType,
-  getPublicPostCards,
-} from "#app/utils/public-posts.server";
 
 import type { Route } from "./+types/_public.objave._index";
 

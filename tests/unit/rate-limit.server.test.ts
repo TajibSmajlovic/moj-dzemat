@@ -11,7 +11,7 @@ const BASE_ENV = {
 
 async function importRateLimitModule() {
   vi.resetModules();
-  return import("#app/utils/rate-limit.server");
+  return import("#app/server/rate-limit.server");
 }
 
 afterEach(() => {

@@ -1,4 +1,4 @@
-import { commitSession, getSession } from "#app/utils/session.server";
+import { commitSession, getSession } from "#app/features/auth/session.server";
 
 /**
  * Build a `Cookie:` header value tied to `userId` so `requireAdmin`

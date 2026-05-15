@@ -8,9 +8,9 @@ import {
   passwordFingerprint,
   requireAdmin,
   verifyPassword,
-} from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { getSession } from "#app/utils/session.server";
+} from "#app/features/auth/auth.server";
+import { getSession } from "#app/features/auth/session.server";
+import { prisma } from "#app/server/db.server";
 
 import { createUser } from "../factories";
 

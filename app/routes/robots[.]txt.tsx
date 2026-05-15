@@ -1,4 +1,4 @@
-import { env } from "#app/utils/env.server";
+import { env } from "#app/server/env.server";
 
 /**
  * Minimal robots.txt. Public feed, post pages and images are indexable;

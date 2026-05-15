@@ -4,7 +4,7 @@ import {
   action as adminPostsAction,
   loader as adminPostsLoader,
 } from "#app/routes/admin.objave._index";
-import { prisma } from "#app/utils/db.server";
+import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 import { callAction as runAction, callLoader as runLoader } from "../helpers/route";

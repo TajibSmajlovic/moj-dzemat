@@ -3,7 +3,7 @@ import { useFetcher } from "react-router";
 
 import { IconActionButton } from "#app/components/admin/icon-action-button";
 import { IntentInput } from "#app/lib/intent";
-import { useFetcherToast } from "#app/lib/use-action-toast";
+import { useFetcherToast } from "#app/lib/toast";
 
 type IconActionButtonTone = "default" | "primary" | "secondary" | "destructive";
 

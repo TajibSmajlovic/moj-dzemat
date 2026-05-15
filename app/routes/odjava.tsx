@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 
-import { logout } from "#app/utils/auth.server";
+import { logout } from "#app/features/auth/auth.server";
 
 import type { Route } from "./+types/odjava";
 

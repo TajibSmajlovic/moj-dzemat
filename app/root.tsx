@@ -8,11 +8,15 @@ import { MotionConfig } from "motion/react";
 
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
+import {
+  DEFAULT_THEME_PREFERENCE,
+  THEME_COOKIE_NAME,
+  THEME_STORAGE_KEY,
+} from "#app/features/theme/theme";
+import { getThemePreference } from "#app/features/theme/theme.server";
 import { formatSiteName } from "#app/lib/branding";
-import { DEFAULT_THEME_PREFERENCE, THEME_COOKIE_NAME, THEME_STORAGE_KEY } from "#app/lib/theme";
-import { env } from "#app/utils/env.server";
-import { getThemePreference } from "#app/utils/theme.server";
-import { getToast } from "#app/utils/toast.server";
+import { env } from "#app/server/env.server";
+import { getToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/root";
 import "./styles/tailwind.css";

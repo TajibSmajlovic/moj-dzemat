@@ -4,7 +4,7 @@ import { loader as publicHomeLoader } from "#app/routes/_public._index";
 import { loader as publicPostLoader } from "#app/routes/_public.objave.$slug";
 import { loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { loader as imageLoader } from "#app/routes/slike.$id";
-import { prisma } from "#app/utils/db.server";
+import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 import { callLoader } from "../helpers/route";

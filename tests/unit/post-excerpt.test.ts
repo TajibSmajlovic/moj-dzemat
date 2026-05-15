@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { plainExcerpt } from "#app/lib/post-excerpt";
+import { plainExcerpt } from "#app/features/posts/post-excerpt";
 
 describe("plainExcerpt", () => {
   it("strips HTML and normalizes whitespace", () => {

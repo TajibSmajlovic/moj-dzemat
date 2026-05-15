@@ -5,10 +5,10 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 
-import { MAX_REQUEST_BYTES } from "../app/lib/limits";
-import { env } from "../app/utils/env.server";
-import { logger } from "../app/utils/logger.server";
-import { securityHeaders } from "../app/utils/security.server";
+import { env } from "../app/server/env.server";
+import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
+import { logger } from "../app/server/logger.server";
+import { securityHeaders } from "../app/server/security.server";
 
 // Attach a request-scoped child logger to every Express request. Declared
 // once here so route/middleware code can read `req.log` without per-call

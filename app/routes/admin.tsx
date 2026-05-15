@@ -2,13 +2,13 @@ import { Form, Link, NavLink, Outlet } from "react-router";
 
 import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
+import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
-import { ThemeToggle } from "#app/components/layout/theme-toggle";
 import { Button } from "#app/components/ui/button";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import { requireAdmin } from "#app/utils/auth.server";
 
 import type { Route } from "./+types/admin";
 

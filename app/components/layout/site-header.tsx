@@ -12,9 +12,9 @@ import { Link, useLocation } from "react-router";
 import { ExternalLink, Home, LogIn, Menu, Newspaper, X, type LucideIcon } from "lucide-react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
-import { IslamskaZajednicaLogo } from "#app/components/layout/islamska-zajednica-logo";
-import { ThemeToggle } from "#app/components/layout/theme-toggle";
+import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { Button } from "#app/components/ui/button";
+import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";

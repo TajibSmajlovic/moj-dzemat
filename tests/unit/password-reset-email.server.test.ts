@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildPasswordResetEmail } from "#app/utils/password-reset-email.server";
+import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
 
 describe("buildPasswordResetEmail", () => {
   it("builds a branded password reset email with a button and fallback link", () => {

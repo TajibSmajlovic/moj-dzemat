@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PostFormSchema } from "#app/lib/post-schema";
+import { PostFormSchema } from "#app/features/posts/post-schema";
 
 describe("PostFormSchema", () => {
   const valid = {
