@@ -35,13 +35,13 @@ describe("formatPageTitle", () => {
 describe("formatSiteDescription", () => {
   it("keeps the description general when no dzemat name is configured", () => {
     expect(formatSiteDescription()).toBe(
-      "Zvanična stranica džemata za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
+      "Zvanična stranica džemata za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
     );
   });
 
   it("personalizes the description with the configured dzemat name", () => {
     expect(formatSiteDescription("Moj Džemat - Donje Mostre")).toBe(
-      "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije i smrtovnice.",
+      "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
     );
   });
 });

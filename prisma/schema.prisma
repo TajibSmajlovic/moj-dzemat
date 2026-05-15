@@ -66,6 +66,7 @@ enum PostType {
   smrtovnica
   sergija
   hutba
+  price
 }
 
 enum PostStatus {

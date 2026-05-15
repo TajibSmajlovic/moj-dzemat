@@ -4,7 +4,7 @@ import { POST_TYPES, POST_TYPE_ICON, formatPostArchiveTitle, isPostType } from "
 
 describe("post-type", () => {
   it("keeps POST_TYPES aligned with the schema enum order", () => {
-    expect([...POST_TYPES]).toEqual(["obavijest", "hutba", "sergija", "smrtovnica"]);
+    expect([...POST_TYPES]).toEqual(["obavijest", "hutba", "sergija", "smrtovnica", "price"]);
   });
 
   it("ships an icon for every known type", () => {
@@ -26,6 +26,7 @@ describe("post-type", () => {
       expect(formatPostArchiveTitle("hutba")).toBe("Sve hutbe");
       expect(formatPostArchiveTitle("sergija")).toBe("Sve sergije");
       expect(formatPostArchiveTitle("smrtovnica")).toBe("Sve smrtovnice");
+      expect(formatPostArchiveTitle("price")).toBe("Sve priče");
     });
   });
 

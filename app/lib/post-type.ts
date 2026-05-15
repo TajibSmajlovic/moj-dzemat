@@ -1,11 +1,18 @@
-import { BookOpenText, HandHeart, Megaphone, Moon, type LucideIcon } from "lucide-react";
+import {
+  BookOpenText,
+  HandHeart,
+  Megaphone,
+  Moon,
+  MessagesSquare,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * Human-facing labels for the four post kinds. Kept here (not in the
  * schema) because localisation is presentation-layer concern - the DB
  * only knows the canonical enum identifier.
  */
-export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica"] as const;
+export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica", "price"] as const;
 
 export type PostTypeValue = (typeof POST_TYPES)[number];
 
@@ -14,6 +21,7 @@ export const POST_TYPE_LABEL: Record<PostTypeValue, string> = {
   smrtovnica: "Smrtovnica",
   sergija: "Sergija",
   hutba: "Hutba",
+  price: "Priča",
 };
 
 export const POST_TYPE_LABEL_PLURAL: Record<PostTypeValue, string> = {
@@ -21,6 +29,7 @@ export const POST_TYPE_LABEL_PLURAL: Record<PostTypeValue, string> = {
   smrtovnica: "Smrtovnice",
   sergija: "Sergije",
   hutba: "Hutbe",
+  price: "Priče",
 };
 
 /**
@@ -34,6 +43,7 @@ export const POST_TYPE_ICON: Record<PostTypeValue, LucideIcon> = {
   smrtovnica: Moon,
   sergija: HandHeart,
   hutba: BookOpenText,
+  price: MessagesSquare,
 };
 
 export function formatPostArchiveTitle(type: PostTypeValue | "all"): string {
