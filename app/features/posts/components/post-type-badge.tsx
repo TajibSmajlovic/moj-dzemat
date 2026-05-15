@@ -4,11 +4,6 @@ import { cn } from "#app/lib/cn";
 type PostTypeBadgeProps = {
   type: PostTypeValue;
   className?: string;
-  /**
-   * `overlay` is meant to sit on top of a thumbnail. It uses a
-   * translucent cream background + drop shadow so colour-coded text
-   * still reads against arbitrary imagery underneath.
-   */
   variant?: "default" | "overlay";
 };
 
