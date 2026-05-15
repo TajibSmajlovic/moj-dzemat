@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { POST_TYPES, POST_TYPE_ICON, formatPostArchiveTitle, isPostType } from "#app/lib/post-type";
+import {
+  POST_TYPES,
+  POST_TYPE_ICON,
+  formatPostArchiveTitle,
+  isPostType,
+} from "#app/features/posts/post-type";
 
 describe("post-type", () => {
   it("keeps POST_TYPES aligned with the schema enum order", () => {

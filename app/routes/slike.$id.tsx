@@ -1,6 +1,6 @@
+import { getCurrentUser } from "#app/features/auth/auth.server";
 import { invariantResponse } from "#app/lib/invariant";
-import { getCurrentUser } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
+import { prisma } from "#app/server/db.server";
 
 import type { Route } from "./+types/slike.$id";
 

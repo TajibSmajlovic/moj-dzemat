@@ -4,8 +4,6 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { Plus } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
-import { AnnouncementForm } from "#app/components/admin/announcement-form";
-import { AnnouncementList } from "#app/components/admin/announcement-list";
 import { Button } from "#app/components/ui/button";
 import {
   Sheet,
@@ -14,20 +12,25 @@ import {
   SheetHeader,
   SheetTitle,
 } from "#app/components/ui/sheet";
-import { AnnouncementFormSchema } from "#app/lib/announcement-schema";
-import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { AnnouncementIntents, type AnnouncementIntent } from "#app/lib/intents";
-import { createActionToast } from "#app/lib/toast";
-import { useActionToast } from "#app/lib/use-action-toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { logger } from "#app/utils/logger.server";
-import { requireId } from "#app/utils/post-admin.server";
+import {
+  AnnouncementIntents,
+  type AnnouncementIntent,
+} from "#app/features/announcements/admin/announcement-intents";
+import { AnnouncementForm } from "#app/features/announcements/admin/components/announcement-form";
+import { AnnouncementList } from "#app/features/announcements/admin/components/announcement-list";
+import { AnnouncementFormSchema } from "#app/features/announcements/announcement-schema";
 import {
   deactivateOtherAnnouncements,
   invalidateActiveAnnouncement,
-} from "#app/utils/site-announcement.server";
-import { redirectWithToast } from "#app/utils/toast.server";
+} from "#app/features/announcements/site-announcement.server";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { requireId } from "#app/features/posts/admin/post-admin.server";
+import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
+import { createActionToast } from "#app/lib/toast";
+import { useActionToast } from "#app/lib/toast";
+import { prisma } from "#app/server/db.server";
+import { logger } from "#app/server/logger.server";
+import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
 

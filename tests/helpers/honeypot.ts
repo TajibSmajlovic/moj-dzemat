@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 
-import { honeypotToken } from "#app/utils/honeypot.server";
+import { honeypotToken } from "#app/server/honeypot.server";
 
 /**
  * The honeypot's `assertHoneypot` requires the form to be at least

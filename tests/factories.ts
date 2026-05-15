@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 
-import type { PostStatusValue } from "#app/lib/post-status";
-import type { PostTypeValue } from "#app/lib/post-type";
-import { prisma } from "#app/utils/db.server";
+import type { PostStatusValue } from "#app/features/posts/post-status";
+import type { PostTypeValue } from "#app/features/posts/post-type";
+import { prisma } from "#app/server/db.server";
 
 let seq = 0;
 function unique(prefix: string) {

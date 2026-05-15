@@ -167,12 +167,17 @@ export default tseslint.config(
     },
   },
 
-  // Ban raw Tailwind color classes inside our components so dark mode stays
-  // a single token flip. Scoped to folders we own - `app/components/ui/**`
-  // is shadcn-vendored code we edit sparingly, so it gets its own override
-  // below. Server utils + routes can still use raw colours when needed.
+  // Ban raw Tailwind color classes inside our reusable and feature components
+  // so dark mode stays a single token flip. Scoped to component folders we own -
+  // `app/components/ui/**` is shadcn-vendored code we edit sparingly, so it gets
+  // its own override below. Server modules + routes can still use raw colours
+  // when needed.
   {
-    files: ["app/components/**/*.{ts,tsx}"],
+    files: [
+      "app/components/**/*.{ts,tsx}",
+      "app/features/**/components/**/*.{ts,tsx}",
+      "app/features/**/admin/components/**/*.{ts,tsx}",
+    ],
     ignores: ["app/components/ui/**"],
     rules: {
       "no-restricted-syntax": [

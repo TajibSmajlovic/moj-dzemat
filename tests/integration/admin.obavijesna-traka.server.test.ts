@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { action as siteAnnouncementAction } from "#app/routes/admin.obavijesna-traka";
-import { prisma } from "#app/utils/db.server";
+import { prisma } from "#app/server/db.server";
 
 import { createSiteAnnouncement, createUser } from "../factories";
 import { withHoneypot } from "../helpers/honeypot";

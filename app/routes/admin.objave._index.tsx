@@ -3,17 +3,17 @@ import { Link, redirect, useActionData, useNavigation } from "react-router";
 import { Plus } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
-import { PostsAdminTable } from "#app/components/admin/posts-admin-table";
 import { Button } from "#app/components/ui/button";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
+import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { PostAdminIntents, type PostAdminIntent } from "#app/lib/intents";
 import { getPaginationState, PAGE_SIZE, parsePageParam } from "#app/lib/pagination";
 import { createActionToast } from "#app/lib/toast";
-import { useActionToast } from "#app/lib/use-action-toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { logger } from "#app/utils/logger.server";
-import { requireId, togglePostStatus } from "#app/utils/post-admin.server";
+import { useActionToast } from "#app/lib/toast";
+import { prisma } from "#app/server/db.server";
+import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave._index";
 

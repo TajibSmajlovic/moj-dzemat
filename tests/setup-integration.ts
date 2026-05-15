@@ -53,7 +53,7 @@ beforeAll(() => {
 });
 
 afterEach(async () => {
-  const { prisma } = await import("#app/utils/db.server");
+  const { prisma } = await import("#app/server/db.server");
   // Order matters: children first so FK cascades don't surprise us.
   await prisma.postImage.deleteMany();
   await prisma.post.deleteMany();
@@ -64,6 +64,6 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  const { prisma } = await import("#app/utils/db.server");
+  const { prisma } = await import("#app/server/db.server");
   await prisma.$disconnect();
 });

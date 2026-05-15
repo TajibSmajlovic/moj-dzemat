@@ -10,8 +10,8 @@ import type { Route } from "./+types/dev.last-email";
 
 export async function loader() {
   const [{ env }, { getLastCapturedEmail }] = await Promise.all([
-    import("#app/utils/env.server"),
-    import("#app/utils/email.server"),
+    import("#app/server/env.server"),
+    import("#app/server/email.server"),
   ]);
 
   invariantResponse(env().ENABLE_TEST_ROUTES, "Not found", { status: 404 });

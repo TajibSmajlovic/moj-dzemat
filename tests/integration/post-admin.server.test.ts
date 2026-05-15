@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { prisma } from "#app/utils/db.server";
-import { createOrUpdatePostFromForm } from "#app/utils/post-admin.server";
+import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
+import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 import { tinyPngFile } from "../helpers/png";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { prisma } from "#app/utils/db.server";
-import { commitSession, getSession } from "#app/utils/session.server";
+import { commitSession, getSession } from "#app/features/auth/session.server";
+import { prisma } from "#app/server/db.server";
 
 import { createUser } from "../factories";
 

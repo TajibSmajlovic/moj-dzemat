@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 import { SiteFooter } from "#app/components/layout/site-footer";
 import { SiteHeader } from "#app/components/layout/site-header";
-import { AnnouncementBar } from "#app/components/posts/announcement-bar";
+import { AnnouncementBar } from "#app/features/announcements/components/announcement-bar";
 import { sectionReveal, softFade } from "#app/lib/motion";
 
 type PublicAuthShellProps = {

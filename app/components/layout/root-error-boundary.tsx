@@ -1,8 +1,7 @@
 import { isRouteErrorResponse, Link } from "react-router";
 
+import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { useRootSiteName } from "#app/lib/branding";
-
-import { IslamskaZajednicaLogo } from "./islamska-zajednica-logo";
 
 export function RootErrorBoundary({ error }: { error: unknown }) {
   const siteName = useRootSiteName();

@@ -2,17 +2,17 @@ import { useActionData, useNavigation } from "react-router";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
-import { PostForm } from "#app/components/admin/post-form";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostForm } from "#app/features/posts/admin/components/post-form";
+import { createOrUpdatePostFromForm, requireId } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
-import { PostAdminIntents } from "#app/lib/intents";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
-import { requireAdmin } from "#app/utils/auth.server";
-import { prisma } from "#app/utils/db.server";
-import { logger } from "#app/utils/logger.server";
-import { createOrUpdatePostFromForm, requireId } from "#app/utils/post-admin.server";
+import { prisma } from "#app/server/db.server";
+import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave.$id";
 

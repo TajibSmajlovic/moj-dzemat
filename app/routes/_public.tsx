@@ -2,10 +2,10 @@ import { Outlet } from "react-router";
 
 import { SiteFooter } from "#app/components/layout/site-footer";
 import { SiteHeader } from "#app/components/layout/site-header";
-import { AnnouncementBar } from "#app/components/posts/announcement-bar";
-import { getCurrentUser } from "#app/utils/auth.server";
-import { env } from "#app/utils/env.server";
-import { getActiveAnnouncement } from "#app/utils/site-announcement.server";
+import { AnnouncementBar } from "#app/features/announcements/components/announcement-bar";
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
+import { getCurrentUser } from "#app/features/auth/auth.server";
+import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public";
 

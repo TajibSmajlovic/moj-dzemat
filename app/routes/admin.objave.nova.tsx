@@ -2,13 +2,13 @@ import { useActionData, useNavigation } from "react-router";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
-import { PostForm } from "#app/components/admin/post-form";
+import { requireAdmin } from "#app/features/auth/auth.server";
+import { PostForm } from "#app/features/posts/admin/components/post-form";
+import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
+import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { useIsSubmittingIntent } from "#app/lib/intent";
-import { PostAdminIntents } from "#app/lib/intents";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
-import { requireAdmin } from "#app/utils/auth.server";
-import { createOrUpdatePostFromForm } from "#app/utils/post-admin.server";
 
 import type { Route } from "./+types/admin.objave.nova";
 
