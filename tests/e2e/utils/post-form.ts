@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 
 import { TINY_PNG_BASE64 } from "../../helpers/png";
 
-type PostType = "obavijest" | "hutba" | "sergija" | "smrtovnica";
+type PostType = "obavijest" | "hutba" | "sergija" | "smrtovnica" | "price";
 
 type FillPostFormOptions = {
   title?: string;

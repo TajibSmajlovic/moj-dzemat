@@ -22,6 +22,7 @@ const TYPE_STYLES: Record<PostTypeValue, string> = {
   smrtovnica: "bg-foreground/8 text-foreground/60",
   sergija: "bg-[hsl(var(--emerald-glow)/0.18)] text-[hsl(var(--emerald-deep))]",
   hutba: "bg-secondary/15 text-[hsl(var(--gold-foreground))]",
+  price: "bg-[hsl(var(--indigo-glow)/0.15)] text-[hsl(var(--indigo-deep))]",
 };
 
 /**
@@ -33,6 +34,7 @@ const TYPE_OVERLAY: Record<PostTypeValue, string> = {
   smrtovnica: "text-foreground/60",
   sergija: "text-[hsl(var(--emerald-deep))]",
   hutba: "text-[hsl(var(--gold-foreground))]",
+  price: "text-[hsl(var(--indigo-deep))]",
 };
 
 export function PostTypeBadge({ type, className, variant = "default" }: PostTypeBadgeProps) {

@@ -2,7 +2,7 @@ import { useRouteLoaderData } from "react-router";
 
 export const DEFAULT_SITE_NAME = "Moj Džemat";
 const DEFAULT_SITE_DESCRIPTION_PREFIX = "Zvanična stranica džemata";
-const DEFAULT_SITE_DESCRIPTION_SUFFIX = "za aktuelne obavijesti, hutbe, sergije i smrtovnice.";
+const DEFAULT_SITE_DESCRIPTION_SUFFIX = "za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.";
 
 type SiteNameParts = {
   brandName: string;
