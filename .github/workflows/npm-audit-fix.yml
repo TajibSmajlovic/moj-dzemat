@@ -1,0 +1,67 @@
+name: npm audit fix
+
+on:
+  schedule:
+    - cron: "20 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: npm-audit-fix-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit-fix:
+    name: Open PR for fixable npm audit issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: master
+
+      - run: cp .env.example .env
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check for npm audit issues
+        id: audit
+        run: |
+          if npm audit; then
+            echo "has_vulnerabilities=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_vulnerabilities=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply npm audit fix
+        if: steps.audit.outputs.has_vulnerabilities == 'true'
+        run: npm audit fix
+
+      - name: Verify npm audit issues are fixed
+        if: steps.audit.outputs.has_vulnerabilities == 'true'
+        run: npm audit
+
+      - name: Create pull request
+        if: steps.audit.outputs.has_vulnerabilities == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/npm-audit-fix
+          delete-branch: true
+          title: "chore: fix npm audit issues"
+          commit-message: "chore: fix npm audit issues"
+          body: |
+            Automated PR created after `npm audit` found a fixable vulnerability.
+
+            This workflow ran `npm audit fix` and verified that `npm audit` no longer fails.
+          labels: |
+            dependencies
+            npm
+            security

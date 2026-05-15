@@ -10,6 +10,14 @@ const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
 const FIRST_PAGE_OLDEST_TITLE = POSTS_TITLES[PAGE_SIZE - 1];
 const SEEDED_POST_COUNT = POSTS_TITLES.length;
 
+async function openDeleteDialogForPost(page: Page, title: string) {
+  const postRow = page.getByRole("row").filter({
+    has: page.getByRole("link", { name: title, exact: true }),
+  });
+
+  await postRow.getByRole("button", { name: `Obriši "${title}"`, exact: true }).click();
+}
+
 test.describe("posts", () => {
   test("admin can navigate paginated post results", async ({ page }) => {
     await loginAsAdmin(page);
@@ -136,7 +144,7 @@ test.describe("posts", () => {
     const firstPostLink = page.getByRole("link", { name: firstTitle, exact: true });
     await expect(firstPostLink).toBeVisible();
 
-    await page.getByTitle(`Obriši "${firstTitle}"`).click();
+    await openDeleteDialogForPost(page, firstTitle);
 
     const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible();
@@ -150,7 +158,7 @@ test.describe("posts", () => {
     await expect(firstPostLink).toBeVisible();
 
     for (const [index, title] of PAGINATION_PAGE_TWO_TITLES.entries()) {
-      await page.getByTitle(`Obriši "${title}"`).click();
+      await openDeleteDialogForPost(page, title);
       await expect(dialog.getByText(title)).toBeVisible();
       await dialog.getByRole("button", { name: "Obriši objavu" }).click();
 
@@ -248,7 +256,7 @@ test.describe("posts", () => {
 
     await expect(page).toHaveURL(/\/admin\/objave\/[^/]+\/pregled$/);
     await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
-    await expect(page.getByText("Neobjavljeno").first()).toBeVisible();
+    await expect(page.getByRole("main").getByText("Neobjavljeno")).toBeVisible();
     await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
 
     await page.goto("/");
@@ -259,7 +267,12 @@ test.describe("posts", () => {
 
     await page.goto("/admin/objave");
     await expect(page.getByRole("link", { name: title, exact: true })).toBeVisible();
-    await expect(page.getByText("Neobjavljeno").first()).toBeVisible();
+
+    const statusBadge = page
+      .getByRole("row")
+      .filter({ has: page.getByRole("link", { name: title, exact: true }) })
+      .getByText("Neobjavljeno");
+    await expect(statusBadge).toBeVisible();
 
     await page.getByRole("link", { name: title, exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/objave\/[^/]+$/);
@@ -268,7 +281,7 @@ test.describe("posts", () => {
 
     await page.getByRole("button", { name: "Objavi", exact: true }).click();
     await expect(page.getByText("Objava je objavljena.")).toBeVisible();
-    await expect(page.getByText("Objavljeno").first()).toBeVisible();
+    await expect(page.getByRole("main").getByText("Objavljeno")).toBeVisible();
 
     const publishedDetail = await page.goto(`/objave/${slug}`);
     expect(publishedDetail?.status()).toBe(200);
@@ -307,7 +320,7 @@ test.describe("posts", () => {
     // we'd serve duplicate content + leak draft slugs to crawlers.
     const oldSlugResponse = await page.goto(`/objave/${slug}`);
     expect(oldSlugResponse?.status()).toBe(404);
-    await expect(page.getByRole("heading", { name: /Stranica nije pronađena/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Sadržaj nije pronađen/ })).toBeVisible();
   });
 
   test("creating a post with an already-taken slug shows an inline server-side error", async ({

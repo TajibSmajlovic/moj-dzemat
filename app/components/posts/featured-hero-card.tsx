@@ -37,14 +37,14 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
         state={{ fromList: true }}
         className="focus-visible:ring-ring block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
-        <div className="bg-primary relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14">
+        <div className="bg-primary relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14 dark:bg-[hsl(162_63%_28%)]">
           <div
             aria-hidden="true"
-            className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[hsl(var(--secondary)/0.3)] blur-3xl sm:h-40 sm:w-40"
+            className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[hsl(var(--secondary)/0.3)] blur-3xl sm:h-40 sm:w-40 dark:bg-[hsl(var(--emerald-glow)/0.16)]"
           />
           <div
             aria-hidden="true"
-            className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32"
+            className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-[hsl(var(--emerald-glow)/0.3)] blur-2xl sm:h-32 sm:w-32 dark:bg-[hsl(var(--emerald-glow)/0.2)]"
           />
 
           <div className="relative z-10 flex h-full flex-1 flex-col">
@@ -63,14 +63,14 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
 
             <motion.h2
               {...featuredHeroTitleReveal}
-              className="font-display text-primary-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
+              className="font-display text-primary-foreground dark:text-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
             >
               {post.title}
             </motion.h2>
 
             <motion.p
               {...featuredHeroExcerptReveal}
-              className="text-primary-foreground/90 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
+              className="text-primary-foreground/90 dark:text-foreground/85 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
@@ -86,7 +86,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               />
               <time
                 dateTime={toIsoDate(post.publishedAt)}
-                className="text-primary-foreground/85 text-xs sm:text-sm"
+                className="text-primary-foreground/85 dark:text-foreground/80 text-xs sm:text-sm"
               >
                 {formatDateLong(post.publishedAt)}
               </time>

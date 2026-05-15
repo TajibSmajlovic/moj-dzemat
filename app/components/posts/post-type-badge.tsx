@@ -13,28 +13,30 @@ type PostTypeBadgeProps = {
 };
 
 /**
- * Colour-coded chip that telegraphs which of the four post kinds a card
- * represents. Colours are mapped to our semantic tokens so the `.dark`
- * palette flips without touching this file.
+ * Colour-coded chip that telegraphs which post kind a card represents.
+ * Colours are mapped to semantic tokens so the `.dark` palette flips
+ * without touching the component.
  */
 const TYPE_STYLES: Record<PostTypeValue, string> = {
-  obavijest: "bg-primary/10 text-primary",
-  smrtovnica: "bg-foreground/8 text-foreground/60",
-  sergija: "bg-[hsl(var(--emerald-glow)/0.18)] text-[hsl(var(--emerald-deep))]",
-  hutba: "bg-secondary/15 text-[hsl(var(--gold-foreground))]",
-  price: "bg-[hsl(var(--indigo-glow)/0.15)] text-[hsl(var(--indigo-deep))]",
+  obavijest: "bg-primary/10 text-primary dark:bg-primary/15 dark:text-primary",
+  smrtovnica: "bg-foreground/8 text-foreground/60 dark:bg-muted dark:text-muted-foreground",
+  sergija:
+    "bg-[hsl(var(--emerald-glow)/0.18)] text-[hsl(var(--emerald-deep))] dark:bg-[hsl(var(--emerald-glow)/0.22)]",
+  hutba:
+    "bg-secondary/15 text-[hsl(var(--gold-foreground))] dark:bg-secondary/20 dark:text-secondary",
+  price: "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground",
 };
 
 /**
  * When the badge floats on a photo we drop the tinted background and
- * rely on a soft cream chip with just the accent-coloured label.
+ * rely on a soft chip with just the accent-coloured label.
  */
 const TYPE_OVERLAY: Record<PostTypeValue, string> = {
-  obavijest: "text-primary",
-  smrtovnica: "text-foreground/60",
-  sergija: "text-[hsl(var(--emerald-deep))]",
-  hutba: "text-[hsl(var(--gold-foreground))]",
-  price: "text-[hsl(var(--indigo-deep))]",
+  obavijest: "text-primary dark:text-primary-foreground",
+  smrtovnica: "text-foreground/60 dark:text-primary-foreground/70",
+  sergija: "text-[hsl(var(--emerald-deep))] dark:text-primary-foreground",
+  hutba: "text-[hsl(var(--gold-foreground))] dark:text-secondary-foreground",
+  price: "text-accent-foreground dark:text-accent-foreground",
 };
 
 export function PostTypeBadge({ type, className, variant = "default" }: PostTypeBadgeProps) {
@@ -44,6 +46,7 @@ export function PostTypeBadge({ type, className, variant = "default" }: PostType
       <span
         className={cn(
           "bg-background/95 ring-foreground/5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium shadow-[0_2px_8px_rgba(0,0,0,0.12)] ring-1 backdrop-blur-md",
+          "dark:bg-foreground/90 dark:ring-background/20",
           TYPE_OVERLAY[type],
           className,
         )}

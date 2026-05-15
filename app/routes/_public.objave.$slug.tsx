@@ -2,6 +2,7 @@ import { Link, useRouteLoaderData } from "react-router";
 
 import { Pencil } from "lucide-react";
 
+import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { PostDetailArticle } from "#app/components/posts/post-detail-article";
 import { ShareButton } from "#app/components/posts/share-button";
 import { BackButton } from "#app/components/ui/back-link";
@@ -113,6 +114,14 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
         showPinnedBadge={isAdminLoggedIn}
         showStructuredData
       />
+    </main>
+  );
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
+      <SegmentErrorBoundary error={error} backTo="/objave" backLabel="Pregled svih objava" />
     </main>
   );
 }

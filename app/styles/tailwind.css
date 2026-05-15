@@ -55,6 +55,8 @@
   --emerald-glow: 162 50% 40%;
   --cream: 40 33% 97%;
   --cream-dark: 40 20% 92%;
+  --lightbox: 164 72% 3%;
+  --lightbox-foreground: 42 36% 96%;
 
   --warm-shadow: 0 0% 0% / 0.06;
   --warm-shadow-lg: 0 0% 0% / 0.1;
@@ -71,10 +73,53 @@
   accent-color: hsl(var(--primary));
 }
 
-/* Dark mode override slot. Left empty until we explicitly ship a dark theme
-   (tracked in README). Admin toggles `.dark` on <html> at that point. */
+/* Deep Emerald Night: a dark palette that keeps the app's warm cream,
+   institutional emerald, and ceremonial gold identity intact. */
 .dark {
-  /* Populate when dark mode lands. Until then light tokens win everywhere. */
+  --background: 164 42% 7%;
+  --foreground: 42 36% 92%;
+
+  --card: 164 34% 10%;
+  --card-foreground: 42 36% 92%;
+
+  --popover: 164 36% 9%;
+  --popover-foreground: 42 36% 92%;
+
+  --primary: 160 56% 44%;
+  --primary-foreground: 165 45% 7%;
+
+  --secondary: 38 67% 61%;
+  --secondary-foreground: 165 45% 8%;
+
+  --muted: 164 24% 15%;
+  --muted-foreground: 154 13% 70%;
+
+  --accent: 160 34% 18%;
+  --accent-foreground: 42 34% 90%;
+
+  --destructive: 2 70% 61%;
+  --destructive-foreground: 42 36% 96%;
+
+  --border: 160 18% 24%;
+  --input: 160 20% 30%;
+  --ring: 160 56% 48%;
+
+  --gold: 38 67% 61%;
+  --gold-light: 40 75% 74%;
+  --gold-foreground: 38 78% 70%;
+  --emerald-deep: 158 54% 58%;
+  --emerald-glow: 158 55% 43%;
+  --cream: 164 42% 7%;
+  --cream-dark: 164 34% 11%;
+  --lightbox: 164 72% 3%;
+  --lightbox-foreground: 42 36% 96%;
+
+  --warm-shadow: 165 70% 3% / 0.32;
+  --warm-shadow-lg: 165 75% 3% / 0.46;
+
+  --gradient-hero: linear-gradient(135deg, hsl(163 56% 19%), hsl(160 52% 24%), hsl(158 48% 29%));
+  --gradient-gold: linear-gradient(135deg, hsl(38 67% 61%), hsl(41 78% 70%));
+  --gradient-card: linear-gradient(180deg, hsl(164 34% 11%), hsl(164 36% 9%));
 }
 
 /* Register the semantic tokens with Tailwind v4 so utility classes such as
@@ -117,6 +162,8 @@
 
   --color-cream: hsl(var(--cream));
   --color-cream-dark: hsl(var(--cream-dark));
+  --color-lightbox: hsl(var(--lightbox));
+  --color-lightbox-foreground: hsl(var(--lightbox-foreground));
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -173,6 +220,10 @@
 
   html.dark {
     color-scheme: dark;
+  }
+
+  html.dark body {
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(164 45% 6%));
   }
 
   ::selection {

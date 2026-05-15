@@ -113,7 +113,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 1 sat",
+            title: "Link vrijedi 10 minuta",
             description: "Nakon isteka možete zatražiti novi link istim putem.",
           },
           {
@@ -150,12 +150,12 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
       title="Zaboravljena lozinka"
       description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
       panelTitle="Pošalji link"
-      panelDescription="Link za novu lozinku stiže na email i vrijedi 1 sat."
+      panelDescription="Link za novu lozinku stiže na email i vrijedi 10 minuta."
       details={[
         {
           icon: <Clock3 className="size-4" />,
           title: "Vremenski ograničen link",
-          description: "Svaki link vrijedi 1 sat i vezan je za trenutno stanje naloga.",
+          description: "Svaki link vrijedi 10 minuta i vezan je za trenutno stanje naloga.",
         },
         {
           icon: <ShieldCheck className="size-4" />,
