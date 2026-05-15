@@ -1,4 +1,11 @@
-import { BookOpenText, HandHeart, Megaphone, Moon, MessagesSquare, type LucideIcon } from "lucide-react";
+import {
+  BookOpenText,
+  HandHeart,
+  Megaphone,
+  Moon,
+  MessagesSquare,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * Human-facing labels for the four post kinds. Kept here (not in the
