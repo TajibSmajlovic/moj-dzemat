@@ -8,6 +8,7 @@ import crypto from "node:crypto";
 import { env } from "../app/server/env.server";
 import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
 import { logger } from "../app/server/logger.server";
+import { clientIpFromHeaders, staticFileLimiter } from "../app/server/rate-limit.server";
 import { securityHeaders } from "../app/server/security.server";
 
 // Attach a request-scoped child logger to every Express request. Declared
@@ -28,6 +29,29 @@ const isProd = NODE_ENV === "production";
 const HEALTHCHECK_PATH = "/resources/healthcheck";
 const canonicalUrl = new URL(APP_URL);
 const canonicalHost = canonicalUrl.host.toLowerCase();
+
+function firstHeaderValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function clientIp(req: express.Request): string {
+  const fromHeaders = clientIpFromHeaders((name) => firstHeaderValue(req.headers[name]));
+  // `clientIpFromHeaders` returns "unknown" when no proxy header matched;
+  // prefer Express's own `req.ip` (set via `trust proxy`) in that case.
+  return fromHeaders === "unknown" ? (req.ip ?? "unknown") : fromHeaders;
+}
+
+function rateLimitStaticFiles(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
+  const limit = staticFileLimiter.check(clientIp(req));
+  if (limit.ok) return next();
+
+  res.setHeader("Retry-After", Math.ceil(limit.resetInMs / 1000).toString());
+  res.status(429).send("Too many requests");
+}
 
 async function createServer(): Promise<express.Express> {
   const app = express();
@@ -112,16 +136,17 @@ async function createServer(): Promise<express.Express> {
     // static files get a shorter TTL.
     app.use(
       "/assets",
+      rateLimitStaticFiles,
       express.static("build/client/assets", {
         immutable: true,
         maxAge: "1y",
       }),
     );
-    app.get("/logo.svg", (_req, res) => {
+    app.get("/logo.svg", rateLimitStaticFiles, (_req, res) => {
       res.setHeader("Cache-Control", "public, max-age=604800"); // 7 days
       res.sendFile("logo.svg", { root: "build/client" });
     });
-    app.use(express.static("build/client", { maxAge: "1h" }));
+    app.use(rateLimitStaticFiles, express.static("build/client", { maxAge: "1h" }));
 
     // `build/server/index.js` is produced by `react-router build`. Imported
     // with a dynamic import so tsx doesn't try to parse it at startup if

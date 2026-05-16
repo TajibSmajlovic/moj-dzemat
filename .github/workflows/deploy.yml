@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
     # keep manual trigger available
 
+permissions:
+  contents: read
+
 concurrency:
   # Serialize deploys so two pushes in quick succession never race on
   # the single LiteFS primary.

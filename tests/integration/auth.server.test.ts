@@ -5,7 +5,6 @@ import {
   hashPassword,
   login,
   logout,
-  passwordFingerprint,
   requireAdmin,
   verifyPassword,
 } from "#app/features/auth/auth.server";
@@ -51,27 +50,6 @@ describe("auth.server", () => {
       const hash = await hashPassword("testtest123");
       expect(await verifyPassword("testtest123", hash)).toBe(true);
       expect(await verifyPassword("wrongpassword", hash)).toBe(false);
-    });
-  });
-
-  describe("passwordFingerprint", () => {
-    it("returns a stable 16-char fingerprint", () => {
-      const fp = passwordFingerprint("some-hash");
-      expect(fp).toHaveLength(16);
-      expect(passwordFingerprint("some-hash")).toBe(fp);
-    });
-
-    it("differs when the input differs", () => {
-      expect(passwordFingerprint("a")).not.toBe(passwordFingerprint("b"));
-    });
-
-    it("uses a distinct sentinel for users without a password", () => {
-      // Stable across calls (so reset links survive cold-restarts).
-      expect(passwordFingerprint(null)).toBe(passwordFingerprint(null));
-      // Not aliased to the empty string — otherwise an account whose
-      // hash row was somehow stored as "" could share fingerprints
-      // with a passwordless account, breaking the supersession check.
-      expect(passwordFingerprint(null)).not.toBe(passwordFingerprint(""));
     });
   });
 

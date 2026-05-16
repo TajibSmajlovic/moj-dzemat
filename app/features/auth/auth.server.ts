@@ -50,19 +50,6 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcrypt.compare(plain, hash);
 }
 
-/**
- * Returns a short, stable fingerprint of a password hash. We embed it in
- * reset-token JWTs so changing the password invalidates every still-live
- * reset link without having to track them in the DB.
- */
-export function passwordFingerprint(hashOrNull: string | null): string {
-  // If the account has no password yet (first login), use a constant so
-  // the initial reset link is still valid until the password is chosen.
-  const source = hashOrNull ?? "__init__";
-
-  return crypto.createHash("sha256").update(source).digest("base64url").slice(0, 16);
-}
-
 type PasswordProblem = { kind: "too-short" } | { kind: "breached" };
 
 /**
@@ -75,6 +62,9 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
   }
 
   try {
+    // HIBP's k-anonymity API mandates a SHA-1 digest; we only send the
+    // first 5 chars and never store the value. Stored password hashes
+    // use bcrypt (see `hashPassword` above).
     const sha1 = crypto.createHash("sha1").update(password).digest("hex").toUpperCase();
     const prefix = sha1.slice(0, 5);
     const suffix = sha1.slice(5);

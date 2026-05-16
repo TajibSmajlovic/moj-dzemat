@@ -3,10 +3,10 @@ import { TTLCache } from "@isaacs/ttlcache";
 import { env } from "#app/server/env.server";
 
 /**
- * In-memory, per-IP rate limiter. Because Fly pins this app to a single
- * instance (single SQLite writer), process-local counters are enough -
- * a multi-machine fleet would need Redis or a DB table. Keys are
- * scoped per limiter so forgot-password and login counters don't collide.
+   In-memory, per-IP rate limiter. Because Fly pins this app to a single
+   instance (single SQLite writer), process-local counters are enough -
+   a multi-machine fleet would need Redis or a DB table. Keys are
+   scoped per limiter so forgot-password and login counters don't collide.
  */
 
 type RateLimitResult = {
@@ -79,15 +79,28 @@ export const forgotPasswordLimiter = createRateLimiter({
   max: 5,
 });
 
+export const staticFileLimiter = createRateLimiter({
+  name: "static-files",
+  windowMs: 60 * 1000,
+  max: 300,
+});
+
 /**
- * Extract the client IP from common proxy headers. Fly puts the real
- * address in `fly-client-ip`. Express's `req.ip` is the fallback.
+   Extract the client IP from common proxy headers. Fly puts the real
+   address in `fly-client-ip`. Accepts a header-lookup callback so the
+   same precedence applies to both Fetch `Request` and Express `req`.
  */
-export function getClientIp(request: Request): string {
+export function clientIpFromHeaders(
+  getHeader: (name: string) => string | null | undefined,
+): string {
   return (
-    request.headers.get("fly-client-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
+    getHeader("fly-client-ip") ??
+    getHeader("x-forwarded-for")?.split(",")[0]?.trim() ??
+    getHeader("x-real-ip") ??
     "unknown"
   );
+}
+
+export function getClientIp(request: Request): string {
+  return clientIpFromHeaders((name) => request.headers.get(name));
 }

@@ -66,14 +66,14 @@ export async function action({ request }: Route.ActionArgs) {
   const { email } = submission.value;
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
-    select: { id: true, email: true, password: { select: { hash: true } } },
+    select: { id: true, email: true, password: { select: { updatedAt: true } } },
   });
 
   if (user) {
     const environment = env();
     const token = await signResetToken({
       userId: user.id,
-      passwordHash: user.password?.hash ?? null,
+      passwordUpdatedAt: user.password?.updatedAt ?? null,
     });
     const url = `${environment.APP_URL}/nova-lozinka/${token}`;
     const email = buildPasswordResetEmail({

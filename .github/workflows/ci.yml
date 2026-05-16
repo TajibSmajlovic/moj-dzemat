@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   # Cancel outdated runs on the same branch but always let `master` finish;
   # the deploy job below is gated separately.

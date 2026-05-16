@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-import { passwordFingerprint } from "#app/features/auth/auth.server";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
@@ -8,11 +7,11 @@ import { env } from "#app/server/env.server";
    Stateless password-reset tokens. We intentionally avoid a
    `Verification` table - the only flow that needs verification in
    moj-dzemat is forgot-password, and a signed URL captures everything
-   we need: user id, expiry, and a fingerprint of the current password
-   hash so that changing the password revokes every still-live link.
+   we need: user id, expiry, and the current password row version so
+   that changing the password revokes every still-live link.
 
    Structure:
-     payload: { sub: userId, pwfp: passwordFingerprint, iat, exp }
+     payload: { sub: userId, pwdv: passwordVersion, iat, exp }
      sig:     HS256 with the current PASSWORD_RESET_SECRET (first csv entry)
      verify:  accept any csv entry so rotation is zero-downtime
  */
@@ -31,17 +30,21 @@ function secrets(): { signer: string; verifiers: string[] } {
   return { signer: first!, verifiers: [first!, ...rest] };
 }
 
-type ResetPayload = JWTPayload & { pwfp: string };
+type ResetPayload = JWTPayload & { pwdv: string };
+
+function passwordVersion(updatedAt: Date | null): string {
+  return updatedAt?.toISOString() ?? "init";
+}
 
 export async function signResetToken({
   userId,
-  passwordHash,
+  passwordUpdatedAt,
 }: {
   userId: string;
-  passwordHash: string | null;
+  passwordUpdatedAt: Date | null;
 }): Promise<string> {
   const { signer } = secrets();
-  return new SignJWT({ pwfp: passwordFingerprint(passwordHash) })
+  return new SignJWT({ pwdv: passwordVersion(passwordUpdatedAt) })
     .setProtectedHeader({ alg: ALG })
     .setSubject(userId)
     .setIssuedAt()
@@ -84,16 +87,16 @@ export async function verifyResetToken(token: string): Promise<VerifyResult> {
   if (typeof userId !== "string") return { ok: false, reason: "invalid" };
 
   // Jose already rejected expired tokens; the remaining check is the
-  // password fingerprint. If the admin has changed their password (or
+  // password row version. If the admin has changed their password (or
   // set one for the first time), every older token is dead on arrival.
   const record = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, password: { select: { hash: true } } },
+    select: { id: true, password: { select: { updatedAt: true } } },
   });
   if (!record) return { ok: false, reason: "unknown-user" };
 
-  const currentFingerprint = passwordFingerprint(record.password?.hash ?? null);
-  if (payload.pwfp !== currentFingerprint) {
+  const currentVersion = passwordVersion(record.password?.updatedAt ?? null);
+  if (payload.pwdv !== currentVersion) {
     return { ok: false, reason: "superseded" };
   }
 

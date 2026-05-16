@@ -14,7 +14,7 @@ describe("reset-token.server", () => {
     });
     const token = await signResetToken({
       userId: user.id,
-      passwordHash: row?.hash ?? null,
+      passwordUpdatedAt: row?.updatedAt ?? null,
     });
 
     const result = await verifyResetToken(token);
@@ -29,12 +29,15 @@ describe("reset-token.server", () => {
     });
     const token = await signResetToken({
       userId: user.id,
-      passwordHash: row?.hash ?? null,
+      passwordUpdatedAt: row?.updatedAt ?? null,
     });
 
     await prisma.password.update({
       where: { userId: user.id },
-      data: { hash: await hashPassword("brand-new-password") },
+      data: {
+        hash: await hashPassword("brand-new-password"),
+        updatedAt: new Date((row?.updatedAt.getTime() ?? Date.now()) + 1000),
+      },
     });
 
     const result = await verifyResetToken(token);
@@ -60,7 +63,7 @@ describe("reset-token.server", () => {
       vi.setSystemTime(issuedAt);
       const token = await signResetToken({
         userId: user.id,
-        passwordHash: row?.hash ?? null,
+        passwordUpdatedAt: row?.updatedAt ?? null,
       });
 
       vi.setSystemTime(new Date(issuedAt.getTime() + 60 * 60 * 1000 + 1000));
@@ -76,7 +79,7 @@ describe("reset-token.server", () => {
     const { user } = await createUser();
     const token = await signResetToken({
       userId: user.id,
-      passwordHash: null,
+      passwordUpdatedAt: null,
     });
     await prisma.user.delete({ where: { id: user.id } });
 

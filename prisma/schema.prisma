@@ -38,7 +38,8 @@ model User {
 }
 
 model Password {
-  hash String
+  hash      String
+  updatedAt DateTime @default(now()) @updatedAt
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String @unique
