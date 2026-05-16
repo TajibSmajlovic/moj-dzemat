@@ -121,7 +121,7 @@ function BrandLink({ onClick, siteName }: { onClick?: () => void; siteName: stri
     >
       <IslamskaZajednicaLogo />
       <span className="flex min-w-0 flex-col leading-none">
-        <span className="font-display max-w-56 text-base leading-tight text-balance sm:max-w-none sm:text-lg">
+        <span className="font-display w-max max-w-56 text-base leading-tight text-balance sm:max-w-none sm:text-lg">
           <span className="text-foreground font-bold">{brandName}</span>
           {dzematName ? (
             <>
@@ -133,10 +133,10 @@ function BrandLink({ onClick, siteName }: { onClick?: () => void; siteName: stri
           ) : null}
         </span>
         <span className="text-muted-foreground mt-0.5 text-xs">
-          <span className="max-[450px]:hidden">
+          <span className="max-[560px]:hidden">
             Rijaset Islamske zajednice u Bosni i Hercegovini
           </span>
-          <span className="hidden max-[450px]:inline">Rijaset Islamske zajednice u BiH</span>
+          <span className="hidden max-[560px]:inline">Rijaset Islamske zajednice u BiH</span>
         </span>
       </span>
     </Link>

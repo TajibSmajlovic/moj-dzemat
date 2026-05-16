@@ -86,7 +86,7 @@ export function PostDetailArticle({
       ) : null}
 
       <article>
-        <h1 className="font-display text-foreground mb-2 text-3xl leading-tight font-bold sm:text-4xl">
+        <h1 className="font-display text-foreground mt-3 mb-3 text-2xl leading-[1.16] font-bold text-balance sm:mt-2 sm:mb-2 sm:text-4xl sm:leading-tight">
           {post.title}
         </h1>
 
