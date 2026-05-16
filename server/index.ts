@@ -142,8 +142,6 @@ async function createServer(): Promise<express.Express> {
         maxAge: "1y",
       }),
     );
-    // `rateLimitStaticFiles` protects this sendFile route; CodeQL does not model this custom middleware.
-    // codeql[js/missing-rate-limiting]
     app.get("/logo.svg", rateLimitStaticFiles, (_req, res) => {
       res.setHeader("Cache-Control", "public, max-age=604800"); // 7 days
       res.sendFile("logo.svg", { root: "build/client" });
