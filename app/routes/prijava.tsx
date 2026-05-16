@@ -103,7 +103,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
       isAdminLoggedIn={loaderData.isAdminLoggedIn}
       eyebrow="Admin panel"
       title="Prijava za uredništvo"
-      description="Upravljajte objavama, obavijesnom trakom i sadržajem džematske stranice iz zaštićenog administrativnog prostora."
+      description="Upravljajte objavama i sadržajem džematske stranice."
       panelTitle="Prijavite se"
       panelDescription="Unesite administratorski email i lozinku."
       details={[

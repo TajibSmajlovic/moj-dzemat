@@ -40,7 +40,7 @@ export function PublicAuthShell({
       <SiteHeader isAdminLoggedIn={isAdminLoggedIn} />
 
       <main className="flex flex-1 flex-col">
-        <section className="border-border/50 from-cream-dark/45 via-background to-background sm:from-cream-dark/55 flex flex-1 border-b bg-linear-to-b">
+        <section className="from-cream-dark/45 via-background to-background sm:from-cream-dark/55 flex flex-1 bg-linear-to-b">
           <div className="mx-auto grid w-full max-w-5xl content-start gap-4 px-4 py-5 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,440px)] lg:items-center lg:py-16">
             <motion.div {...softFade} className="space-y-4 self-start sm:space-y-6">
               <div className="max-w-2xl space-y-2.5 sm:space-y-4">
