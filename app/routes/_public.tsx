@@ -11,9 +11,11 @@ import type { Route } from "./+types/_public";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const environment = env();
-  const announcement = await getActiveAnnouncement();
 
-  const currentUser = await getCurrentUser(request);
+  const [announcement, currentUser] = await Promise.all([
+    getActiveAnnouncement(),
+    getCurrentUser(request),
+  ]);
 
   return {
     announcement,

@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
+import { ROUTES, adminPostPreviewHref, postHref } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 import { tinyPngFile } from "../helpers/png";
 
-const ENDPOINT = "http://localhost/admin/objave/nova";
+const ENDPOINT = `http://localhost${ROUTES.adminPostNew}`;
 
 function multipartRequest(formData: FormData) {
   return new Request(ENDPOINT, { method: "POST", body: formData });
@@ -53,7 +54,7 @@ describe("createOrUpdatePostFromForm", () => {
       expect(response).toBeInstanceOf(Response);
       const res = response as Response;
       expect(res.status).toBe(302);
-      expect(res.headers.get("Location")).toBe("/objave/prva-objava");
+      expect(res.headers.get("Location")).toBe(postHref("prva-objava"));
       expect(res.headers.get("Set-Cookie")).toMatch(/mdz_toast=/);
 
       const stored = await prisma.post.findUnique({ where: { slug: "prva-objava" } });
@@ -107,7 +108,7 @@ describe("createOrUpdatePostFromForm", () => {
 
       const stored = await prisma.post.findUnique({ where: { slug: "nacrt-objave" } });
       expect(stored?.status).toBe("draft");
-      expect(res.headers.get("Location")).toBe(`/admin/objave/${stored?.id}/pregled`);
+      expect(res.headers.get("Location")).toBe(adminPostPreviewHref(stored!.id));
     });
 
     it("returns 400 with a slug field error when the slug is already taken", async () => {
@@ -232,7 +233,7 @@ describe("createOrUpdatePostFromForm", () => {
       expect(response).toBeInstanceOf(Response);
       const res = response as Response;
       expect(res.status).toBe(302);
-      expect(res.headers.get("Location")).toBe("/objave/novi-slug");
+      expect(res.headers.get("Location")).toBe(postHref("novi-slug"));
 
       const stored = await prisma.post.findUnique({ where: { id: post.id } });
       expect(stored?.title).toBe("Novi naslov");
@@ -265,7 +266,7 @@ describe("createOrUpdatePostFromForm", () => {
       });
 
       expect(response).toBeInstanceOf(Response);
-      expect((response as Response).headers.get("Location")).toBe("/objave/objavljen-nacrt");
+      expect((response as Response).headers.get("Location")).toBe(postHref("objavljen-nacrt"));
 
       const stored = await prisma.post.findUnique({ where: { id: post.id } });
       expect(stored?.status).toBe("published");

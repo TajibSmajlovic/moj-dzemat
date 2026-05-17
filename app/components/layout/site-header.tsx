@@ -17,6 +17,7 @@ import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
+import { ROUTES } from "#app/lib/routes";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
 
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>> | LucideIcon;
@@ -39,8 +40,8 @@ type ExternalNavItem = {
 type HeaderNavItem = InternalNavItem | ExternalNavItem;
 
 const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
-  { type: "internal", label: "Početna", to: "/", Icon: Home },
-  { type: "internal", label: "Objave", to: "/objave", Icon: Newspaper },
+  { type: "internal", label: "Početna", to: ROUTES.home, Icon: Home },
+  { type: "internal", label: "Objave", to: ROUTES.posts, Icon: Newspaper },
 ];
 
 export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: boolean }) {
@@ -48,7 +49,7 @@ export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: bool
   const siteName = useRootSiteName();
   const facebookPageUrl = useRootFacebookPageUrl();
   const navItems = buildNavItems({
-    adminHref: isAdminLoggedIn ? "/admin/objave" : "/prijava",
+    adminHref: isAdminLoggedIn ? ROUTES.adminPosts : ROUTES.login,
     facebookPageUrl,
   });
 
@@ -114,7 +115,7 @@ function BrandLink({ onClick, siteName }: { onClick?: () => void; siteName: stri
 
   return (
     <Link
-      to="/"
+      to={ROUTES.home}
       aria-label={siteName}
       onClick={onClick}
       className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
@@ -422,7 +423,7 @@ function isNavItemActive(item: HeaderNavItem, pathname: string) {
 }
 
 function isActivePath(pathname: string, to: string) {
-  if (to === "/") return pathname === "/";
+  if (to === ROUTES.home) return pathname === ROUTES.home;
 
   return pathname === to || pathname.startsWith(`${to}/`);
 }

@@ -8,6 +8,7 @@ import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
+import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 
 import type { Route } from "./+types/admin.objave.nova";
@@ -43,7 +44,7 @@ export default function AdminNewPost() {
     <main className="mx-auto max-w-3xl px-4 py-8">
       <AdminPageHeader
         className="mb-6"
-        backTo="/admin/objave"
+        backTo={ROUTES.adminPosts}
         backLabel="Nazad na listu"
         title="Nova objava"
         description={
@@ -59,7 +60,7 @@ export default function AdminNewPost() {
         <PostForm
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
-          cancelTo="/admin/objave"
+          cancelTo={ROUTES.adminPosts}
         />
       </AdminPanel>
     </main>

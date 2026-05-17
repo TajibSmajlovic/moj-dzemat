@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { MINUTE_MS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 
 /**
@@ -24,7 +25,7 @@ type CacheEntry = {
   expiresAt: number;
 };
 
-const TTL_MS = 60 * 1000 * 5; // 5 minutes
+const TTL_MS = 5 * MINUTE_MS;
 
 let cache: CacheEntry | null = null;
 

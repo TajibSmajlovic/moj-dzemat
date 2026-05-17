@@ -1,5 +1,6 @@
 import { TTLCache } from "@isaacs/ttlcache";
 
+import { HOUR_MS, MINUTE_MS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
 /**
@@ -65,23 +66,21 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
 }
 
 // Separate per-IP limiters for the two public auth write flows.
-const HOUR = 60 * 60 * 1000;
-
 export const loginLimiter = createRateLimiter({
   name: "login",
-  windowMs: HOUR,
+  windowMs: HOUR_MS,
   max: 10,
 });
 
 export const forgotPasswordLimiter = createRateLimiter({
   name: "forgot-password",
-  windowMs: HOUR,
+  windowMs: HOUR_MS,
   max: 5,
 });
 
 export const staticFileLimiter = createRateLimiter({
   name: "static-files",
-  windowMs: 60 * 1000,
+  windowMs: MINUTE_MS,
   max: 300,
 });
 

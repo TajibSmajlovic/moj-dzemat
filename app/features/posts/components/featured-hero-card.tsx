@@ -13,6 +13,7 @@ import {
   featuredHeroReveal,
   featuredHeroTitleReveal,
 } from "#app/lib/motion";
+import { postHref } from "#app/lib/routes";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,
@@ -33,7 +34,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
         .join(" ")}
     >
       <Link
-        to={`/objave/${post.slug}`}
+        to={postHref(post.slug)}
         state={{ fromList: true }}
         className="focus-visible:ring-ring block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { ROUTES } from "#app/lib/routes";
 import { action as siteAnnouncementAction } from "#app/routes/admin.obavijesna-traka";
 import { prisma } from "#app/server/db.server";
 
@@ -8,7 +9,7 @@ import { withHoneypot } from "../helpers/honeypot";
 import { callAction as runAction } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = "http://localhost/admin/obavijesna-traka";
+const ENDPOINT = `http://localhost${ROUTES.adminAnnouncementBar}`;
 
 const callAction = (formData: FormData, cookie: string) =>
   runAction(siteAnnouncementAction, { url: ENDPOINT, formData, cookie });

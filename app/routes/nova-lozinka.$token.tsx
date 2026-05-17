@@ -11,10 +11,16 @@ import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getAuthPage } from "#app/features/auth/auth-page.server";
+import {
+  MIN_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH_MESSAGE,
+  PASSWORD_RESET_TOKEN_TTL_LABEL,
+} from "#app/features/auth/auth-policy";
 import { hashPassword, startSessionFor, validateNewPassword } from "#app/features/auth/auth.server";
 import { verifyResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
+import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
@@ -25,8 +31,8 @@ import type { Route } from "./+types/nova-lozinka.$token";
 const NewPasswordSchema = z
   .object({
     password: passwordField({
-      minLength: 10,
-      minLengthMessage: "Lozinka mora imati najmanje 10 znakova.",
+      minLength: MIN_PASSWORD_LENGTH,
+      minLengthMessage: MIN_PASSWORD_LENGTH_MESSAGE,
     }),
     confirmPassword: requiredString("Potvrdite lozinku.", { trim: false }),
   })
@@ -75,7 +81,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   if (problem) {
     const message =
       problem.kind === "too-short"
-        ? "Lozinka mora imati najmanje 10 znakova."
+        ? MIN_PASSWORD_LENGTH_MESSAGE
         : "Lozinka je zabilježena u javnim curenjima podataka. Odaberite drugu.";
 
     return data(
@@ -99,7 +105,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   const headers = await startSessionFor(request, verification.userId);
   logger.info({ userId: verification.userId }, "password reset completed");
 
-  return redirect("/admin", { headers });
+  return redirect(DEFAULT_LOGGED_IN_REDIRECT, { headers });
 }
 
 export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
@@ -126,7 +132,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 10 minuta",
+            title: `Link vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}`,
             description: "Istekli linkovi se odbijaju automatski.",
           },
           {
@@ -144,7 +150,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
             Pošaljite novi zahtjev i otvorite najnoviji email koji primite.
           </p>
           <Button asChild className="w-full">
-            <Link to="/zaboravljena-lozinka">Pošalji novi link</Link>
+            <Link to={ROUTES.forgotPassword}>Pošalji novi link</Link>
           </Button>
         </div>
       </PublicAuthShell>
@@ -159,11 +165,11 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
       title="Postavite novu lozinku"
       description="Odaberite novu lozinku za administratorski nalog. Nakon uspješnog spremanja odmah ćemo vas prijaviti."
       panelTitle="Nova lozinka"
-      panelDescription="Koristite najmanje 10 znakova. Provjerit ćemo i da lozinka nije poznata iz javnih curenja podataka."
+      panelDescription={`Koristite najmanje ${MIN_PASSWORD_LENGTH} znakova. Provjerit ćemo i da lozinka nije poznata iz javnih curenja podataka.`}
       details={[
         {
           icon: <KeyRound className="size-4" />,
-          title: "Minimalno 10 znakova",
+          title: `Minimalno ${MIN_PASSWORD_LENGTH} znakova`,
           description: "Duža jedinstvena lozinka je bolja od kratke i složene.",
         },
         {
@@ -185,7 +191,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
         <PasswordField
           label="Nova lozinka"
           errors={fields.password.errors}
-          hint="Minimalno 10 znakova."
+          hint={`Minimalno ${MIN_PASSWORD_LENGTH} znakova.`}
           inputProps={{
             ...getInputProps(fields.password, { type: "password" }),
             autoComplete: "new-password",

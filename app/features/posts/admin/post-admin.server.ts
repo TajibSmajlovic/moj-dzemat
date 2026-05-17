@@ -18,6 +18,7 @@ import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 import { PostFormSchema } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import { invariant, invariantResponse } from "#app/lib/invariant";
+import { adminPostPreviewHref, postHref } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
@@ -183,8 +184,8 @@ export async function createOrUpdatePostFromForm({
 
   const redirectTo =
     savedPost.status === "published"
-      ? `/objave/${savedPost.slug}`
-      : `/admin/objave/${savedPost.id}/pregled`;
+      ? postHref(savedPost.slug)
+      : adminPostPreviewHref(savedPost.id);
 
   return redirectWithToast(
     redirectTo,

@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { Button } from "#app/components/ui/button";
 import { PostCard } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
-import { formatPostArchiveTitle, type PostTypeValue } from "#app/features/posts/post-type";
+import { formatPostArchiveTitle } from "#app/features/posts/post-type";
 import {
   countPublicPosts,
   getActivePostType,
@@ -14,7 +14,12 @@ import {
 } from "#app/features/posts/public-posts.server";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { softFade } from "#app/lib/motion";
-import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
+import {
+  getLoadMorePaginationState,
+  parsePageParam,
+  PUBLIC_POSTS_PAGE_SIZE,
+} from "#app/lib/pagination";
+import { ROUTES, absoluteUrl, postsArchiveHref } from "#app/lib/routes";
 import {
   ROBOTS_NOINDEX_FOLLOW,
   THEME_COLOR,
@@ -25,14 +30,12 @@ import {
 
 import type { Route } from "./+types/_public.objave._index";
 
-const OBJAVE_PAGE_SIZE = 10;
-
 export function meta({ data, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
   const siteUrl = getRootSiteUrl(matches);
   const title = formatPageTitle("Objave", siteName);
   const description = "Sve javne objave džemata na jednom mjestu.";
-  const canonical = siteUrl ? `${siteUrl}/objave` : "/objave";
+  const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.posts) : ROUTES.posts;
   const socialImageUrl = getDefaultSocialImageUrl(siteUrl);
   const isFiltered = data?.activeType && data.activeType !== "all";
 
@@ -62,12 +65,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const totalPosts = await countPublicPosts({ activeType });
   const pagination = getLoadMorePaginationState({
     page,
-    pageSize: OBJAVE_PAGE_SIZE,
+    pageSize: PUBLIC_POSTS_PAGE_SIZE,
     totalItems: totalPosts,
   });
 
   if (pagination.totalPages > 0 && page > pagination.totalPages) {
-    return redirect(getObjaveHref({ page: pagination.totalPages, activeType }));
+    return redirect(postsArchiveHref({ page: pagination.totalPages, activeType }));
   }
 
   const posts =
@@ -92,7 +95,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
 
-        <PostFilter active={activeType} basePath="/objave" />
+        <PostFilter active={activeType} basePath={ROUTES.posts} />
       </section>
 
       {posts.length > 0 ? (
@@ -110,7 +113,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
             <div className="mt-6 flex justify-center sm:mt-8">
               <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
                 <Link
-                  to={getObjaveHref({ page: pagination.page + 1, activeType })}
+                  to={postsArchiveHref({ page: pagination.page + 1, activeType })}
                   preventScrollReset
                   prefetch="intent"
                 >
@@ -130,19 +133,4 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
       )}
     </main>
   );
-}
-
-function getObjaveHref({ page, activeType }: { page: number; activeType: PostTypeValue | "all" }) {
-  const params = new URLSearchParams();
-
-  if (activeType !== "all") {
-    params.set("vrsta", activeType);
-  }
-
-  if (page > 1) {
-    params.set("page", String(page));
-  }
-
-  const query = params.toString();
-  return query ? `/objave?${query}` : "/objave";
 }

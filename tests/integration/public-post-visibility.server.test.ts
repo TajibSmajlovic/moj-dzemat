@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { ROUTES, postHref, postImageHref } from "#app/lib/routes";
+import { DAY_SECONDS } from "#app/lib/time";
 import { loader as publicHomeLoader } from "#app/routes/_public._index";
 import { loader as publicPostLoader } from "#app/routes/_public.objave.$slug";
 import { loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
@@ -10,16 +12,17 @@ import { createPost, createUser } from "../factories";
 import { callLoader } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const callHomeLoader = (url = "http://localhost/") => callLoader(publicHomeLoader, { url });
+const callHomeLoader = (url = `http://localhost${ROUTES.home}`) =>
+  callLoader(publicHomeLoader, { url });
 
 const callPostLoader = (slug: string) =>
   callLoader(publicPostLoader, {
-    url: `http://localhost/objave/${slug}`,
+    url: `http://localhost${postHref(slug)}`,
     params: { slug },
   });
 
 const callImageLoader = (id: string, cookie?: string) =>
-  callLoader(imageLoader, { url: `http://localhost/slike/${id}`, params: { id }, cookie });
+  callLoader(imageLoader, { url: `http://localhost${postImageHref(id)}`, params: { id }, cookie });
 
 describe("public post visibility", () => {
   it("shows published posts and hides drafts from the homepage", async () => {
@@ -96,8 +99,8 @@ describe("public post visibility", () => {
     const response = await sitemapLoader();
     const body = await response.text();
 
-    expect(body).toContain("/objave/javna-objava");
-    expect(body).not.toContain("/objave/sakriven-nacrt");
+    expect(body).toContain(postHref("javna-objava"));
+    expect(body).not.toContain(postHref("sakriven-nacrt"));
   });
 
   it("does not serve draft images publicly", async () => {
@@ -124,7 +127,7 @@ describe("public post visibility", () => {
     const publishedResponse = await callImageLoader(publishedImage.id);
     expect(publishedResponse.status).toBe(200);
     expect(publishedResponse.headers.get("Cache-Control")).toBe(
-      "public, max-age=31536000, immutable",
+      `public, max-age=${365 * DAY_SECONDS}, immutable`,
     );
 
     try {

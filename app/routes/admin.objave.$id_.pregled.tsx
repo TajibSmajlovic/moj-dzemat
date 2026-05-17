@@ -14,6 +14,7 @@ import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
+import { ROUTES, adminPostHref, adminPostPreviewHref, postHref } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -72,7 +73,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const next = await togglePostStatus(id, user.id);
 
   return redirectWithToast(
-    `/admin/objave/${id}/pregled`,
+    adminPostPreviewHref(id),
     createActionToast({
       action: "update",
       description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
@@ -90,7 +91,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
-        <BackLink to="/admin/objave" label="Nazad na listu" />
+        <BackLink to={ROUTES.adminPosts} label="Nazad na listu" />
       </div>
 
       <motion.div
@@ -122,7 +123,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
             </Form>
 
             <Button type="button" variant="outline" className="gap-2" asChild>
-              <Link to={`/admin/objave/${post.id}`}>
+              <Link to={adminPostHref(post.id)}>
                 <Pencil className="h-4 w-4" aria-hidden="true" />
                 Uredi
               </Link>
@@ -130,7 +131,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
 
             {isPublished ? (
               <Button type="button" variant="outline" className="gap-2" asChild>
-                <Link to={`/objave/${post.slug}`}>
+                <Link to={postHref(post.slug)}>
                   <Eye className="h-4 w-4" aria-hidden="true" />
                   Javna stranica
                 </Link>

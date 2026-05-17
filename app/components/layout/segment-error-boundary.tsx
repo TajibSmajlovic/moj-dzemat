@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, FileQuestion } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
 import { cn } from "#app/lib/cn";
+import { ROUTES } from "#app/lib/routes";
 
 type SegmentTone = "public" | "admin";
 
@@ -26,7 +27,7 @@ type Props = {
 export function SegmentErrorBoundary({
   error,
   tone = "public",
-  backTo = "/",
+  backTo = ROUTES.home,
   backLabel = "Povratak na početnu",
   className,
 }: Props) {

@@ -1,12 +1,15 @@
+import { ROUTES, absoluteUrl, postHref } from "#app/lib/routes";
+import { MINUTE_SECONDS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
 const MAX_ENTRIES = 10_000;
+const SITEMAP_CACHE_SECONDS = 10 * MINUTE_SECONDS;
 
 /**
- * Dynamic sitemap. Small enough to fit in a single file so we don't
- * bother with a sitemap index. Home page first, then each post by
- * `updatedAt` (so Google re-crawls when content is edited).
+   Dynamic sitemap. Small enough to fit in a single file so we don't
+   bother with a sitemap index. Home page first, then each post by
+   `updatedAt` (so Google re-crawls when content is edited).
  */
 export async function loader() {
   const siteUrl = env().APP_URL;
@@ -20,9 +23,9 @@ export async function loader() {
   const homepageLastmod = posts[0]?.updatedAt.toISOString();
 
   const urls = [
-    { loc: `${siteUrl}/`, lastmod: homepageLastmod },
+    { loc: absoluteUrl(siteUrl, ROUTES.home), lastmod: homepageLastmod },
     ...posts.map((post) => ({
-      loc: `${siteUrl}/objave/${post.slug}`,
+      loc: absoluteUrl(siteUrl, postHref(post.slug)),
       lastmod: post.updatedAt.toISOString(),
     })),
   ];
@@ -43,7 +46,7 @@ ${urls
     status: 200,
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=600",
+      "Cache-Control": `public, max-age=${SITEMAP_CACHE_SECONDS}`,
     },
   });
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { PASSWORD_RESET_TOKEN_TTL_SECONDS } from "#app/features/auth/auth-policy";
 import { hashPassword } from "#app/features/auth/auth.server";
 import { signResetToken, verifyResetToken } from "#app/features/auth/reset-token.server";
+import { SECOND_MS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 
 import { createUser } from "../factories";
@@ -66,7 +68,9 @@ describe("reset-token.server", () => {
         passwordUpdatedAt: row?.updatedAt ?? null,
       });
 
-      vi.setSystemTime(new Date(issuedAt.getTime() + 60 * 60 * 1000 + 1000));
+      vi.setSystemTime(
+        new Date(issuedAt.getTime() + PASSWORD_RESET_TOKEN_TTL_SECONDS * SECOND_MS + SECOND_MS),
+      );
       const result = await verifyResetToken(token);
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.reason).toBe("expired");

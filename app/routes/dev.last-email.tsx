@@ -5,6 +5,7 @@ import { ArrowRight, Clock3, ExternalLink, Inbox, Mail, RefreshCw } from "lucide
 import { Button } from "#app/components/ui/button";
 import { formatDateTimeLong } from "#app/lib/date";
 import { invariantResponse } from "#app/lib/invariant";
+import { ROUTES } from "#app/lib/routes";
 
 import type { Route } from "./+types/dev.last-email";
 
@@ -53,7 +54,7 @@ export default function DevLastEmailPage({ loaderData }: Route.ComponentProps) {
 
               <div className="flex gap-3">
                 <Button asChild variant="secondary">
-                  <a href="/dev/last-email">
+                  <a href={ROUTES.devLastEmail}>
                     <RefreshCw className="size-4" />
                     Osvježi
                   </a>
@@ -140,10 +141,15 @@ function extractResetUrl(
 ): string | null {
   if (!email) return null;
 
-  const match = /https?:\/\/[^\s"'<>]*\/nova-lozinka\/[^\s"'<>]+/i.exec(
+  const resetPath = escapeRegExp(ROUTES.newPassword);
+  const match = new RegExp(String.raw`https?:\/\/[^\s"'<>]*${resetPath}\/[^\s"'<>]+`, "i").exec(
     `${email.text}\n${email.html}`,
   );
   return match?.[0] ?? null;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 function InfoTile({
@@ -174,7 +180,7 @@ function EmptyState() {
         Pošalji zahtjev za reset lozinke, pa se vrati ovdje i klikni na osvježavanje.
       </p>
       <Button asChild>
-        <a href="/zaboravljena-lozinka">
+        <a href={ROUTES.forgotPassword}>
           Idi na zaboravljenu lozinku
           <ArrowRight className="size-4" />
         </a>

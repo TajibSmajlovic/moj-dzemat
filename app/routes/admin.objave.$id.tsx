@@ -9,6 +9,7 @@ import { createOrUpdatePostFromForm, requireId } from "#app/features/posts/admin
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
+import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -70,13 +71,16 @@ export async function action({ request, params }: Route.ActionArgs) {
     case SUPPORTED_INTENTS.DeleteImage: {
       const postId = requireId(formData.get("id"));
       invariantResponse(postId === routePostId, "Neispravan zahtjev.");
+
       const imageId = requireId(formData.get("imageId"));
       const result = await prisma.postImage.deleteMany({
         where: { id: imageId, postId },
       });
+
       if (result.count > 0) {
         logger.info({ imageId, postId, userId: user.id }, "post image deleted");
       }
+
       return {
         ok: true,
         toast: createActionToast({ action: "delete", description: "Slika obrisana." }),
@@ -85,6 +89,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     case SUPPORTED_INTENTS.Update: {
       const bodyPostId = requireId(formData.get("id"));
       invariantResponse(bodyPostId === routePostId, "Neispravan zahtjev.");
+
       return createOrUpdatePostFromForm({
         request,
         authorId: user.id,
@@ -107,7 +112,7 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
     <main className="mx-auto max-w-3xl px-4 py-8">
       <AdminPageHeader
         className="mb-6"
-        backTo="/admin/objave"
+        backTo={ROUTES.adminPosts}
         backLabel="Nazad na listu"
         title="Uredi objavu"
         description={`Uređujete "${post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.`}
@@ -118,7 +123,7 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
           post={post}
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
-          cancelTo="/admin/objave"
+          cancelTo={ROUTES.adminPosts}
         />
       </AdminPanel>
     </main>
@@ -130,7 +135,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <SegmentErrorBoundary
       error={error}
       tone="admin"
-      backTo="/admin/objave"
+      backTo={ROUTES.adminPosts}
       backLabel="Nazad na listu objava"
     />
   );

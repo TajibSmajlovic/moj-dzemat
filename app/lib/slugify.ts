@@ -4,10 +4,10 @@ const EDGE_DASH_RE = /^-+|-+$/g;
 const MAX_LENGTH = 80;
 
 /**
- * Lowercase-ascii slug. Strips combining accents and handles Bosnian
- * ligatures explicitly so "džemat" → "dzemat" and "Čaršija" →
- * "carsija". Uniqueness isn't our job - the route's action should
- * resolve collisions (append a short suffix or ask the admin to edit).
+   Lowercase-ascii slug. Strips combining accents and handles Bosnian
+   ligatures explicitly so "džemat" → "dzemat" and "Čaršija" →
+   "carsija". Uniqueness isn't our job - the route's action should
+   resolve collisions (append a short suffix or ask the admin to edit).
  */
 export function slugify(input: string): string {
   return input

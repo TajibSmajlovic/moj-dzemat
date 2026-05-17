@@ -1,6 +1,8 @@
+import { DAY_SECONDS } from "#app/lib/time";
+
 export const THEME_COOKIE_NAME = "mdz_theme";
 export const THEME_STORAGE_KEY = "moj-dzemat-theme";
-const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+const THEME_COOKIE_MAX_AGE_SECONDS = 365 * DAY_SECONDS;
 
 /**
    Custom DOM event the toggle dispatches after persisting a new preference.

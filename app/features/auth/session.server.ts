@@ -1,23 +1,23 @@
 import { createCookie, createSessionStorage } from "react-router";
 
+import { SESSION_MAX_AGE_MS, SESSION_MAX_AGE_SECONDS } from "#app/features/auth/auth-policy";
 import { invariant } from "#app/lib/invariant";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
 const COOKIE_NAME = "mdz_session";
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * Stateful session storage. The cookie holds only the session id; the
- * Session row in SQLite is the source of truth. That means logout
- * invalidates instantly across devices (no waiting for token expiry)
- * and we can list/kill sessions from admin tools later on.
- *
- * `SESSION_SECRET` is a comma-separated list: the first value signs
- * newly issued cookies, all values verify incoming ones. Rotation is:
- *   1. prepend the new secret -> deploy -> cookies are now signed with it
- *   2. wait at least 30 days -> all old-secret cookies have expired
- *   3. remove the old secret
+   Stateful session storage. The cookie holds only the session id; the
+   Session row in SQLite is the source of truth. That means logout
+   invalidates instantly across devices (no waiting for token expiry)
+   and we can list/kill sessions from admin tools later on.
+
+   `SESSION_SECRET` is a comma-separated list: the first value signs
+   newly issued cookies, all values verify incoming ones. Rotation is:
+     1. prepend the new secret -> deploy -> cookies are now signed with it
+     2. wait at least the configured max age -> all old-secret cookies have expired
+     3. remove the old secret
  */
 
 const secrets = env().SESSION_SECRET;
@@ -29,7 +29,7 @@ const sessionCookie = createCookie(COOKIE_NAME, {
   path: "/",
   secure: isProd,
   secrets,
-  maxAge: THIRTY_DAYS_MS / 1000,
+  maxAge: SESSION_MAX_AGE_SECONDS,
 });
 
 type SessionData = {
@@ -46,7 +46,7 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
   async createData(data, expires) {
     invariant(data.userId, "userId required to create a session");
 
-    const expirationDate = expires ?? new Date(Date.now() + THIRTY_DAYS_MS);
+    const expirationDate = expires ?? new Date(Date.now() + SESSION_MAX_AGE_MS);
 
     const session = await prisma.session.create({
       data: { userId: data.userId, expirationDate },
@@ -72,7 +72,7 @@ const sessionStorage = createSessionStorage<SessionData, SessionFlashData>({
   async updateData(id, data, expires) {
     if (!data.userId) return;
 
-    const expirationDate = expires ?? new Date(Date.now() + THIRTY_DAYS_MS);
+    const expirationDate = expires ?? new Date(Date.now() + SESSION_MAX_AGE_MS);
 
     await prisma.session.update({
       where: { id },

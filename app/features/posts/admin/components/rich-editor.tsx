@@ -44,8 +44,8 @@ type RichEditorProps = {
 };
 
 /**
- * Full-featured Tiptap rich-text editor styled to look native to the
- * admin panel. Outputs HTML stored in the post `body` field.
+   Full-featured Tiptap rich-text editor styled to look native to the
+   admin panel. Outputs HTML stored in the post `body` field.
  */
 export function RichEditor({
   value,

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { z } from "zod";
 
-import { showToast } from "#app/components/ui/sonner.js";
+import { showToast } from "#app/components/ui/sonner";
 
 const ToastToneSchema = z.enum(["neutral", "primary", "secondary", "destructive"]);
 const _ToastActionSchema = z.enum([

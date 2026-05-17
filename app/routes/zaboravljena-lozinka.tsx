@@ -11,10 +11,12 @@ import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
 import { signResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
+import { ROUTES, absoluteUrl, passwordResetHref } from "#app/lib/routes";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { sendEmail } from "#app/server/email.server";
@@ -75,7 +77,7 @@ export async function action({ request }: Route.ActionArgs) {
       userId: user.id,
       passwordUpdatedAt: user.password?.updatedAt ?? null,
     });
-    const url = `${environment.APP_URL}/nova-lozinka/${token}`;
+    const url = absoluteUrl(environment.APP_URL, passwordResetHref(token));
     const email = buildPasswordResetEmail({
       resetUrl: url,
       siteName: formatSiteName(environment.DZEMAT_NAME),
@@ -113,7 +115,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
         details={[
           {
             icon: <Clock3 className="size-4" />,
-            title: "Link vrijedi 10 minuta",
+            title: `Link vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}`,
             description: "Nakon isteka možete zatražiti novi link istim putem.",
           },
           {
@@ -132,7 +134,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
             ponovo pošaljite zahtjev.
           </p>
           <Button asChild variant="outline" className="w-full">
-            <Link to="/prijava">
+            <Link to={ROUTES.login}>
               <ArrowLeft className="size-4" />
               Nazad na prijavu
             </Link>
@@ -150,12 +152,12 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
       title="Zaboravljena lozinka"
       description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
       panelTitle="Pošalji link"
-      panelDescription="Link za novu lozinku stiže na email i vrijedi 10 minuta."
+      panelDescription={`Link za novu lozinku stiže na email i vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}.`}
       details={[
         {
           icon: <Clock3 className="size-4" />,
           title: "Vremenski ograničen link",
-          description: "Svaki link vrijedi 10 minuta i vezan je za trenutno stanje naloga.",
+          description: `Svaki link vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL} i vezan je za trenutno stanje naloga.`,
         },
         {
           icon: <ShieldCheck className="size-4" />,

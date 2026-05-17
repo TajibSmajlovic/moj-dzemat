@@ -1,17 +1,32 @@
 # Contributing
 
-Thanks for helping improve Moj Džemat. This project is a lightweight community publishing app with a public website, admin-only content management, password reset authentication, SQLite/Prisma storage, image processing, and Fly.io deployment.
+Thanks for helping improve Moj Džemat. This project is a lightweight community
+publishing app with a public website, admin-only content management, password
+reset authentication, SQLite/Prisma storage, image processing, and Fly.io
+deployment.
 
 ## Before You Start
 
 - For bugs, feature ideas, or general tasks, open the matching GitHub issue template.
-- For security problems, do not open a public issue with exploit details. Follow [.github/SECURITY.md](.github/SECURITY.md).
+- For security problems, do not open a public issue with exploit details. Follow
+  [.github/SECURITY.md](.github/SECURITY.md).
 - Keep changes focused. One issue should usually map to one branch and one pull request.
-- Do not commit secrets, `.env` files, database files, session cookies, reset links, API keys, or production data.
+- Do not commit secrets, `.env` files, database files, session cookies, reset
+  links, API keys, or production data.
 
 ## Local Setup
 
-Use Node `22.13.0+` and npm `10.9.0+`.
+Use Node `22.13.0+` and `<23` (`.nvmrc` is included), plus npm `10.9.0+`.
+You do not need Docker, Postgres, Redis, or an external email service for the
+first local boot.
+
+If you use `nvm`:
+
+```bash
+nvm use
+```
+
+Then boot the app:
 
 ```bash
 npm ci
@@ -21,17 +36,110 @@ npm run db:seed
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-For local admin login:
+`npm ci` also runs the repo's `postinstall`, which generates Prisma client code
+and React Router types.
+
+## Local Environment
+
+The app reads runtime environment variables from
+[`app/server/env.server.ts`](app/server/env.server.ts). The template lives in
+[`.env.example`](.env.example).
+
+These are the variables that matter most for local development:
+
+| Variable                         | Local guidance                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`                   | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                              |
+| `ADMIN_SEED_EMAILS`              | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                               |
+| `SESSION_SECRET`                 | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.                         |
+| `PASSWORD_RESET_SECRET`          | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                                   |
+| `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                            |
+| `EMAIL_FROM`                     | Required even in local dev. Use a provider-compatible `From` value; keep the display name ASCII if your provider rejects diacritics. |
+| `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                               |
+| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work.           |
+| `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
+| `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
+| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                             |
+| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                            |
+| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
+| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |
+| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                             |
+| `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.                 |
+| `PORT`                           | Defaults to `3000`.                                                                                                                  |
+
+Useful secret generator:
+
+```sh
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
+```
+
+Never enable `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, or
+`DISABLE_RATE_LIMITING` in production.
+
+## First Admin Login
+
+Admin bootstrap is easy to miss if you are new to the project:
 
 1. Add your email to `ADMIN_SEED_EMAILS` in `.env`.
 2. Run `npm run db:seed`.
-3. Open `/zaboravljena-lozinka`.
-4. If using the development inbox, set `ENABLE_TEST_ROUTES="true"` and open `/dev/last-email`.
-5. Use the reset link to create your password.
+3. Open `/zaboravljena-lozinka` and submit that email address.
+4. If `RESEND_API_KEY` is empty, the app captures the email in memory instead of sending it.
+5. If `ENABLE_TEST_ROUTES="true"`, open `/dev/last-email`, click the reset link, and choose your password.
+6. After setting the password, the app signs you in and redirects you to `/admin/objave`.
 
-Never enable `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, or `DISABLE_RATE_LIMITING` in production.
+Important details:
+
+- seeded admins are created without passwords by design
+- there is no public signup flow
+- changing `ADMIN_SEED_EMAILS` later is safe; `npm run db:seed` is idempotent
+
+## Common Commands
+
+### App
+
+| Command         | What it does                                               |
+| --------------- | ---------------------------------------------------------- |
+| `npm run dev`   | Starts the local SSR dev server from `server/index.ts`.    |
+| `npm run build` | Builds the production client and server bundles.           |
+| `npm run start` | Starts the production build from `build/server-entry.mjs`. |
+| `npm run check` | Runs typecheck, ESLint, and Prettier checks.               |
+| `npm run knip`  | Checks for unused files, exports, and dependencies.        |
+
+### Database
+
+| Command                     | What it does                                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run db:migrate`        | Runs Prisma's development migration flow. Use this when you are changing the schema locally.                         |
+| `npm run db:migrate:deploy` | Applies committed migrations without creating new ones. Best for first local setup and production-style boots.       |
+| `npm run db:seed`           | Provisions admins from `ADMIN_SEED_EMAILS`.                                                                          |
+| `npm run db:setup`          | Convenience shortcut for `prisma migrate dev && prisma db seed`.                                                     |
+| `npm run db:reset`          | Drops and recreates the local database, then reruns seed.                                                            |
+| `npm run db:studio`         | Opens Prisma Studio.                                                                                                 |
+| `npm run db:generate`       | Regenerates Prisma client code.                                                                                      |
+| `npm run db:push`           | Pushes schema changes without creating a migration. Useful for quick experiments, not for normal migration workflow. |
+
+### Tests
+
+| Command               | What it does                                     |
+| --------------------- | ------------------------------------------------ |
+| `npm run test:run`    | Runs the Vitest suite once (unit + integration). |
+| `npm run test:cov`    | Runs Vitest with coverage.                       |
+| `npm run test:e2e`    | Runs Playwright end-to-end tests.                |
+| `npm run test:e2e:ui` | Runs Playwright in headed mode.                  |
+
+Before your first e2e run, install the Playwright browser once:
+
+```bash
+npx playwright install chromium
+```
+
+On Linux CI or bare Linux machines you may need:
+
+```bash
+npx playwright install --with-deps chromium
+```
 
 ## Branches
 
@@ -64,7 +172,8 @@ Common types:
 ## Development Guidelines
 
 - Follow the existing React Router, Prisma, Tailwind, and feature-folder patterns.
-- Keep route files thin. Put domain logic in `app/features/*`, shared server utilities in `app/server`, and reusable helpers in `app/lib`.
+- Keep route files thin. Put domain logic in `app/features/*`, shared server
+  utilities in `app/server`, and reusable helpers in `app/lib`.
 - Use existing UI primitives and app conventions before adding new abstractions.
 - Validate form data with the existing Conform and Zod patterns.
 - Treat auth, password reset, sessions, image uploads, and admin routes as security-sensitive.
@@ -77,17 +186,25 @@ Common types:
 Choose tests based on the risk of the change:
 
 - Unit tests for pure helpers, formatting, validation, and small business rules.
-- Integration tests for Prisma, server actions, auth behavior, post visibility, and database-backed flows.
+- Integration tests for Prisma, server actions, auth behavior, post visibility,
+  and database-backed flows.
 - Playwright e2e tests for public browsing, admin publishing, auth, routing, and visible UI behavior.
 
-Useful commands:
+A few implementation details that help when debugging:
+
+- unit and integration tests run through Vitest
+- Playwright starts the app itself and points it at `prisma/e2e.db`
+- Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
+  and `DISABLE_RATE_LIMITING`
+- the e2e global setup seeds a deterministic admin user plus post fixtures
+
+Fast local verification before opening a PR:
 
 ```bash
 npm run check
 npm run knip
 npm run test:run
 npm run build
-npm run test:e2e
 ```
 
 Run `npm run test:e2e` for UI, routing, auth, editor, upload, or admin workflow changes.

@@ -10,6 +10,7 @@ import { ShareButton } from "#app/features/posts/components/share-button";
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
+import { ROUTES, absoluteUrl, adminPostHref, postHref, postImageHref } from "#app/lib/routes";
 import {
   THEME_COLOR,
   buildSocialMeta,
@@ -54,10 +55,10 @@ export function meta({ data, matches }: Route.MetaArgs) {
 
   const { post, siteUrl } = data;
   const description = plainExcerpt(post.body);
-  const canonical = `${siteUrl}/objave/${post.slug}`;
+  const canonical = absoluteUrl(siteUrl, postHref(post.slug));
   const primaryImage = post.images[0];
   const imageUrl = primaryImage
-    ? `${siteUrl}/slike/${primaryImage.id}`
+    ? absoluteUrl(siteUrl, postImageHref(primaryImage.id))
     : getDefaultSocialImageUrl(siteUrl);
   const imageAlt =
     primaryImage?.altText ?? (primaryImage ? post.title : formatDefaultSocialImageAlt(siteName));
@@ -91,12 +92,12 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
       <div className="flex items-center justify-between">
-        <BackButton fallback="/" label="Nazad na listu" />
+        <BackButton fallback={ROUTES.home} label="Nazad na listu" />
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdminLoggedIn ? (
             <Button variant="outline" size="sm" className="gap-2" asChild>
-              <Link to={`/admin/objave/${post.id}`}>
+              <Link to={adminPostHref(post.id)}>
                 <Pencil className="h-4 w-4" aria-hidden="true" />
                 Uredi
               </Link>
@@ -121,7 +122,7 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
-      <SegmentErrorBoundary error={error} backTo="/objave" backLabel="Pregled svih objava" />
+      <SegmentErrorBoundary error={error} backTo={ROUTES.posts} backLabel="Pregled svih objava" />
     </main>
   );
 }

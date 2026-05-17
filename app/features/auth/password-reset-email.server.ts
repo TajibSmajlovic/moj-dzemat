@@ -1,3 +1,5 @@
+import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
+
 type PasswordResetEmailOptions = {
   resetUrl: string;
   siteName: string;
@@ -9,7 +11,6 @@ type PasswordResetEmail = {
   html: string;
 };
 
-const PASSWORD_RESET_EXPIRES_IN = "10 minuta";
 const PASSWORD_RESET_SUBJECT = "Postavljanje nove lozinke";
 
 function escapeHtml(value: string): string {
@@ -27,14 +28,14 @@ export function buildPasswordResetEmail({
 }: PasswordResetEmailOptions): PasswordResetEmail {
   const escapedResetUrl = escapeHtml(resetUrl);
   const escapedSiteName = escapeHtml(siteName);
-  const preheader = `Link za postavljanje nove lozinke vrijedi ${PASSWORD_RESET_EXPIRES_IN}.`;
+  const preheader = `Link za postavljanje nove lozinke vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}.`;
 
   return {
     subject: PASSWORD_RESET_SUBJECT,
     text: [
       "Postavite novu lozinku",
       "",
-      `Otvorite sljedeći link kako biste postavili novu lozinku. Link vrijedi ${PASSWORD_RESET_EXPIRES_IN}:`,
+      `Otvorite sljedeći link kako biste postavili novu lozinku. Link vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}:`,
       "",
       resetUrl,
       "",
@@ -87,7 +88,7 @@ export function buildPasswordResetEmail({
                   <tr>
                     <td style="padding:32px;">
                       <p style="margin:0;color:#17362b;font-size:16px;line-height:26px;">
-                        Da nastavite, otvorite sigurni link ispod. Link vrijedi <strong>${PASSWORD_RESET_EXPIRES_IN}</strong>.
+                        Da nastavite, otvorite sigurni link ispod. Link vrijedi <strong>${PASSWORD_RESET_TOKEN_TTL_LABEL}</strong>.
                       </p>
 
                       <table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px 0;">

@@ -33,6 +33,7 @@ import {
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
 import { softFade } from "#app/lib/motion";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   DEFAULT_SOCIAL_IMAGE,
   ROBOTS_NOINDEX_FOLLOW,
@@ -51,7 +52,7 @@ export function meta({ data, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
   const siteDescription = formatSiteDescription(siteName);
   const siteUrl = getRootSiteUrl(matches);
-  const canonical = siteUrl ? `${siteUrl}/` : "/";
+  const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.home) : ROUTES.home;
   const socialImageUrl = getDefaultSocialImageUrl(siteUrl);
   const socialImageAlt = formatDefaultSocialImageAlt(siteName);
   const isFiltered = data?.activeType && data.activeType !== "all";
@@ -145,7 +146,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
         <div className="mt-6 flex justify-center sm:mt-8">
           <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
-            <Link to="/objave" prefetch="intent">
+            <Link to={ROUTES.posts} prefetch="intent">
               Pogledaj sve objave
               <ArrowRight className="h-4 w-4" />
             </Link>

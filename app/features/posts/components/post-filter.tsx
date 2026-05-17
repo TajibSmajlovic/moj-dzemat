@@ -12,17 +12,18 @@ import {
 } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { motionTransitions } from "#app/lib/motion";
+import { ROUTES } from "#app/lib/routes";
 
 type PostFilterProps = {
   active: PostTypeValue | "all";
-  basePath?: "/" | "/objave";
+  basePath?: typeof ROUTES.home | typeof ROUTES.posts;
 };
 
 type Tab = { value: PostTypeValue | "all"; label: string; Icon: LucideIcon };
 
 const ALL: Tab = { value: "all", label: "Sve", Icon: Sparkles };
 
-export function PostFilter({ active, basePath = "/" }: PostFilterProps) {
+export function PostFilter({ active, basePath = ROUTES.home }: PostFilterProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [edgeFade, setEdgeFade] = useState({ left: false, right: false });
 

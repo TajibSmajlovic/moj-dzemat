@@ -1,21 +1,23 @@
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
+import { HOUR_SECONDS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
 /**
- * Minimal robots.txt. Public feed, post pages and images are indexable;
- * admin area and auth routes are not.
+   Minimal robots.txt. Public feed, post pages and images are indexable;
+   admin area and auth routes are not.
  */
 export function loader() {
   const body = [
     "User-agent: *",
-    "Allow: /",
-    "Disallow: /admin",
-    "Disallow: /admin/",
-    "Disallow: /prijava",
-    "Disallow: /odjava",
-    "Disallow: /zaboravljena-lozinka",
-    "Disallow: /nova-lozinka/",
+    `Allow: ${ROUTES.home}`,
+    `Disallow: ${ROUTES.admin}`,
+    `Disallow: ${ROUTES.admin}/`,
+    `Disallow: ${ROUTES.login}`,
+    `Disallow: ${ROUTES.logout}`,
+    `Disallow: ${ROUTES.forgotPassword}`,
+    `Disallow: ${ROUTES.newPassword}/`,
     "",
-    `Sitemap: ${env().APP_URL}/sitemap.xml`,
+    `Sitemap: ${absoluteUrl(env().APP_URL, ROUTES.sitemapXml)}`,
     "",
   ].join("\n");
 
@@ -23,7 +25,7 @@ export function loader() {
     status: 200,
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": `public, max-age=${HOUR_SECONDS}`,
     },
   });
 }

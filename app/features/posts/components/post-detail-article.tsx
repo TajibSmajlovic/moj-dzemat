@@ -15,6 +15,7 @@ import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/features/posts/post-type";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { motionTransitions } from "#app/lib/motion";
+import { absoluteUrl, postHref, postImageHref } from "#app/lib/routes";
 import { jsonLdScriptContent } from "#app/lib/seo";
 
 type PostDetailImage = {
@@ -53,9 +54,10 @@ export function PostDetailArticle({
   // `body` is stored already sanitised by `sanitizePostBody` at write
   // time, so the renderer trusts the value as-is.
   const bodyHtml = post.body;
-  const canonical = siteUrl ? `${siteUrl}/objave/${post.slug}` : null;
+  const canonical = siteUrl ? absoluteUrl(siteUrl, postHref(post.slug)) : null;
+  const structuredDataSiteUrl = showStructuredData && siteUrl ? siteUrl : null;
   const jsonLd =
-    showStructuredData && canonical
+    structuredDataSiteUrl && canonical
       ? {
           "@context": "https://schema.org",
           "@type": "Article",
@@ -65,11 +67,13 @@ export function PostDetailArticle({
           inLanguage: "bs-BA",
           mainEntityOfPage: canonical,
           articleSection: POST_TYPE_LABEL[post.type],
-          image: post.images.map((image) => `${siteUrl}/slike/${image.id}`),
+          image: post.images.map((image) =>
+            absoluteUrl(structuredDataSiteUrl, postImageHref(image.id)),
+          ),
           publisher: {
             "@type": "Organization",
             name: siteName,
-            url: siteUrl,
+            url: structuredDataSiteUrl,
           },
         }
       : null;
@@ -212,7 +216,7 @@ function ExpandableImage({
       className="focus-visible:ring-ring group relative block w-full cursor-zoom-in overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       <img
-        src={`/slike/${image.id}`}
+        src={postImageHref(image.id)}
         alt={image.altText ?? ""}
         width={image.width ?? undefined}
         height={image.height ?? undefined}
@@ -303,7 +307,7 @@ function ImageLightbox({
       >
         <motion.img
           key={image.id}
-          src={`/slike/${image.id}`}
+          src={postImageHref(image.id)}
           alt={image.altText ?? ""}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}

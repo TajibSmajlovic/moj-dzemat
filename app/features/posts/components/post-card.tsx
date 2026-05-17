@@ -9,6 +9,7 @@ import type { PostTypeValue } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { cardReveal } from "#app/lib/motion";
+import { postHref, postImageHref } from "#app/lib/routes";
 import { shareOnFacebook } from "#app/lib/share";
 
 export type PostCardData = {
@@ -28,7 +29,8 @@ type PostCardProps = {
 };
 
 export function PostCard({ post, priority }: PostCardProps) {
-  const thumbnail = post.thumbnailId ? `/slike/${post.thumbnailId}` : null;
+  const thumbnail = post.thumbnailId ? postImageHref(post.thumbnailId) : null;
+  const href = postHref(post.slug);
   const navigationType = useNavigationType();
   const skipEntrance = navigationType === NavigationType.Pop;
 
@@ -52,7 +54,7 @@ export function PostCard({ post, priority }: PostCardProps) {
       )}
 
       <Link
-        to={`/objave/${post.slug}`}
+        to={href}
         prefetch="intent"
         state={{ fromList: true }}
         className="focus-visible:ring-ring flex h-full flex-col overflow-hidden rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -114,7 +116,7 @@ export function PostCard({ post, priority }: PostCardProps) {
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  shareOnFacebook(`/objave/${post.slug}`);
+                  shareOnFacebook(href);
                 }}
                 aria-label="Podijeli na Facebooku"
                 className="text-muted-foreground hover:text-primary flex h-11 w-11 items-center justify-center transition-colors"

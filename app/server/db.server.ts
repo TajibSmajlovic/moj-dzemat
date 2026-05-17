@@ -1,16 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 
 /**
- * Shared Prisma client.
- *
- * SQLite + Prisma share a single persistent connection in production, so
- * the PRAGMAs below only need to be issued once per process. We cache the
- * client on `globalThis` in non-production so HMR/tsx --watch doesn't
- * create a new pool on every reload.
- *
- * The schema declares `url = env("DATABASE_URL")` so Prisma resolves
- * relative `file:./data.db` against the schema directory (`prisma/`).
- * No manual path resolution needed.
+   Shared Prisma client.
+
+   SQLite + Prisma share a single persistent connection in production, so
+   the PRAGMAs below only need to be issued once per process. We cache the
+   client on `globalThis` in non-production so HMR/tsx --watch doesn't
+   create a new pool on every reload.
+
+   The schema declares `url = env("DATABASE_URL")` so Prisma resolves
+   relative `file:./data.db` against the schema directory (`prisma/`).
+   No manual path resolution needed.
  */
 
 declare global {
