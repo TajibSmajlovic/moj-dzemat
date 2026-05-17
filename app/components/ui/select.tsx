@@ -8,7 +8,7 @@ type SelectProps = React.ComponentPropsWithoutRef<"select"> & {
   placeholder?: string;
 };
 
-export default function Select({ placeholder, className, children, ...rest }: SelectProps) {
+function Select({ placeholder, className, children, ...rest }: SelectProps) {
   const shouldDefaultToPlaceholder =
     placeholder && rest.value == null && rest.defaultValue == null ? "" : undefined;
 
