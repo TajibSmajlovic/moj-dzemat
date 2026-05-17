@@ -119,8 +119,8 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
           label="Vrsta"
           errors={fields.type.errors}
           selectProps={getSelectProps(fields.type)}
+          placeholder="Odaberite vrstu objave"
         >
-          <option value="">— Odaberite —</option>
           {POST_TYPES.map((value) => (
             <option key={value} value={value}>
               {POST_TYPE_LABEL[value]}
@@ -277,6 +277,7 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
             name="images"
             accept="image/jpeg,image/png,image/webp"
             multiple
+            aria-label="Dodajte slike za objavu"
             onChange={(event) => handleFiles(event.currentTarget.files)}
             className="file:bg-muted file:text-foreground hover:file:bg-accent block w-full cursor-pointer text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
           />
