@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
+import { PASSWORD_RESET_TOKEN_TTL_SECONDS } from "#app/features/auth/auth-policy";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
@@ -16,7 +17,6 @@ import { env } from "#app/server/env.server";
      verify:  accept any csv entry so rotation is zero-downtime
  */
 
-const TTL_SECONDS = 10 * 60; // 10 minutes
 const ALG = "HS256";
 
 function encodeSecret(secret: string): Uint8Array {
@@ -44,11 +44,12 @@ export async function signResetToken({
   passwordUpdatedAt: Date | null;
 }): Promise<string> {
   const { signer } = secrets();
+
   return new SignJWT({ pwdv: passwordVersion(passwordUpdatedAt) })
     .setProtectedHeader({ alg: ALG })
     .setSubject(userId)
     .setIssuedAt()
-    .setExpirationTime(`${TTL_SECONDS}s`)
+    .setExpirationTime(`${PASSWORD_RESET_TOKEN_TTL_SECONDS}s`)
     .sign(encodeSecret(signer));
 }
 

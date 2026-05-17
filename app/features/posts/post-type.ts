@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 
 /**
- * Human-facing labels for the public post kinds. Kept here (not in the
- * schema) because localisation is presentation-layer concern - the DB
- * only knows the canonical enum identifier.
+   Human-facing labels for the public post kinds. Kept here (not in the
+   schema) because localisation is presentation-layer concern - the DB
+   only knows the canonical enum identifier.
  */
 export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica", "price"] as const;
 
@@ -33,10 +33,10 @@ export const POST_TYPE_LABEL_PLURAL: Record<PostTypeValue, string> = {
 };
 
 /**
- * Lucide glyph that fronts each category badge and filter chip. Using
- * real SVG icons instead of emoji so rendering is identical across
- * browsers/OSes, stroke/colour follow the current text colour, and we
- * never ship Unicode surprises.
+   Lucide glyph that fronts each category badge and filter chip. Using
+   real SVG icons instead of emoji so rendering is identical across
+   browsers/OSes, stroke/colour follow the current text colour, and we
+   never ship Unicode surprises.
  */
 export const POST_TYPE_ICON: Record<PostTypeValue, LucideIcon> = {
   obavijest: Megaphone,

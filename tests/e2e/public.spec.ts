@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+import { ROUTES, postHref } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./global-setup";
 
 test.describe("public", () => {
   test("home renders seeded posts and the announcement bar", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(ROUTES.home);
 
     await expect(page).toHaveTitle("Moj Džemat - Donje Mostre");
     await expect(
@@ -23,7 +24,7 @@ test.describe("public", () => {
   });
 
   test("desktop navigation exposes primary links and secondary actions", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(ROUTES.home);
 
     const banner = page.getByRole("banner");
     await expect(
@@ -38,7 +39,7 @@ test.describe("public", () => {
 
   test("mobile navigation opens a top dropdown and navigates to posts", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
+    await page.goto(ROUTES.home);
 
     const menuButton = page.getByRole("button", { name: "Otvori meni" });
     await expect(menuButton).toHaveAttribute("aria-expanded", "false");
@@ -58,7 +59,7 @@ test.describe("public", () => {
 
     await dropdown.getByRole("link", { name: "Objave" }).click();
 
-    await expect(page).toHaveURL(/\/objave$/);
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.posts}$`));
     await expect(page.getByRole("button", { name: "Otvori meni" })).toHaveAttribute(
       "aria-expanded",
       "false",
@@ -67,19 +68,19 @@ test.describe("public", () => {
   });
 
   test("filter query string scopes the feed", async ({ page }) => {
-    await page.goto("/?vrsta=hutba");
+    await page.goto(`${ROUTES.home}?vrsta=hutba`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toBeVisible();
 
-    await page.goto("/?vrsta=smrtovnica");
+    await page.goto(`${ROUTES.home}?vrsta=smrtovnica`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toBeVisible();
 
-    await page.goto("/?vrsta=obavijest");
+    await page.goto(`${ROUTES.home}?vrsta=obavijest`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 3, name: POSTS_TITLES[0] })).toBeVisible();
   });
 
   test("unknown post returns a 404 with the branded ErrorBoundary", async ({ page }) => {
-    const response = await page.goto("/objave/nepostojeci-slug");
+    const response = await page.goto(postHref("nepostojeci-slug"));
 
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: /Sadržaj nije pronađen/ })).toBeVisible();

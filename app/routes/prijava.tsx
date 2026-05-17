@@ -12,9 +12,10 @@ import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getAuthPage } from "#app/features/auth/auth-page.server";
-import { login } from "#app/features/auth/auth.server";
+import { getCurrentUser, login } from "#app/features/auth/auth.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
+import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX } from "#app/lib/seo";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
@@ -36,6 +37,11 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const currentUser = await getCurrentUser(request);
+  if (currentUser) {
+    return redirect(DEFAULT_LOGGED_IN_REDIRECT);
+  }
+
   return {
     honeypot: honeypotToken(),
     ...(await getAuthPage(request)),
@@ -81,7 +87,7 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  const target = safeRedirect(redirectTo, "/admin");
+  const target = safeRedirect(redirectTo, DEFAULT_LOGGED_IN_REDIRECT);
   return redirect(target, { headers: result.headers });
 }
 
@@ -168,7 +174,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
         <p className="text-muted-foreground text-center text-sm">
           <Link
             className="hover:text-foreground underline-offset-4 hover:underline"
-            to="/zaboravljena-lozinka"
+            to={ROUTES.forgotPassword}
           >
             Zaboravili ste lozinku?
           </Link>

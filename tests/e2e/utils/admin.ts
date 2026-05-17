@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { ROUTES } from "../../../app/lib/routes";
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -22,10 +24,10 @@ export const ADMIN_EMAIL = requireEnv("E2E_ADMIN_EMAIL");
 export const ADMIN_PASSWORD = requireEnv("E2E_ADMIN_PASSWORD");
 
 export async function loginAsAdmin(page: Page) {
-  await page.goto("/prijava");
+  await page.goto(ROUTES.login);
   await page.getByLabel("Email").fill(ADMIN_EMAIL);
   await page.getByLabel("Lozinka").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Prijavi se" }).click();
 
-  await expect(page).toHaveURL(/\/admin\/objave$/);
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.adminPosts}$`));
 }

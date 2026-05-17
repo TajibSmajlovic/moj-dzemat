@@ -9,9 +9,9 @@ export const MAX_IMAGE_ALT_TEXT_LENGTH = 160;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
- * Browsers post HTML checkboxes as `"on"` when checked and omit the
- * field when unchecked, so we build a tiny shim that accepts either
- * shape and falls through to `false` otherwise.
+   Browsers post HTML checkboxes as `"on"` when checked and omit the
+   field when unchecked, so we build a tiny shim that accepts either
+   shape and falls through to `false` otherwise.
  */
 const checkbox = z
   .literal("on")
@@ -19,11 +19,11 @@ const checkbox = z
   .transform((value) => value === "on");
 
 /**
- * Post write schema. Used in both the create and update actions (server
- * side) and in Conform's client-side onValidate so the same error
- * messages light up in either place. `publishedAt` is intentionally
- * not part of the editable surface — the DB `@default(now())` records
- * the creation moment, which is all the public UI ever shows.
+   Post write schema. Used in both the create and update actions (server
+   side) and in Conform's client-side onValidate so the same error
+   messages light up in either place. `publishedAt` is intentionally
+   not part of the editable surface — the DB `@default(now())` records
+   the creation moment, which is all the public UI ever shows.
  */
 export const PostFormSchema = z.object({
   title: requiredString("Naslov je obavezan.")

@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
+import { passwordResetHref } from "#app/lib/routes";
 
 describe("buildPasswordResetEmail", () => {
   it("builds a branded password reset email with a button and fallback link", () => {
-    const resetUrl = "https://mojdzematdonjemostre.ba/nova-lozinka/signed-token";
+    const resetUrl = `https://mojdzematdonjemostre.ba${passwordResetHref("signed-token")}`;
     const email = buildPasswordResetEmail({
       resetUrl,
       siteName: "Moj Džemat - Donje Moštre",
@@ -12,7 +14,7 @@ describe("buildPasswordResetEmail", () => {
 
     expect(email.subject).toBe("Postavljanje nove lozinke");
     expect(email.text).toContain("Postavite novu lozinku");
-    expect(email.text).toContain("Link vrijedi 10 minuta");
+    expect(email.text).toContain(`Link vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}`);
     expect(email.text).toContain(resetUrl);
     expect(email.html).toContain("Moj Džemat - Donje Moštre");
     expect(email.html).toContain("Postavi novu lozinku");
@@ -21,16 +23,17 @@ describe("buildPasswordResetEmail", () => {
   });
 
   it("escapes interpolated HTML values", () => {
+    const resetUrl = `https://example.test${passwordResetHref('<token>"&x=1')}`;
     const email = buildPasswordResetEmail({
-      resetUrl: 'https://example.test/nova-lozinka/<token>"&x=1',
+      resetUrl,
       siteName: 'Moj <Džemat> & "test"',
     });
 
     expect(email.html).toContain("Moj &lt;Džemat&gt; &amp; &quot;test&quot;");
     expect(email.html).toContain(
-      'href="https://example.test/nova-lozinka/&lt;token&gt;&quot;&amp;x=1"',
+      `href="https://example.test${passwordResetHref("&lt;token&gt;&quot;&amp;x=1")}"`,
     );
     expect(email.html).not.toContain("Moj <Džemat>");
-    expect(email.html).not.toContain('href="https://example.test/nova-lozinka/<token>"&x=1"');
+    expect(email.html).not.toContain(`href="${resetUrl}"`);
   });
 });

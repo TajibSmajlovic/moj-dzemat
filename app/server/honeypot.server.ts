@@ -2,21 +2,22 @@ import crypto from "node:crypto";
 
 import { HONEYPOT_FIELD, HONEYPOT_TIMESTAMP_FIELD, type HoneypotToken } from "#app/lib/honeypot";
 import { invariantResponse } from "#app/lib/invariant";
+import { MINUTE_MS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
 /**
- * Simple anti-spam honeypot.
- *
- * Every write form ships two hidden fields:
- *   `website__hp` - must stay empty. Bots auto-fill every input.
- *   `website__hp_ts` - timestamp + HMAC, ensures bots can't just submit
- *                      stale/crafted forms. Verified on submit.
- *
- * Failing any of the checks throws - route actions should let the error
- * bubble up so Express turns it into a 400.
+   Simple anti-spam honeypot.
+
+   Every write form ships two hidden fields:
+     `website__hp` - must stay empty. Bots auto-fill every input.
+     `website__hp_ts` - timestamp + HMAC, ensures bots can't just submit
+                        stale/crafted forms. Verified on submit.
+
+   Failing any of the checks throws - route actions should let the error
+   bubble up so Express turns it into a 400.
  */
 
-const MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_AGE_MS = 15 * MINUTE_MS;
 const MIN_AGE_MS = 500; // discourage instant-submit bots
 
 function sign(value: string): string {
@@ -24,8 +25,8 @@ function sign(value: string): string {
 }
 
 /**
- * Generate the hidden field values. Call in the loader of any page that
- * renders a write form and pass the result through to the component.
+   Generate the hidden field values. Call in the loader of any page that
+   renders a write form and pass the result through to the component.
  */
 export function honeypotToken(): HoneypotToken {
   const timestamp = Date.now().toString();
@@ -37,8 +38,8 @@ export function honeypotToken(): HoneypotToken {
 }
 
 /**
- * Validate the submitted fields. Throws with a generic message so we
- * don't leak which check failed to would-be attackers.
+   Validate the submitted fields. Throws with a generic message so we
+   don't leak which check failed to would-be attackers.
  */
 export function assertHoneypot(formData: FormData): void {
   const hp = formData.get(HONEYPOT_FIELD);

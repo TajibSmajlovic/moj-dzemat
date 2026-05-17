@@ -8,9 +8,9 @@ type PostTypeBadgeProps = {
 };
 
 /**
- * Colour-coded chip that telegraphs which post kind a card represents.
- * Colours are mapped to semantic tokens so the `.dark` palette flips
- * without touching the component.
+   Colour-coded chip that telegraphs which post kind a card represents.
+   Colours are mapped to semantic tokens so the `.dark` palette flips
+   without touching the component.
  */
 const TYPE_STYLES: Record<PostTypeValue, string> = {
   obavijest: "bg-primary/10 text-primary dark:bg-primary/15 dark:text-primary",
@@ -24,8 +24,8 @@ const TYPE_STYLES: Record<PostTypeValue, string> = {
 };
 
 /**
- * When the badge floats on a photo we drop the tinted background and
- * rely on a soft chip with just the accent-coloured label.
+   When the badge floats on a photo we drop the tinted background and
+   rely on a soft chip with just the accent-coloured label.
  */
 const TYPE_OVERLAY: Record<PostTypeValue, string> = {
   obavijest: "text-primary dark:text-primary-foreground",

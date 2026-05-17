@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { PostTypeValue } from "#app/features/posts/post-type";
+import { PUBLIC_POSTS_PAGE_SIZE } from "#app/lib/pagination";
+import { ROUTES, postsArchiveHref } from "#app/lib/routes";
 import { loader as objaveLoader } from "#app/routes/_public.objave._index";
 
 import { createPost } from "../factories";
 import { callLoader as runLoader } from "../helpers/route";
 
-const ENDPOINT = "http://localhost/objave";
+const ENDPOINT = `http://localhost${ROUTES.posts}`;
 
 const callLoader = (url: string) => runLoader(objaveLoader, { url });
 
@@ -45,7 +47,8 @@ async function createOrderedPosts({
 
 describe("public objave index route", () => {
   it("returns the first progressive batch of published posts", async () => {
-    await createOrderedPosts({ count: 12 });
+    const totalItems = PUBLIC_POSTS_PAGE_SIZE + 2;
+    await createOrderedPosts({ count: totalItems });
     await createPost({
       title: "Sakrivena objava",
       slug: "sakrivena-objava",
@@ -57,43 +60,35 @@ describe("public objave index route", () => {
     expect(result.activeType).toBe("all");
     expect(result.pagination).toMatchObject({
       page: 1,
-      totalItems: 12,
+      totalItems,
       totalPages: 2,
-      take: 10,
-      visibleItems: 10,
+      take: PUBLIC_POSTS_PAGE_SIZE,
+      visibleItems: PUBLIC_POSTS_PAGE_SIZE,
       hasNextPage: true,
     });
-    expect(result.posts).toHaveLength(10);
-    expect(result.posts.map((post) => post.title)).toEqual([
-      "Objava 1",
-      "Objava 2",
-      "Objava 3",
-      "Objava 4",
-      "Objava 5",
-      "Objava 6",
-      "Objava 7",
-      "Objava 8",
-      "Objava 9",
-      "Objava 10",
-    ]);
+    expect(result.posts).toHaveLength(PUBLIC_POSTS_PAGE_SIZE);
+    expect(result.posts.map((post) => post.title)).toEqual(
+      Array.from({ length: PUBLIC_POSTS_PAGE_SIZE }, (_, index) => `Objava ${index + 1}`),
+    );
   });
 
   it("keeps earlier posts when loading a later page", async () => {
-    await createOrderedPosts({ count: 25 });
+    const totalItems = PUBLIC_POSTS_PAGE_SIZE * 2 + 5;
+    await createOrderedPosts({ count: totalItems });
 
     const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`));
 
     expect(result.pagination).toMatchObject({
       page: 2,
-      totalItems: 25,
+      totalItems,
       totalPages: 3,
-      take: 20,
-      visibleItems: 20,
+      take: PUBLIC_POSTS_PAGE_SIZE * 2,
+      visibleItems: PUBLIC_POSTS_PAGE_SIZE * 2,
       hasNextPage: true,
     });
-    expect(result.posts).toHaveLength(20);
+    expect(result.posts).toHaveLength(PUBLIC_POSTS_PAGE_SIZE * 2);
     expect(result.posts[0]?.title).toBe("Objava 1");
-    expect(result.posts.at(-1)?.title).toBe("Objava 20");
+    expect(result.posts.at(-1)?.title).toBe(`Objava ${PUBLIC_POSTS_PAGE_SIZE * 2}`);
   });
 
   it("resets invalid page params to the first batch", async () => {
@@ -106,8 +101,9 @@ describe("public objave index route", () => {
   });
 
   it("applies category filters before calculating pagination", async () => {
+    const hutbaCount = PUBLIC_POSTS_PAGE_SIZE + 3;
     await createOrderedPosts({
-      count: 13,
+      count: hutbaCount,
       type: "hutba",
       titlePrefix: "Hutba",
       slugPrefix: "hutba",
@@ -124,15 +120,15 @@ describe("public objave index route", () => {
     expect(result.activeType).toBe("hutba");
     expect(result.pagination).toMatchObject({
       page: 2,
-      totalItems: 13,
+      totalItems: hutbaCount,
       totalPages: 2,
-      take: 20,
-      visibleItems: 13,
+      take: PUBLIC_POSTS_PAGE_SIZE * 2,
+      visibleItems: hutbaCount,
       hasNextPage: false,
     });
-    expect(result.posts).toHaveLength(13);
+    expect(result.posts).toHaveLength(hutbaCount);
     expect(result.posts[0]?.title).toBe("Hutba 1");
-    expect(result.posts.at(-1)?.title).toBe("Hutba 13");
+    expect(result.posts.at(-1)?.title).toBe(`Hutba ${hutbaCount}`);
   });
 
   it("redirects filtered out-of-range pages to the last valid batch", async () => {
@@ -147,6 +143,8 @@ describe("public objave index route", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(302);
-    expect((result as Response).headers.get("Location")).toBe("/objave?vrsta=hutba&page=2");
+    expect((result as Response).headers.get("Location")).toBe(
+      postsArchiveHref({ activeType: "hutba", page: 2 }),
+    );
   });
 });

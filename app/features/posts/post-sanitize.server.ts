@@ -3,32 +3,32 @@ import sanitizeHtml from "sanitize-html";
 import { normalizeNonBreakingSpaces } from "#app/features/posts/post-excerpt";
 
 /**
- * Server-side HTML sanitizer for post bodies.
- *
- * The admin rich-text editor (Tiptap StarterKit + Underline + Link +
- * TextAlign + Typography) emits a constrained tag/attribute set. This
- * sanitizer is the canonical write-time gate: every body is normalised
- * here before it touches the DB, so renderers can trust the stored HTML
- * without doing any further filtering.
- *
- * Why server-side:
- *   - the Tiptap Link extension already restricts `javascript:` etc. on
- *     the client, but a malicious admin (or anyone bypassing the editor
- *     via curl/devtools) could still POST raw HTML.
- *   - sanitising at write means a single canonical representation in the
- *     database; render paths just `dangerouslySetInnerHTML` the trusted
- *     value with no regex post-processing.
- *
- * What we accept:
- *   - block: p, h2, h3, blockquote, ul, ol, li, hr, pre
- *   - inline formatting: strong, em, u, s, code, br
- *   - links: a (http/https/mailto only, with rel hardening)
- *   - inline style on block tags is filtered down to `text-align` only
- *     (Tiptap TextAlign emits `style="text-align: ..."`).
- *
- * Plain-text legacy bodies (created before the rich editor existed) are
- * detected by the absence of a leading `<` and converted to paragraphs
- * before sanitisation, so the DB ends up holding HTML in every case.
+   Server-side HTML sanitizer for post bodies.
+
+   The admin rich-text editor (Tiptap StarterKit + Underline + Link +
+   TextAlign + Typography) emits a constrained tag/attribute set. This
+   sanitizer is the canonical write-time gate: every body is normalised
+   here before it touches the DB, so renderers can trust the stored HTML
+   without doing any further filtering.
+
+   Why server-side:
+     - the Tiptap Link extension already restricts `javascript:` etc. on
+       the client, but a malicious admin (or anyone bypassing the editor
+       via curl/devtools) could still POST raw HTML.
+     - sanitising at write means a single canonical representation in the
+       database; render paths just `dangerouslySetInnerHTML` the trusted
+       value with no regex post-processing.
+
+   What we accept:
+     - block: p, h2, h3, blockquote, ul, ol, li, hr, pre
+     - inline formatting: strong, em, u, s, code, br
+     - links: a (http/https/mailto only, with rel hardening)
+     - inline style on block tags is filtered down to `text-align` only
+       (Tiptap TextAlign emits `style="text-align: ..."`).
+
+   Plain-text legacy bodies (created before the rich editor existed) are
+   detected by the absence of a leading `<` and converted to paragraphs
+   before sanitisation, so the DB ends up holding HTML in every case.
  */
 
 const ALLOWED_TAGS = [

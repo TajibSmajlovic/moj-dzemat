@@ -9,6 +9,7 @@ import { requireAdmin } from "#app/features/auth/auth.server";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
+import { ROUTES } from "#app/lib/routes";
 
 import type { Route } from "./+types/admin";
 
@@ -28,7 +29,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
-              to="/"
+              to={ROUTES.home}
               aria-label="Nazad na javnu stranicu"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -53,7 +54,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               {user.name ?? user.email}
             </span>
             <ThemeToggle />
-            <Form method="post" action="/odjava">
+            <Form method="post" action={ROUTES.logout}>
               <Button type="submit" variant="outline" size="sm" className="gap-2">
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 Odjava
@@ -64,8 +65,8 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
 
         <nav aria-label="Admin sekcije" className="border-border/60 border-t">
           <div className="mx-auto flex max-w-5xl gap-1 px-4">
-            <AdminTab to="/admin/objave" label="Objave" icon={Newspaper} />
-            <AdminTab to="/admin/obavijesna-traka" label="Obavijesna traka" icon={BellRing} />
+            <AdminTab to={ROUTES.adminPosts} label="Objave" icon={Newspaper} />
+            <AdminTab to={ROUTES.adminAnnouncementBar} label="Obavijesna traka" icon={BellRing} />
           </div>
         </nav>
       </header>
@@ -80,7 +81,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <SegmentErrorBoundary
       error={error}
       tone="admin"
-      backTo="/admin/objave"
+      backTo={ROUTES.adminPosts}
       backLabel="Nazad na listu objava"
     />
   );

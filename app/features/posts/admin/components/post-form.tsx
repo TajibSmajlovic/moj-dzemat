@@ -29,6 +29,7 @@ import {
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import { POST_TYPES, POST_TYPE_LABEL } from "#app/features/posts/post-type";
 import { IntentInput } from "#app/lib/intent";
+import { adminPostPreviewHref, postImageHref } from "#app/lib/routes";
 import { useFetcherToast } from "#app/lib/toast";
 
 type PostFormImage = { id: string; altText: string | null };
@@ -176,7 +177,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         ) : null}
         {isEdit ? (
           <Button type="button" variant="outline" className="gap-2" asChild>
-            <Link to={`/admin/objave/${post!.id}/pregled`}>
+            <Link to={adminPostPreviewHref(post!.id)}>
               <Eye className="h-4 w-4" aria-hidden="true" />
               Pregled
             </Link>
@@ -395,7 +396,7 @@ function ExistingImage({ postId, image }: ExistingImageProps) {
   return (
     <li className="border-border bg-background overflow-hidden rounded-md border">
       <img
-        src={`/slike/${imageId}`}
+        src={postImageHref(imageId)}
         alt={image.altText ?? ""}
         loading="lazy"
         className="aspect-video w-full object-cover"

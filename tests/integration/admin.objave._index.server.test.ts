@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { ADMIN_POSTS_PAGE_SIZE } from "#app/lib/pagination";
+import { ROUTES, adminPostsPageHref } from "#app/lib/routes";
 import {
   action as adminPostsAction,
   loader as adminPostsLoader,
@@ -10,7 +12,7 @@ import { createPost, createUser } from "../factories";
 import { callAction as runAction, callLoader as runLoader } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = "http://localhost/admin/objave";
+const ENDPOINT = `http://localhost${ROUTES.adminPosts}`;
 
 const callLoader = (url: string, cookie: string) => runLoader(adminPostsLoader, { url, cookie });
 
@@ -63,22 +65,22 @@ describe("admin posts list route", () => {
         publishedAt: new Date("2026-04-01T10:00:00Z"),
         createdAt: new Date("2026-04-01T10:00:00Z"),
       });
-      await createOrderedPosts(userId, 20);
+      await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE);
 
       const result = expectLoaderData(await callLoader(ENDPOINT, cookie));
 
       expect(result.pagination).toMatchObject({
         page: 1,
-        totalItems: 21,
+        totalItems: ADMIN_POSTS_PAGE_SIZE + 1,
         totalPages: 2,
         rangeStart: 1,
-        rangeEnd: 20,
+        rangeEnd: ADMIN_POSTS_PAGE_SIZE,
       });
-      expect(result.posts).toHaveLength(20);
+      expect(result.posts).toHaveLength(ADMIN_POSTS_PAGE_SIZE);
       expect(result.posts[0]).toMatchObject({ title: "Zakačena objava", pinned: true });
       expect(result.posts[0]?.status).toBe("published");
       expect(result.posts[1]?.title).toBe("Objava 1");
-      expect(result.posts.at(-1)?.title).toBe("Objava 19");
+      expect(result.posts.at(-1)?.title).toBe(`Objava ${ADMIN_POSTS_PAGE_SIZE - 1}`);
     });
 
     it("includes draft posts in the admin list", async () => {
@@ -96,24 +98,25 @@ describe("admin posts list route", () => {
     });
 
     it("returns the later page slice for the requested page", async () => {
-      await createOrderedPosts(userId, 25);
+      const totalItems = ADMIN_POSTS_PAGE_SIZE + 5;
+      await createOrderedPosts(userId, totalItems);
 
       const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`, cookie));
 
       expect(result.pagination).toMatchObject({
         page: 2,
-        totalItems: 25,
+        totalItems,
         totalPages: 2,
-        rangeStart: 21,
-        rangeEnd: 25,
+        rangeStart: ADMIN_POSTS_PAGE_SIZE + 1,
+        rangeEnd: totalItems,
       });
       expect(result.posts).toHaveLength(5);
       expect(result.posts.map((post) => post.title)).toEqual([
-        "Objava 21",
-        "Objava 22",
-        "Objava 23",
-        "Objava 24",
-        "Objava 25",
+        `Objava ${ADMIN_POSTS_PAGE_SIZE + 1}`,
+        `Objava ${ADMIN_POSTS_PAGE_SIZE + 2}`,
+        `Objava ${ADMIN_POSTS_PAGE_SIZE + 3}`,
+        `Objava ${ADMIN_POSTS_PAGE_SIZE + 4}`,
+        `Objava ${ADMIN_POSTS_PAGE_SIZE + 5}`,
       ]);
     });
 
@@ -127,13 +130,13 @@ describe("admin posts list route", () => {
     });
 
     it("redirects out-of-range pages to the last valid page", async () => {
-      await createOrderedPosts(userId, 25);
+      await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 5);
 
       const result = await callLoader(`${ENDPOINT}?page=9`, cookie);
 
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).status).toBe(302);
-      expect((result as Response).headers.get("Location")).toBe("/admin/objave?page=2");
+      expect((result as Response).headers.get("Location")).toBe(adminPostsPageHref(2));
     });
 
     it("returns empty results and safe pagination metadata when there are no posts", async () => {
@@ -152,7 +155,7 @@ describe("admin posts list route", () => {
 
   describe("action", () => {
     it("toggles featured and pinned for a post that lives on a later page", async () => {
-      const posts = await createOrderedPosts(userId, 21);
+      const posts = await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 1);
       const target = posts.at(-1)!;
 
       const toggleFeatured = new FormData();
@@ -202,7 +205,7 @@ describe("admin posts list route", () => {
     });
 
     it("keeps the delete action working on paginated results and falls back from an empty last page", async () => {
-      const posts = await createOrderedPosts(userId, 21);
+      const posts = await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 1);
       const target = posts.at(-1)!;
 
       const beforeDelete = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`, cookie));
@@ -219,7 +222,7 @@ describe("admin posts list route", () => {
       const afterDelete = await callLoader(`${ENDPOINT}?page=2`, cookie);
       expect(afterDelete).toBeInstanceOf(Response);
       expect((afterDelete as Response).status).toBe(302);
-      expect((afterDelete as Response).headers.get("Location")).toBe("/admin/objave");
+      expect((afterDelete as Response).headers.get("Location")).toBe(ROUTES.adminPosts);
     });
   });
 });

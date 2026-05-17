@@ -26,6 +26,7 @@ import {
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { requireId } from "#app/features/posts/admin/post-admin.server";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
+import { ROUTES, adminAnnouncementBarEditHref, adminAnnouncementBarNewHref } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -33,8 +34,6 @@ import { logger } from "#app/server/logger.server";
 import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
-
-const ROUTE_PATH = "/admin/obavijesna-traka";
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAdmin(request);
@@ -179,7 +178,7 @@ async function handleUpsert(
   );
 
   return redirectWithToast(
-    ROUTE_PATH,
+    ROUTES.adminAnnouncementBar,
     intent === AnnouncementIntents.Create
       ? createActionToast({
           action: "create",
@@ -215,9 +214,9 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
     (navigation.formData?.get("intent") === AnnouncementIntents.Create ||
       navigation.formData?.get("intent") === AnnouncementIntents.Update);
 
-  const closeSheet = () => void navigate(ROUTE_PATH);
-  const openNew = () => void navigate(`${ROUTE_PATH}?new=1`);
-  const openEdit = (id: string) => void navigate(`${ROUTE_PATH}?edit=${id}`);
+  const closeSheet = () => void navigate(ROUTES.adminAnnouncementBar);
+  const openNew = () => void navigate(adminAnnouncementBarNewHref());
+  const openEdit = (id: string) => void navigate(adminAnnouncementBarEditHref(id));
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">

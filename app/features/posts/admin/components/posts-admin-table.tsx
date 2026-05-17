@@ -23,6 +23,7 @@ import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
+import { ROUTES, adminPostHref } from "#app/lib/routes";
 
 type PostRow = {
   id: string;
@@ -57,7 +58,7 @@ export function PostsAdminTable({ posts, pagination, deletingId, getPageHref }: 
       <EmptyState>
         <p className="text-muted-foreground">
           Još nema objava.{" "}
-          <Link to="/admin/objave/nova" className="text-primary font-medium hover:underline">
+          <Link to={ROUTES.adminPostNew} className="text-primary font-medium hover:underline">
             Dodajte prvu objavu
           </Link>
           .
@@ -105,7 +106,7 @@ export function PostsAdminTable({ posts, pagination, deletingId, getPageHref }: 
                       />
                     ) : null}
                     <Link
-                      to={`/admin/objave/${post.id}`}
+                      to={adminPostHref(post.id)}
                       className="hover:text-primary min-w-0 truncate font-medium transition-colors"
                     >
                       {post.title}
@@ -165,7 +166,7 @@ function PostMobileCard({ post, deleting }: { post: PostRow; deleting: boolean }
       </div>
 
       <Link
-        to={`/admin/objave/${post.id}`}
+        to={adminPostHref(post.id)}
         className="font-display hover:text-primary mt-3 block min-w-0 text-lg leading-tight font-semibold text-pretty transition-colors"
       >
         <span className="line-clamp-2">{post.title}</span>
@@ -257,7 +258,7 @@ function PostRowActions({ post, mobile = false }: { post: PostRow; mobile?: bool
       />
 
       <IconActionButton label="Uredi" tone="primary" className={actionClassName} asChild>
-        <Link to={`/admin/objave/${post.id}`}>
+        <Link to={adminPostHref(post.id)}>
           <Pencil className="h-4 w-4" aria-hidden="true" />
         </Link>
       </IconActionButton>

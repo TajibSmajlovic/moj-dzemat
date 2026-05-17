@@ -2,9 +2,9 @@ import { env } from "#app/server/env.server";
 import { logger } from "#app/server/logger.server";
 
 /**
- * Outbound email. Production uses the Resend HTTP API (so we avoid a
- * heavy SDK); development captures the last N emails in-process for the
- * `/dev/last-email` route that Playwright + manual QA hit.
+   Outbound email. Production uses the Resend HTTP API (so we avoid a
+   heavy SDK); development captures the last N emails in-process for the
+   `/dev/last-email` route that Playwright + manual QA hit.
  */
 
 const RESEND_URL = "https://api.resend.com/emails";

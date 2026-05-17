@@ -5,6 +5,8 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 
+import { ROUTES } from "../app/lib/routes";
+import { DAY_SECONDS } from "../app/lib/time";
 import { env } from "../app/server/env.server";
 import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
 import { logger } from "../app/server/logger.server";
@@ -26,7 +28,7 @@ declare module "express-serve-static-core" {
 
 const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
-const HEALTHCHECK_PATH = "/resources/healthcheck";
+const HEALTHCHECK_PATH = ROUTES.healthcheck;
 const canonicalUrl = new URL(APP_URL);
 const canonicalHost = canonicalUrl.host.toLowerCase();
 
@@ -143,7 +145,7 @@ async function createServer(): Promise<express.Express> {
       }),
     );
     app.get("/logo.svg", rateLimitStaticFiles, (_req, res) => {
-      res.setHeader("Cache-Control", "public, max-age=604800"); // 7 days
+      res.setHeader("Cache-Control", `public, max-age=${7 * DAY_SECONDS}`);
       res.sendFile("logo.svg", { root: "build/client" });
     });
     app.use(rateLimitStaticFiles, express.static("build/client", { maxAge: "1h" }));

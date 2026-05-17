@@ -3,7 +3,9 @@ import { redirect } from "react-router";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
+import { MIN_PASSWORD_LENGTH } from "#app/features/auth/auth-policy";
 import { commitSession, destroySession, getSession } from "#app/features/auth/session.server";
+import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 import { logger } from "#app/server/logger.server";
 
@@ -29,15 +31,14 @@ async function rotateUserSession(request: Request, userId: string): Promise<Head
 }
 
 /**
- * Authentication primitives. `moj-dzemat` only ever has admin sessions -
- * public visitors never log in, so every protected route uses
- * `requireAdmin()`. There is no public signup; admins are provisioned
- * via the seed script and activate their account through the password
- * reset flow.
+   Authentication primitives. `moj-dzemat` only ever has admin sessions -
+   public visitors never log in, so every protected route uses
+   `requireAdmin()`. There is no public signup; admins are provisioned
+   via the seed script and activate their account through the password
+   reset flow.
  */
 
 const BCRYPT_COST = 10;
-const MIN_PASSWORD_LENGTH = 10;
 const HIBP_URL = "https://api.pwnedpasswords.com/range/";
 
 // ---- Password hashing / validation -------------------------------------
@@ -53,8 +54,8 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 type PasswordProblem = { kind: "too-short" } | { kind: "breached" };
 
 /**
- * Enforces the minimum length and checks HIBP k-anonymity. We never send
- * the full password to HIBP - only the first 5 chars of the SHA-1 hash.
+   Enforces the minimum length and checks HIBP k-anonymity. We never send
+   the full password to HIBP - only the first 5 chars of the SHA-1 hash.
  */
 export async function validateNewPassword(password: string): Promise<PasswordProblem | null> {
   if (password.length < MIN_PASSWORD_LENGTH) {
@@ -149,7 +150,7 @@ export async function requireAdmin(request: Request) {
 
     logger.warn({ path: url.pathname, search: url.search }, "admin access denied");
 
-    throw redirect(`/prijava?${params.toString()}`);
+    throw redirect(`${ROUTES.login}?${params.toString()}`);
   }
 
   return user;

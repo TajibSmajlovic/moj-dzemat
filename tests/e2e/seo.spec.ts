@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { ROUTES, postHref } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./global-setup";
 
 test.describe("seo", () => {
   test("homepage exposes canonical metadata, social image and structured data", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto(ROUTES.home);
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
@@ -41,7 +42,7 @@ test.describe("seo", () => {
   });
 
   test("filtered homepage canonicalizes back to the main listing", async ({ page }) => {
-    await page.goto("/?vrsta=hutba");
+    await page.goto(`${ROUTES.home}?vrsta=hutba`);
 
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,follow");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
@@ -51,7 +52,7 @@ test.describe("seo", () => {
   });
 
   test("post detail shows the article and JSON-LD schema", async ({ page }) => {
-    await page.goto("/objave/e2e-objava-1");
+    await page.goto(postHref("e2e-objava-1"));
 
     await expect(page.getByRole("heading", { name: POSTS_TITLES[0] })).toBeVisible();
     await expect(page.getByText("Drugi paragraf.")).toBeVisible();
@@ -87,12 +88,12 @@ test.describe("seo", () => {
   });
 
   test("robots.txt and sitemap.xml respond correctly", async ({ request }) => {
-    const robots = await request.get("/robots.txt");
+    const robots = await request.get(ROUTES.robotsTxt);
     expect(robots.ok()).toBe(true);
     expect(await robots.text()).toContain("Sitemap:");
 
-    const sitemap = await request.get("/sitemap.xml");
+    const sitemap = await request.get(ROUTES.sitemapXml);
     expect(sitemap.ok()).toBe(true);
-    expect(await sitemap.text()).toContain("/objave/e2e-objava-1");
+    expect(await sitemap.text()).toContain(postHref("e2e-objava-1"));
   });
 });

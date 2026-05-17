@@ -1,10 +1,11 @@
 import { getCurrentUser } from "#app/features/auth/auth.server";
 import { invariantResponse } from "#app/lib/invariant";
+import { DAY_SECONDS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 
 import type { Route } from "./+types/slike.$id";
 
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+const ONE_YEAR_SECONDS = 365 * DAY_SECONDS;
 
 function toResponseBody(data: Uint8Array | Buffer): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(data.byteLength);
@@ -13,15 +14,15 @@ function toResponseBody(data: Uint8Array | Buffer): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * Streams a single post image blob. Images are content-addressable by
- * their database id and live forever at this URL (we only ever insert
- * new rows, never mutate), so we set a long immutable cache header and
- * let browsers + CDNs do the heavy lifting.
- *
- * The body is copied into a plain `Uint8Array` backed by a single
- * `ArrayBuffer` so every runtime (Node + undici) streams the exact byte
- * length browsers expect — some Buffer subclasses have tripped
- * `Content-Length` / body mismatches in the past.
+   Streams a single post image blob. Images are content-addressable by
+   their database id and live forever at this URL (we only ever insert
+   new rows, never mutate), so we set a long immutable cache header and
+   let browsers + CDNs do the heavy lifting.
+
+   The body is copied into a plain `Uint8Array` backed by a single
+   `ArrayBuffer` so every runtime (Node + undici) streams the exact byte
+   length browsers expect — some Buffer subclasses have tripped
+   `Content-Length` / body mismatches in the past.
  */
 export async function loader({ params, request }: Route.LoaderArgs) {
   const image = await prisma.postImage.findUnique({

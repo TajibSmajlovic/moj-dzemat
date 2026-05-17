@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { ROUTES } from "../../app/lib/routes";
 import { loginAsAdmin } from "./utils/admin";
 
 const SEED_MESSAGE = "Džuma namaz u 13:00";
@@ -10,7 +11,7 @@ test.describe("admin / obavijesna traka", () => {
   }) => {
     await loginAsAdmin(page);
 
-    await page.goto("/admin/obavijesna-traka");
+    await page.goto(ROUTES.adminAnnouncementBar);
     await expect(page.getByRole("heading", { name: "Obavijesna traka" })).toBeVisible();
 
     // Sanity: the seed row from globalSetup is the lone active row.
@@ -31,7 +32,7 @@ test.describe("admin / obavijesna traka", () => {
     await sheet.getByRole("button", { name: "Sačuvaj" }).click();
 
     // After redirectWithToast we land back on the list with the new row.
-    await expect(page).toHaveURL(/\/admin\/obavijesna-traka$/);
+    await expect(page).toHaveURL(new RegExp(`${ROUTES.adminAnnouncementBar}$`));
     const newRow = page.getByRole("row").filter({ hasText: uniqueMessage });
     await expect(newRow).toBeVisible();
 

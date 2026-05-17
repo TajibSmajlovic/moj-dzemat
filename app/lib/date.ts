@@ -1,8 +1,8 @@
 /**
- * Public post dates are shown in the site timezone with Bosnian month
- * names spelled out manually. That keeps SSR and the browser identical
- * (hydration-safe): `Intl` + `bs-BA` can differ between Node and Chrome,
- * and the default system timezone can differ between server and user.
+   Public post dates are shown in the site timezone with Bosnian month
+   names spelled out manually. That keeps SSR and the browser identical
+   (hydration-safe): `Intl` + `bs-BA` can differ between Node and Chrome,
+   and the default system timezone can differ between server and user.
  */
 
 const SITE_TIMEZONE = "Europe/Sarajevo";
@@ -108,11 +108,11 @@ export function formatDateShort(value: Date | string | number): string {
 }
 
 /**
- * Long Bosnian date with 24-hour time, e.g. `30. april 2026. u 10:42`.
- * Built from the same site-TZ parts machinery as `formatDateLong` so
- * server and browser always produce identical output (`bs-BA` ICU data
- * is incomplete in some browser builds and would otherwise render
- * placeholders like `M04`).
+   Long Bosnian date with 24-hour time, e.g. `30. april 2026. u 10:42`.
+   Built from the same site-TZ parts machinery as `formatDateLong` so
+   server and browser always produce identical output (`bs-BA` ICU data
+   is incomplete in some browser builds and would otherwise render
+   placeholders like `M04`).
  */
 export function formatDateTimeLong(value: Date | string | number): string {
   const ymd = getSiteCalendarYmd(value);
