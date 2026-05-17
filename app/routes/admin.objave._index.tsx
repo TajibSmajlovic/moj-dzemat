@@ -5,11 +5,12 @@ import { Plus } from "lucide-react";
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { Button } from "#app/components/ui/button";
 import { requireAdmin } from "#app/features/auth/auth.server";
+import { getAdminPostListPage } from "#app/features/posts/admin/admin-post-list.server";
 import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
 import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { ADMIN_POSTS_PAGE_SIZE, getPaginationState, parsePageParam } from "#app/lib/pagination";
+import { parsePageParam } from "#app/lib/pagination";
 import { ROUTES, adminPostsPageHref } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
@@ -22,36 +23,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   await requireAdmin(request);
   const url = new URL(request.url);
   const page = parsePageParam(url.searchParams.get("page"));
-  const totalPosts = await prisma.post.count();
-  const pagination = getPaginationState({
-    page,
-    pageSize: ADMIN_POSTS_PAGE_SIZE,
-    totalItems: totalPosts,
-  });
+  const { posts, pagination } = await getAdminPostListPage({ page });
 
   if (pagination.totalPages > 0 && page > pagination.totalPages) {
     return redirect(adminPostsPageHref(pagination.totalPages));
   }
-
-  const posts = await prisma.post.findMany({
-    orderBy: [{ pinned: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-    skip: pagination.skip,
-    take: pagination.pageSize,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      type: true,
-      status: true,
-      publishedAt: true,
-      featured: true,
-      pinned: true,
-      images: {
-        orderBy: { position: "asc" },
-        select: { id: true },
-      },
-    },
-  });
 
   return { posts, pagination };
 }

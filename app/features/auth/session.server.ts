@@ -1,14 +1,11 @@
 import { createCookie, createSessionStorage } from "react-router";
 
+import { SESSION_MAX_AGE_MS, SESSION_MAX_AGE_SECONDS } from "#app/features/auth/auth-policy";
 import { invariant } from "#app/lib/invariant";
-import { DAY_MS, DAY_SECONDS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
 const COOKIE_NAME = "mdz_session";
-const SESSION_MAX_AGE_DAYS = 30;
-const SESSION_MAX_AGE_MS = SESSION_MAX_AGE_DAYS * DAY_MS;
-const SESSION_MAX_AGE_SECONDS = SESSION_MAX_AGE_DAYS * DAY_SECONDS;
 
 /**
    Stateful session storage. The cookie holds only the session id; the
@@ -19,7 +16,7 @@ const SESSION_MAX_AGE_SECONDS = SESSION_MAX_AGE_DAYS * DAY_SECONDS;
    `SESSION_SECRET` is a comma-separated list: the first value signs
    newly issued cookies, all values verify incoming ones. Rotation is:
      1. prepend the new secret -> deploy -> cookies are now signed with it
-     2. wait at least 30 days -> all old-secret cookies have expired
+     2. wait at least the configured max age -> all old-secret cookies have expired
      3. remove the old secret
  */
 
