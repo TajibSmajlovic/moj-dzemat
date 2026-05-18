@@ -9,10 +9,18 @@ type SelectFieldProps = {
   hint?: string;
   errors?: string[];
   selectProps: ComponentProps<typeof Select>;
-  children: ReactNode;
+  children?: ReactNode;
+  placeholder?: string;
 };
 
-export function SelectField({ label, hint, errors, selectProps, children }: SelectFieldProps) {
+export function SelectField({
+  label,
+  hint,
+  errors,
+  selectProps,
+  children,
+  placeholder,
+}: SelectFieldProps) {
   const id = selectProps.id ?? selectProps.name;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = errors?.length ? `${id}-error` : undefined;
@@ -28,6 +36,7 @@ export function SelectField({ label, hint, errors, selectProps, children }: Sele
         aria-invalid={errorId ? true : undefined}
         aria-describedby={describedBy}
         className={cn(errorId && "border-destructive", selectProps.className)}
+        placeholder={placeholder}
       >
         {children}
       </Select>
