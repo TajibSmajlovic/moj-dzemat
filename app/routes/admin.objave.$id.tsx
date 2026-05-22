@@ -10,7 +10,7 @@ import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROUTES } from "#app/lib/routes";
-import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
+import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
 import { logger } from "#app/server/logger.server";
@@ -39,12 +39,9 @@ const SUPPORTED_INTENTS = {
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.post) {
-    return [{ title: "Objava · Admin" }, { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW }];
+    return buildNoindexMeta("Objava · Admin", ROBOTS_NOINDEX_NOFOLLOW);
   }
-  return [
-    { title: `Uredi „${data.post.title}" · Admin` },
-    { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW },
-  ];
+  return buildNoindexMeta(`Uredi „${data.post.title}" · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

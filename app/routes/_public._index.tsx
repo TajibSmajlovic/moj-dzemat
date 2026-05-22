@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
+import { HomeStructuredData } from "#app/components/seo/home-structured-data";
 import { Button } from "#app/components/ui/button";
 import {
   Carousel,
@@ -35,13 +36,11 @@ import { getDzematLocation } from "#app/lib/maps";
 import { softFade } from "#app/lib/motion";
 import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
-  DEFAULT_SOCIAL_IMAGE,
+  ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
-  THEME_COLOR,
-  buildSocialMeta,
+  buildPublicPageMeta,
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
-  jsonLdScriptContent,
 } from "#app/lib/seo";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
 import { env } from "#app/server/env.server";
@@ -53,30 +52,19 @@ export function meta({ data, matches }: Route.MetaArgs) {
   const siteDescription = formatSiteDescription(siteName);
   const siteUrl = getRootSiteUrl(matches);
   const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.home) : ROUTES.home;
-  const socialImageUrl = getDefaultSocialImageUrl(siteUrl);
-  const socialImageAlt = formatDefaultSocialImageAlt(siteName);
   const isFiltered = data?.activeType && data.activeType !== "all";
 
-  return [
-    { title: siteName },
-    {
-      name: "description",
-      content: siteDescription,
-    },
-    { property: "og:type", content: "website" },
-    { property: "og:site_name", content: siteName },
-    { property: "og:locale", content: "bs_BA" },
-    { property: "og:url", content: canonical },
-    ...buildSocialMeta({
-      title: siteName,
-      description: siteDescription,
-      imageUrl: socialImageUrl,
-      imageAlt: socialImageAlt,
-    }),
-    { name: "theme-color", content: THEME_COLOR },
-    { tagName: "link", rel: "canonical", href: canonical },
-    ...(isFiltered ? [{ name: "robots", content: ROBOTS_NOINDEX_FOLLOW }] : []),
-  ];
+  return buildPublicPageMeta({
+    title: siteName,
+    description: siteDescription,
+    canonical,
+    siteName,
+    imageUrl: getDefaultSocialImageUrl(siteUrl),
+    imageAlt: formatDefaultSocialImageAlt(siteName),
+    robots: isFiltered
+      ? `${ROBOTS_NOINDEX_FOLLOW},${ROBOTS_MAX_IMAGE_PREVIEW_LARGE}`
+      : ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
+  });
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -156,69 +144,6 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
       </main>
     </>
-  );
-}
-
-function HomeStructuredData({
-  facebookPageUrl,
-  location,
-  siteName,
-  siteUrl,
-}: {
-  facebookPageUrl: string | null;
-  location: ReturnType<typeof getDzematLocation>;
-  siteName: string;
-  siteUrl: string;
-}) {
-  const imageUrl = getDefaultSocialImageUrl(siteUrl);
-  const organizationId = `${siteUrl}/#organization`;
-  const placeId = `${siteUrl}/#place`;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": organizationId,
-        name: siteName,
-        url: siteUrl,
-        logo: {
-          "@type": "ImageObject",
-          url: `${siteUrl}/logo.png`,
-        },
-        image: {
-          "@type": "ImageObject",
-          url: imageUrl,
-          width: DEFAULT_SOCIAL_IMAGE.width,
-          height: DEFAULT_SOCIAL_IMAGE.height,
-        },
-        sameAs: facebookPageUrl ? [facebookPageUrl] : undefined,
-      },
-      {
-        "@type": "Place",
-        "@id": placeId,
-        name: siteName,
-        url: siteUrl,
-        image: imageUrl,
-        address: location
-          ? {
-              "@type": "PostalAddress",
-              streetAddress: location.address,
-              addressCountry: "BA",
-            }
-          : undefined,
-        hasMap: location?.mapsUrl,
-        parentOrganization: {
-          "@id": organizationId,
-        },
-      },
-    ],
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: jsonLdScriptContent(jsonLd) }}
-    />
   );
 }
 

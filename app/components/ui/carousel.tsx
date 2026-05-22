@@ -29,8 +29,8 @@ type CarouselProps = {
 type CarouselContextValue = {
   carouselRef: ReturnType<typeof useEmblaCarousel>[0];
   api: CarouselApi | undefined;
-  scrollPrev: () => void;
-  scrollNext: () => void;
+  scrollPrev: VoidFunction;
+  scrollNext: VoidFunction;
   canScrollPrev: boolean;
   canScrollNext: boolean;
   orientation: "horizontal" | "vertical";

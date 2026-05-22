@@ -21,7 +21,7 @@ import { verifyResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
-import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
@@ -42,10 +42,7 @@ const NewPasswordSchema = z
   });
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: formatPageTitle("Nova lozinka", getRootSiteName(matches)) },
-    { name: "robots", content: ROBOTS_NOINDEX },
-  ];
+  return buildNoindexMeta(formatPageTitle("Nova lozinka", getRootSiteName(matches)));
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {

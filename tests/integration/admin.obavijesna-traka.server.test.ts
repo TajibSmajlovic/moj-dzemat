@@ -1,20 +1,31 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { ROUTES } from "#app/lib/routes";
-import { action as siteAnnouncementAction } from "#app/routes/admin.obavijesna-traka";
+import {
+  action as siteAnnouncementAction,
+  loader as siteAnnouncementLoader,
+} from "#app/routes/admin.obavijesna-traka";
 import { prisma } from "#app/server/db.server";
 
 import { createSiteAnnouncement, createUser } from "../factories";
+import { expectData, payloadOf, statusOf } from "../helpers/action-result";
 import { withHoneypot } from "../helpers/honeypot";
-import { callAction as runAction } from "../helpers/route";
+import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = `http://localhost${ROUTES.adminAnnouncementBar}`;
+const ENDPOINT = testUrl(ROUTES.adminAnnouncementBar);
 
 const callAction = (formData: FormData, cookie: string) =>
   runAction(siteAnnouncementAction, { url: ENDPOINT, formData, cookie });
 
-describe("site announcement action", () => {
+const callLoader = (cookie: string) => runLoader(siteAnnouncementLoader, { url: ENDPOINT, cookie });
+
+type ConformReply = {
+  result: { error: Record<string, string[] | undefined> };
+};
+
+describe("site announcement route", () => {
   let cookie: string;
 
   // The integration setup truncates users + sessions between tests, so
@@ -24,6 +35,43 @@ describe("site announcement action", () => {
   beforeEach(async () => {
     const { user } = await createUser();
     cookie = await sessionCookieFor(user.id);
+  });
+
+  describe("loader", () => {
+    it("returns active announcements first, then newest announcements", async () => {
+      const oldActive = await createSiteAnnouncement({
+        message: "Stara aktivna",
+        isActive: true,
+      });
+      await prisma.siteAnnouncement.update({
+        where: { id: oldActive.id },
+        data: { createdAt: new Date("2026-05-01T10:00:00Z") },
+      });
+      const newestInactive = await createSiteAnnouncement({
+        message: "Nova neaktivna",
+        isActive: false,
+      });
+      await prisma.siteAnnouncement.update({
+        where: { id: newestInactive.id },
+        data: { createdAt: new Date("2026-05-03T10:00:00Z") },
+      });
+      const newestActive = await createSiteAnnouncement({
+        message: "Nova aktivna",
+        isActive: true,
+      });
+      await prisma.siteAnnouncement.update({
+        where: { id: newestActive.id },
+        data: { createdAt: new Date("2026-05-02T10:00:00Z") },
+      });
+
+      const result = expectData(await callLoader(cookie));
+
+      expect(result.announcements.map((announcement) => announcement.message)).toEqual([
+        "Nova aktivna",
+        "Stara aktivna",
+        "Nova neaktivna",
+      ]);
+    });
   });
 
   describe("create", () => {
@@ -75,6 +123,34 @@ describe("site announcement action", () => {
         where: { message: "Nova aktivna poruka" },
       });
       expect(newRow?.isActive).toBe(true);
+    });
+
+    it("returns 400 with a field error when the message is empty", async () => {
+      const formData = new FormData();
+      formData.set("intent", "create");
+      formData.set("message", "   ");
+      withHoneypot(formData);
+
+      const result = await callAction(formData, cookie);
+
+      expect(statusOf(result)).toBe(400);
+      const body = payloadOf<ConformReply>(result);
+      expect(body.result.error.message?.[0]).toMatch(/obavezna/i);
+    });
+
+    it("invalidates the public active-announcement cache after saving", async () => {
+      await createSiteAnnouncement({ message: "Stara poruka", isActive: true });
+      await expect(getActiveAnnouncement()).resolves.toEqual({ message: "Stara poruka" });
+
+      const formData = new FormData();
+      formData.set("intent", "create");
+      formData.set("message", "Nova aktivna poruka");
+      formData.set("isActive", "on");
+      withHoneypot(formData);
+
+      await callAction(formData, cookie);
+
+      await expect(getActiveAnnouncement()).resolves.toEqual({ message: "Nova aktivna poruka" });
     });
   });
 

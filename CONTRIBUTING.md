@@ -122,12 +122,14 @@ Important details:
 
 ### Tests
 
-| Command               | What it does                                     |
-| --------------------- | ------------------------------------------------ |
-| `npm run test:run`    | Runs the Vitest suite once (unit + integration). |
-| `npm run test:cov`    | Runs Vitest with coverage.                       |
-| `npm run test:e2e`    | Runs Playwright end-to-end tests.                |
-| `npm run test:e2e:ui` | Runs Playwright in headed mode.                  |
+| Command                                   | What it does                                     |
+| ----------------------------------------- | ------------------------------------------------ |
+| `npm run test:run`                        | Runs the Vitest suite once (unit + integration). |
+| `npm test -- --run --project unit`        | Runs only unit tests.                            |
+| `npm test -- --run --project integration` | Runs only integration tests.                     |
+| `npm run test:cov`                        | Runs Vitest with coverage.                       |
+| `npm run test:e2e`                        | Runs Playwright end-to-end tests.                |
+| `npm run test:e2e:ui`                     | Runs Playwright in headed mode.                  |
 
 Before your first e2e run, install the Playwright browser once:
 
@@ -185,18 +187,31 @@ Common types:
 
 Choose tests based on the risk of the change:
 
-- Unit tests for pure helpers, formatting, validation, and small business rules.
+- Unit tests for pure helpers, formatting, validation, security checks, and small business rules.
 - Integration tests for Prisma, server actions, auth behavior, post visibility,
   and database-backed flows.
-- Playwright e2e tests for public browsing, admin publishing, auth, routing, and visible UI behavior.
+- Playwright e2e tests for public browsing, admin publishing, auth, routing, SEO,
+  uploads, editor flows, and visible UI behavior.
+
+Keep new tests under `tests/unit`, `tests/integration`, or `tests/e2e` unless
+there is a strong reason to colocate a tiny file-specific unit test next to
+source code. Current tests live in `tests/`.
 
 A few implementation details that help when debugging:
 
-- unit and integration tests run through Vitest
+- unit and integration tests run through Vitest projects
+- integration tests should use `tests/factories.ts` for database rows instead of
+  hand-written `prisma.create` setup when a factory exists
+- route integration tests should use `tests/helpers/route.ts` to call loaders
+  and actions, plus `tests/helpers/action-result.ts` for `data()`/`Response`
+  assertions
+- admin route tests can use `tests/helpers/auth.ts` to create an admin session
 - Playwright starts the app itself and points it at `prisma/e2e.db`
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
   and `DISABLE_RATE_LIMITING`
-- the e2e global setup seeds a deterministic admin user plus post fixtures
+- e2e fixture definitions live in `tests/e2e/fixtures/seed-data.ts`
+- e2e global setup reuses shared factories, then seeds a deterministic admin,
+  one announcement, and posts across all public post types
 
 Fast local verification before opening a PR:
 

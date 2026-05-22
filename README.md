@@ -42,7 +42,7 @@ app/
   styles/              Tailwind theme and global CSS
 prisma/                schema, migrations, seed script, and local SQLite files
 server/                Express entrypoint used by development and production server boot
-tests/                 unit, integration, e2e, and test factories
+tests/                 unit, integration, e2e, fixtures, factories, and test helpers
 scripts/               build orchestration and other repo scripts
 public/                static assets
 ```

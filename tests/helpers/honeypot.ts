@@ -3,11 +3,11 @@ import { vi } from "vitest";
 import { honeypotToken } from "#app/server/honeypot.server";
 
 /**
- * The honeypot's `assertHoneypot` requires the form to be at least
- * `MIN_AGE_MS` (500ms) old. Mocking that constant would mean reaching
- * into module internals; instead we issue the token a second in the
- * "past" with fake timers, then jump back to "now" before submitting.
- * That keeps real wall-clock waits out of the suite.
+   The honeypot's `assertHoneypot` requires the form to be at least
+   `MIN_AGE_MS` (500ms) old. Mocking that constant would mean reaching
+   into module internals; instead we issue the token a second in the
+   "past" with fake timers, then jump back to "now" before submitting.
+   That keeps real wall-clock waits out of the suite.
  */
 function freshHoneypotFields(): Record<string, string> {
   vi.useFakeTimers();
@@ -25,9 +25,9 @@ function freshHoneypotFields(): Record<string, string> {
 }
 
 /**
- * Mutate `formData` in place by appending the hidden honeypot fields
- * needed to pass `assertHoneypot`. Returns the same `formData` so the
- * call can chain inline (`callAction(..., { formData: withHoneypot(fd), ... })`).
+   Mutate `formData` in place by appending the hidden honeypot fields
+   needed to pass `assertHoneypot`. Returns the same `formData` so the
+   call can chain inline (`callAction(..., { formData: withHoneypot(fd), ... })`).
  */
 export function withHoneypot(formData: FormData): FormData {
   for (const [key, value] of Object.entries(freshHoneypotFields())) {

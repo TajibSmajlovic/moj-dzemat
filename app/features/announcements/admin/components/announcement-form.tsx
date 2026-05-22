@@ -17,7 +17,7 @@ type Props = {
   announcement: AnnouncementRow | null;
   lastResult: SubmissionResult<string[]> | null;
   submitting: boolean;
-  onCancel: () => void;
+  onCancel: VoidFunction;
 };
 
 export function AnnouncementForm({ announcement, lastResult, submitting, onCancel }: Props) {

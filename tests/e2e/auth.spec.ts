@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { ROUTES } from "../../app/lib/routes";
-import { POSTS_TITLES } from "./global-setup";
+import { POSTS_TITLES } from "./fixtures/seed-data";
 import { ADMIN_EMAIL, ADMIN_PASSWORD, loginAsAdmin } from "./utils/admin";
 import { resetPasswordViaDevInbox } from "./utils/reset-password";
 

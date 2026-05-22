@@ -15,7 +15,7 @@ import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
 import { ROUTES, adminPostHref, adminPostPreviewHref, postHref } from "#app/lib/routes";
-import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
+import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
@@ -24,15 +24,10 @@ import { redirectWithToast } from "#app/server/toast.server";
 import type { Route } from "./+types/admin.objave.$id_.pregled";
 
 export function meta({ data }: Route.MetaArgs) {
-  return [
-    {
-      title: formatPageTitle(
-        data?.post ? `Pregled: ${data.post.title}` : "Pregled objave",
-        "Admin",
-      ),
-    },
-    { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW },
-  ];
+  return buildNoindexMeta(
+    formatPageTitle(data?.post ? `Pregled: ${data.post.title}` : "Pregled objave", "Admin"),
+    ROBOTS_NOINDEX_NOFOLLOW,
+  );
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   getCurrentUser,
@@ -66,6 +66,25 @@ describe("auth.server", () => {
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.headers.get("Set-Cookie")).toMatch(/session=/i);
+      }
+    });
+
+    it("normalizes email casing before looking up credentials", async () => {
+      const { user } = await createUser({
+        email: "admin@dzemat.ba",
+        password: "hunter2pass1",
+      });
+      const result = await login({
+        request: makeRequest(),
+        email: "ADMIN@DZEMAT.BA",
+        password: "hunter2pass1",
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        const cookie = newSessionCookie(result.headers);
+        const session = await getSession(cookie);
+        expect(session.get("userId")).toBe(user.id);
       }
     });
 
@@ -139,14 +158,26 @@ describe("auth.server", () => {
       expect(result).toMatchObject({ id: user.id, email: user.email });
     });
 
-    it("returns null (and logs a warning) when the session points at a deleted user", async () => {
+    it("memoizes the user lookup for repeated calls with the same Request", async () => {
+      const { user } = await createUser({ password: "hunter2pass1" });
+      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const request = authedRequest(cookie);
+      const findUnique = vi.spyOn(prisma.user, "findUnique");
+
+      const first = await getCurrentUser(request);
+      const second = await getCurrentUser(request);
+
+      expect(first).toMatchObject({ id: user.id, email: user.email });
+      expect(second).toBe(first);
+      expect(findUnique).toHaveBeenCalledTimes(1);
+    });
+
+    it("returns null when the cookie points at a deleted session row", async () => {
       const { user } = await createUser({ password: "hunter2pass1" });
       const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
 
-      // Deleting the user cascades the Session row, so to exercise the
-      // "session referenced missing user" branch we drop the user but
-      // keep the session id by re-creating an orphaned row pointing at
-      // a non-existent user id.
+      // Deleting the user cascades the Session row, leaving the browser
+      // with a cookie whose server-side session no longer exists.
       await prisma.session.deleteMany({ where: { userId: user.id } });
       await prisma.user.delete({ where: { id: user.id } });
 

@@ -9,10 +9,11 @@ import {
 import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
-import { callAction as runAction, callLoader as runLoader } from "../helpers/route";
+import { expectData } from "../helpers/action-result";
+import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = `http://localhost${ROUTES.adminPosts}`;
+const ENDPOINT = testUrl(ROUTES.adminPosts);
 
 const callLoader = (url: string, cookie: string) => runLoader(adminPostsLoader, { url, cookie });
 
@@ -39,12 +40,6 @@ async function createOrderedPosts(authorId: string, count: number) {
   return posts;
 }
 
-function expectLoaderData(result: Awaited<ReturnType<typeof adminPostsLoader>>) {
-  expect(result).not.toBeInstanceOf(Response);
-
-  return result as Exclude<Awaited<ReturnType<typeof adminPostsLoader>>, Response>;
-}
-
 describe("admin posts list route", () => {
   let userId: string;
   let cookie: string;
@@ -67,7 +62,7 @@ describe("admin posts list route", () => {
       });
       await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE);
 
-      const result = expectLoaderData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, cookie));
 
       expect(result.pagination).toMatchObject({
         page: 1,
@@ -91,7 +86,7 @@ describe("admin posts list route", () => {
         status: "draft",
       });
 
-      const result = expectLoaderData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, cookie));
 
       expect(result.posts).toHaveLength(1);
       expect(result.posts[0]).toMatchObject({ title: "Sakriven nacrt", status: "draft" });
@@ -101,7 +96,7 @@ describe("admin posts list route", () => {
       const totalItems = ADMIN_POSTS_PAGE_SIZE + 5;
       await createOrderedPosts(userId, totalItems);
 
-      const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`, cookie));
+      const result = expectData(await callLoader(`${ENDPOINT}?page=2`, cookie));
 
       expect(result.pagination).toMatchObject({
         page: 2,
@@ -123,7 +118,7 @@ describe("admin posts list route", () => {
     it("treats invalid page params as page 1", async () => {
       await createOrderedPosts(userId, 3);
 
-      const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=banana`, cookie));
+      const result = expectData(await callLoader(`${ENDPOINT}?page=banana`, cookie));
 
       expect(result.pagination.page).toBe(1);
       expect(result.posts.map((post) => post.title)).toEqual(["Objava 1", "Objava 2", "Objava 3"]);
@@ -140,7 +135,7 @@ describe("admin posts list route", () => {
     });
 
     it("returns empty results and safe pagination metadata when there are no posts", async () => {
-      const result = expectLoaderData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, cookie));
 
       expect(result.posts).toEqual([]);
       expect(result.pagination).toMatchObject({
@@ -208,7 +203,7 @@ describe("admin posts list route", () => {
       const posts = await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 1);
       const target = posts.at(-1)!;
 
-      const beforeDelete = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`, cookie));
+      const beforeDelete = expectData(await callLoader(`${ENDPOINT}?page=2`, cookie));
       expect(beforeDelete.posts.map((post) => post.id)).toEqual([target.id]);
 
       const formData = new FormData();

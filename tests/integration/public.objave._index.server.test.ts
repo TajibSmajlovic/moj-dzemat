@@ -6,19 +6,12 @@ import { ROUTES, postsArchiveHref } from "#app/lib/routes";
 import { loader as objaveLoader } from "#app/routes/_public.objave._index";
 
 import { createPost } from "../factories";
-import { callLoader as runLoader } from "../helpers/route";
+import { expectData } from "../helpers/action-result";
+import { callLoader as runLoader, testUrl } from "../helpers/route";
 
-const ENDPOINT = `http://localhost${ROUTES.posts}`;
+const ENDPOINT = testUrl(ROUTES.posts);
 
 const callLoader = (url: string) => runLoader(objaveLoader, { url });
-
-type LoaderResult = Awaited<ReturnType<typeof objaveLoader>>;
-
-function expectLoaderData(result: LoaderResult) {
-  expect(result).not.toBeInstanceOf(Response);
-
-  return result as Exclude<LoaderResult, Response>;
-}
 
 async function createOrderedPosts({
   count,
@@ -55,7 +48,7 @@ describe("public objave index route", () => {
       status: "draft",
     });
 
-    const result = expectLoaderData(await callLoader(ENDPOINT));
+    const result = expectData(await callLoader(ENDPOINT));
 
     expect(result.activeType).toBe("all");
     expect(result.pagination).toMatchObject({
@@ -76,7 +69,7 @@ describe("public objave index route", () => {
     const totalItems = PUBLIC_POSTS_PAGE_SIZE * 2 + 5;
     await createOrderedPosts({ count: totalItems });
 
-    const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=2`));
+    const result = expectData(await callLoader(`${ENDPOINT}?page=2`));
 
     expect(result.pagination).toMatchObject({
       page: 2,
@@ -94,7 +87,7 @@ describe("public objave index route", () => {
   it("resets invalid page params to the first batch", async () => {
     await createOrderedPosts({ count: 3 });
 
-    const result = expectLoaderData(await callLoader(`${ENDPOINT}?page=banana`));
+    const result = expectData(await callLoader(`${ENDPOINT}?page=banana`));
 
     expect(result.pagination.page).toBe(1);
     expect(result.posts.map((post) => post.title)).toEqual(["Objava 1", "Objava 2", "Objava 3"]);
@@ -115,7 +108,7 @@ describe("public objave index route", () => {
       slugPrefix: "sergija",
     });
 
-    const result = expectLoaderData(await callLoader(`${ENDPOINT}?vrsta=hutba&page=2`));
+    const result = expectData(await callLoader(`${ENDPOINT}?vrsta=hutba&page=2`));
 
     expect(result.activeType).toBe("hutba");
     expect(result.pagination).toMatchObject({
@@ -129,6 +122,29 @@ describe("public objave index route", () => {
     expect(result.posts).toHaveLength(hutbaCount);
     expect(result.posts[0]?.title).toBe("Hutba 1");
     expect(result.posts.at(-1)?.title).toBe(`Hutba ${hutbaCount}`);
+  });
+
+  it("falls back to all posts when the category filter is unknown", async () => {
+    await createOrderedPosts({
+      count: 2,
+      type: "hutba",
+      titlePrefix: "Hutba",
+      slugPrefix: "hutba",
+    });
+    await createOrderedPosts({
+      count: 2,
+      type: "sergija",
+      titlePrefix: "Sergija",
+      slugPrefix: "sergija",
+    });
+
+    const result = expectData(await callLoader(`${ENDPOINT}?vrsta=banana`));
+
+    expect(result.activeType).toBe("all");
+    expect(result.pagination.totalItems).toBe(4);
+    expect(new Set(result.posts.map((post) => post.title))).toEqual(
+      new Set(["Hutba 1", "Hutba 2", "Sergija 1", "Sergija 2"]),
+    );
   });
 
   it("redirects filtered out-of-range pages to the last valid batch", async () => {
