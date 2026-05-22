@@ -11,12 +11,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#app/components/ui/carousel";
+import { PostArticleJsonLd } from "#app/features/posts/components/post-article-json-ld";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
-import { POST_TYPE_LABEL, type PostTypeValue } from "#app/features/posts/post-type";
+import type { PostTypeValue } from "#app/features/posts/post-type";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { motionTransitions } from "#app/lib/motion";
-import { absoluteUrl, postHref, postImageHref } from "#app/lib/routes";
-import { jsonLdScriptContent } from "#app/lib/seo";
+import { postImageHref } from "#app/lib/routes";
 
 type PostDetailImage = {
   id: string;
@@ -54,40 +54,15 @@ export function PostDetailArticle({
   // `body` is stored already sanitised by `sanitizePostBody` at write
   // time, so the renderer trusts the value as-is.
   const bodyHtml = post.body;
-  const canonical = siteUrl ? absoluteUrl(siteUrl, postHref(post.slug)) : null;
-  const structuredDataSiteUrl = showStructuredData && siteUrl ? siteUrl : null;
-  const jsonLd =
-    structuredDataSiteUrl && canonical
-      ? {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: post.title,
-          datePublished: toIsoDate(post.publishedAt),
-          dateModified: toIsoDate(post.updatedAt),
-          inLanguage: "bs-BA",
-          mainEntityOfPage: canonical,
-          articleSection: POST_TYPE_LABEL[post.type],
-          image: post.images.map((image) =>
-            absoluteUrl(structuredDataSiteUrl, postImageHref(image.id)),
-          ),
-          publisher: {
-            "@type": "Organization",
-            name: siteName,
-            url: structuredDataSiteUrl,
-          },
-        }
-      : null;
 
   return (
     <>
-      {jsonLd ? (
-        <script
-          type="application/ld+json"
-          // Safe: payload is built from trusted DB fields and `jsonLdScriptContent`
-          // escapes `</` to prevent accidental early-close of the script tag.
-          dangerouslySetInnerHTML={{ __html: jsonLdScriptContent(jsonLd) }}
-        />
-      ) : null}
+      <PostArticleJsonLd
+        enabled={showStructuredData}
+        post={post}
+        siteName={siteName}
+        siteUrl={siteUrl}
+      />
 
       <article>
         <h1 className="font-display text-foreground mt-3 mb-3 text-2xl leading-[1.16] font-bold text-balance sm:mt-2 sm:mb-2 sm:text-4xl sm:leading-tight">
@@ -111,7 +86,9 @@ export function PostDetailArticle({
           </div>
         </div>
 
-        {post.images.length > 0 && <PostImagesCarousel images={post.images} />}
+        {post.images.length > 0 && (
+          <PostImagesCarousel images={post.images} fallbackAlt={post.title} />
+        )}
 
         <div className="bg-border mb-8 h-px" />
 
@@ -124,7 +101,13 @@ export function PostDetailArticle({
   );
 }
 
-const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
+const PostImagesCarousel = ({
+  images,
+  fallbackAlt,
+}: {
+  images: PostDetailImage[];
+  fallbackAlt: string;
+}) => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const showPrevious = () => {
@@ -144,12 +127,19 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
   if (images.length === 1 && images[0])
     return (
       <div className="mb-8">
-        <ExpandableImage image={images[0]} index={0} onOpen={setLightboxIndex} priority />
+        <ExpandableImage
+          image={images[0]}
+          index={0}
+          fallbackAlt={fallbackAlt}
+          onOpen={setLightboxIndex}
+          priority
+        />
         <AnimatePresence>
           {lightboxIndex === null ? null : (
             <ImageLightbox
               images={images}
               activeIndex={lightboxIndex}
+              fallbackAlt={fallbackAlt}
               onClose={() => setLightboxIndex(null)}
               onPrevious={showPrevious}
               onNext={showNext}
@@ -168,6 +158,7 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
               <ExpandableImage
                 image={image}
                 index={index}
+                fallbackAlt={fallbackAlt}
                 onOpen={setLightboxIndex}
                 priority={index === 0}
               />
@@ -183,6 +174,7 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
           <ImageLightbox
             images={images}
             activeIndex={lightboxIndex}
+            fallbackAlt={fallbackAlt}
             onClose={() => setLightboxIndex(null)}
             onPrevious={showPrevious}
             onNext={showNext}
@@ -196,11 +188,13 @@ const PostImagesCarousel = ({ images }: { images: PostDetailImage[] }) => {
 function ExpandableImage({
   image,
   index,
+  fallbackAlt,
   onOpen,
   priority = false,
 }: {
   image: PostDetailImage;
   index: number;
+  fallbackAlt: string;
   onOpen: (index: number) => void;
   priority?: boolean;
 }) {
@@ -217,7 +211,7 @@ function ExpandableImage({
     >
       <img
         src={postImageHref(image.id)}
-        alt={image.altText ?? ""}
+        alt={formatImageAlt(image, index, fallbackAlt)}
         width={image.width ?? undefined}
         height={image.height ?? undefined}
         loading={priority ? "eager" : "lazy"}
@@ -239,15 +233,17 @@ function ExpandableImage({
 function ImageLightbox({
   images,
   activeIndex,
+  fallbackAlt,
   onClose,
   onPrevious,
   onNext,
 }: {
   images: PostDetailImage[];
   activeIndex: number;
-  onClose: () => void;
-  onPrevious: () => void;
-  onNext: () => void;
+  fallbackAlt: string;
+  onClose: VoidFunction;
+  onPrevious: VoidFunction;
+  onNext: VoidFunction;
 }) {
   const image = images[activeIndex];
   const canNavigate = images.length > 1;
@@ -308,7 +304,7 @@ function ImageLightbox({
         <motion.img
           key={image.id}
           src={postImageHref(image.id)}
-          alt={image.altText ?? ""}
+          alt={formatImageAlt(image, activeIndex, fallbackAlt)}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={motionTransitions.lightbox}
@@ -333,6 +329,14 @@ function ImageLightbox({
   );
 }
 
+function formatImageAlt(image: PostDetailImage, index: number, fallbackAlt: string) {
+  const normalizedAlt = image.altText?.trim();
+  if (normalizedAlt) return normalizedAlt;
+
+  const normalizedFallback = fallbackAlt.trim();
+  return normalizedFallback ? `${normalizedFallback} - slika ${index + 1}` : "";
+}
+
 function LightboxNavButton({
   label,
   direction,
@@ -340,7 +344,7 @@ function LightboxNavButton({
 }: {
   label: string;
   direction: "previous" | "next";
-  onClick: () => void;
+  onClick: VoidFunction;
 }) {
   const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
 

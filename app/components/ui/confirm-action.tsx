@@ -31,7 +31,7 @@ type ConfirmActionProps = {
     }
   | {
       form?: never;
-      onConfirm: () => void;
+      onConfirm: VoidFunction;
     }
 );
 

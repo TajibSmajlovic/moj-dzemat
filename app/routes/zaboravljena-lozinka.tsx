@@ -17,7 +17,7 @@ import { signResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
 import { ROUTES, absoluteUrl, passwordResetHref } from "#app/lib/routes";
-import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { sendEmail } from "#app/server/email.server";
 import { env } from "#app/server/env.server";
@@ -32,10 +32,7 @@ const ForgotSchema = z.object({
 });
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)) },
-    { name: "robots", content: ROBOTS_NOINDEX },
-  ];
+  return buildNoindexMeta(formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)));
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

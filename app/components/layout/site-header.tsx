@@ -110,7 +110,7 @@ function SiteHeaderContent({
   );
 }
 
-function BrandLink({ onClick, siteName }: { onClick?: () => void; siteName: string }) {
+function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: string }) {
   const { brandName, dzematName } = getSiteNameParts(siteName);
 
   return (
@@ -241,7 +241,7 @@ function MobileNavigation({
 }: {
   id: string;
   items: HeaderNavItem[];
-  onNavigate: () => void;
+  onNavigate: VoidFunction;
   open: boolean;
   pathname: string;
 }) {
@@ -294,7 +294,7 @@ function MobileNavItem({
 }: {
   index: number;
   item: InternalNavItem;
-  onNavigate: () => void;
+  onNavigate: VoidFunction;
   open: boolean;
   pathname: string;
 }) {
@@ -328,7 +328,7 @@ function MobileSocialLink({
 }: {
   index: number;
   item: ExternalNavItem;
-  onNavigate: () => void;
+  onNavigate: VoidFunction;
   open: boolean;
 }) {
   return (

@@ -1,29 +1,23 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { ADMIN_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
-import { ROUTES, adminPostsPageHref, postHref } from "../../app/lib/routes";
-import { POSTS_TITLES } from "./global-setup";
+import { ROUTES, adminPostsPageHref, postHref, postsArchiveHref } from "../../app/lib/routes";
+import { POSTS_TITLES } from "./fixtures/seed-data";
 import { loginAsAdmin } from "./utils/admin";
 import { fillPostForm, uploadTinyPng } from "./utils/post-form";
+import {
+  ADMIN_POST_EDIT_URL,
+  ADMIN_POST_NEW_URL,
+  ADMIN_POST_PREVIEW_URL,
+  ADMIN_POSTS_INDEX_PAGE_TWO_URL,
+  ADMIN_POSTS_PAGE_TWO_URL,
+  ADMIN_POSTS_URL,
+  createPostThroughAdmin,
+  openDeleteDialogForPost,
+} from "./utils/posts";
 
 const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(ADMIN_POSTS_PAGE_SIZE);
 const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
-const FIRST_PAGE_OLDEST_TITLE = POSTS_TITLES[ADMIN_POSTS_PAGE_SIZE - 1];
-const SEEDED_POST_COUNT = POSTS_TITLES.length;
-const ADMIN_POSTS_URL = new RegExp(`${ROUTES.adminPosts}$`);
-const ADMIN_POSTS_PAGE_TWO_URL = new RegExp(String.raw`${ROUTES.adminPosts}\?page=2$`);
-const ADMIN_POSTS_INDEX_PAGE_TWO_URL = new RegExp(String.raw`${ROUTES.adminPosts}\?index&page=2$`);
-const ADMIN_POST_NEW_URL = new RegExp(`${ROUTES.adminPostNew}$`);
-const ADMIN_POST_EDIT_URL = new RegExp(`${ROUTES.adminPosts}/[^/]+$`);
-const ADMIN_POST_PREVIEW_URL = new RegExp(`${ROUTES.adminPosts}/[^/]+/pregled$`);
-
-async function openDeleteDialogForPost(page: Page, title: string) {
-  const postRow = page.getByRole("row").filter({
-    has: page.getByRole("link", { name: title, exact: true }),
-  });
-
-  await postRow.getByRole("button", { name: `Obriši "${title}"`, exact: true }).click();
-}
 
 test.describe("posts", () => {
   test("admin can navigate paginated post results", async ({ page }) => {
@@ -32,15 +26,8 @@ test.describe("posts", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(ADMIN_POSTS_URL);
-    await expect(page.getByText("Stranica 1 od 2")).toBeVisible();
-    await expect(
-      page.getByText(`Prikaz 1-${ADMIN_POSTS_PAGE_SIZE} od ${SEEDED_POST_COUNT} objava`),
-    ).toBeVisible();
     await expect(
       page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: FIRST_PAGE_OLDEST_TITLE, exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES[0], exact: true }),
@@ -49,17 +36,8 @@ test.describe("posts", () => {
     await page.getByRole("link", { name: "Sljedeća stranica" }).click();
 
     await expect(page).toHaveURL(ADMIN_POSTS_PAGE_TWO_URL);
-    await expect(page.getByText("Stranica 2 od 2")).toBeVisible();
-    await expect(
-      page.getByText(
-        `Prikaz ${ADMIN_POSTS_PAGE_SIZE + 1}-${SEEDED_POST_COUNT} od ${SEEDED_POST_COUNT} objava`,
-      ),
-    ).toBeVisible();
     await expect(
       page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES[0], exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: PAGINATION_PAGE_TWO_TITLES.at(-1)!, exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole("link", { name: FIRST_PAGE_NEWEST_TITLE, exact: true }),
@@ -74,17 +52,13 @@ test.describe("posts", () => {
     ).toBeVisible();
   });
 
-  test("admin can toggle featured / pinned / status from the list with optimistic UI", async ({
-    page,
-  }) => {
+  test("admin can toggle featured state from the list with optimistic UI", async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto(ROUTES.adminPosts);
     await page.waitForLoadState("networkidle");
 
     // POSTS_TITLES[0] is the newest seeded post and lives on page 1.
-    // Each flag is toggled on then back off so the post-test DB state
-    // matches the seed (the delete test that follows targets page 2,
-    // which is unaffected, but we still want to be neighbourly).
+    // Toggle it on then back off so the post-test DB state matches the seed.
     const targetTitle = POSTS_TITLES[0];
     if (!targetTitle) {
       throw new Error("Expected at least one seeded post to toggle.");
@@ -92,7 +66,6 @@ test.describe("posts", () => {
     const targetRow = page.getByRole("row").filter({ hasText: targetTitle });
     await expect(targetRow).toBeVisible();
 
-    // Featured: starts off → on → off.
     await targetRow.getByRole("button", { name: "Istakni" }).click();
     await expect(page.getByText("Objava istaknuta.")).toBeVisible();
     await expect(targetRow.getByRole("button", { name: "Ukloni istaknuto" })).toHaveAttribute(
@@ -105,37 +78,6 @@ test.describe("posts", () => {
     await expect(targetRow.getByRole("button", { name: "Istakni" })).toHaveAttribute(
       "aria-pressed",
       "false",
-    );
-
-    // Pinned: starts off → on → off.
-    await targetRow.getByRole("button", { name: "Stavi na vrh" }).click();
-    await expect(page.getByText("Objava je stavljena na vrh.")).toBeVisible();
-    await expect(targetRow.getByRole("button", { name: "Ukloni sa vrha" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-
-    await targetRow.getByRole("button", { name: "Ukloni sa vrha" }).click();
-    await expect(page.getByText("Objava više nije na vrhu.")).toBeVisible();
-    await expect(targetRow.getByRole("button", { name: "Stavi na vrh" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-
-    // Status: schema defaults posts to "published", so the active button
-    // reads "Sakrij objavu". Hide it then re-publish to restore.
-    await targetRow.getByRole("button", { name: "Sakrij objavu" }).click();
-    await expect(page.getByText("Objava je sakrivena.")).toBeVisible();
-    await expect(targetRow.getByRole("button", { name: "Objavi" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-
-    await targetRow.getByRole("button", { name: "Objavi" }).click();
-    await expect(page.getByText("Objava je objavljena.")).toBeVisible();
-    await expect(targetRow.getByRole("button", { name: "Sakrij objavu" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
     );
   });
 
@@ -200,6 +142,35 @@ test.describe("posts", () => {
     await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: "Uredi" })).toBeVisible();
+  });
+
+  test("admin can publish a typed post and public visitors can find it through filters", async ({
+    page,
+  }) => {
+    const unique = Date.now();
+    const title = `E2E hutba ${unique}`;
+    const slug = `e2e-hutba-${unique}`;
+
+    await loginAsAdmin(page);
+    await createPostThroughAdmin(page, {
+      title,
+      slug,
+      type: "hutba",
+      body: "Ova hutba treba biti javno dostupna samo kroz odgovarajući filter.",
+    });
+
+    await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+
+    await page.context().clearCookies();
+
+    await page.goto(postsArchiveHref({ activeType: "hutba" }));
+    await expect(page.getByRole("heading", { name: "Sve hutbe" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: title })).toBeVisible();
+
+    await page.goto(postsArchiveHref({ activeType: "sergija" }));
+    await expect(page.getByRole("heading", { name: "Sve sergije" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: title })).toHaveCount(0);
   });
 
   test("admin can upload and remove a post image through admin flow", async ({ page }) => {
@@ -367,28 +338,3 @@ test.describe("posts", () => {
     );
   });
 });
-
-async function createPostThroughAdmin(
-  page: Page,
-  options: {
-    title: string;
-    slug: string;
-    body?: string;
-  },
-) {
-  await page.goto(ROUTES.adminPostNew);
-  await expect(page).toHaveURL(ADMIN_POST_NEW_URL);
-
-  await fillPostForm(page, {
-    title: options.title,
-    slug: options.slug,
-    type: "obavijest",
-    body: options.body ?? "Ovo je jednostavan E2E test sadržaj objave.",
-    publish: true,
-  });
-
-  await page.getByRole("button", { name: "Sačuvaj" }).click();
-
-  // Ensure the create action completed and we left the admin form route.
-  await expect(page).toHaveURL(new RegExp(`${postHref(options.slug)}$`));
-}

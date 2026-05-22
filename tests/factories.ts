@@ -11,9 +11,9 @@ function unique(prefix: string) {
 }
 
 /**
- * Test factories. Each returns the inserted row (or the row + extras we
- * produced along the way, like the plaintext password). Values are
- * realistic enough to satisfy Zod validation on any shared code paths.
+   Test factories. Each returns the inserted row (or the row + extras we
+   produced along the way, like the plaintext password). Values are
+   realistic enough to satisfy Zod validation on any shared code paths.
  */
 
 type CreateUserOptions = {
@@ -27,7 +27,7 @@ export async function createUser(options: CreateUserOptions = {}) {
   const name = options.name ?? "Admin";
   const user = await prisma.user.create({ data: { email, name } });
 
-  const password = options.password ?? "testtest123";
+  const password = options.password === undefined ? "testtest123" : options.password;
   if (password !== null) {
     const hash = await bcrypt.hash(password, 4);
     await prisma.password.create({ data: { userId: user.id, hash } });

@@ -9,12 +9,12 @@ import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROUTES } from "#app/lib/routes";
-import { ROBOTS_NOINDEX_NOFOLLOW } from "#app/lib/seo";
+import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 
 import type { Route } from "./+types/admin.objave.nova";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Nova objava · Admin" }, { name: "robots", content: ROBOTS_NOINDEX_NOFOLLOW }];
+  return buildNoindexMeta("Nova objava · Admin", ROBOTS_NOINDEX_NOFOLLOW);
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

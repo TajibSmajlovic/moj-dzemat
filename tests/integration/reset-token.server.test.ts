@@ -24,6 +24,18 @@ describe("reset-token.server", () => {
     if (result.ok) expect(result.userId).toBe(user.id);
   });
 
+  it("verifies a fresh token for an existing user that has not set a password yet", async () => {
+    const { user } = await createUser({ password: null });
+    const token = await signResetToken({
+      userId: user.id,
+      passwordUpdatedAt: null,
+    });
+
+    const result = await verifyResetToken(token);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.userId).toBe(user.id);
+  });
+
   it("rejects when the password hash has changed (supersession)", async () => {
     const { user } = await createUser();
     const row = await prisma.password.findUnique({

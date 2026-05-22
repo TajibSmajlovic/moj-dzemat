@@ -1,7 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 import { ROUTES, postHref } from "../../app/lib/routes";
-import { POSTS_TITLES } from "./global-setup";
+import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-data";
+
+function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {
+  const post = SEEDED_POSTS.find((seededPost) => seededPost.type === type);
+  if (!post) throw new Error(`Expected a seeded ${type} post.`);
+
+  return post;
+}
 
 test.describe("public", () => {
   test("home renders seeded posts and the announcement bar", async ({ page }) => {
@@ -68,15 +75,27 @@ test.describe("public", () => {
   });
 
   test("filter query string scopes the feed", async ({ page }) => {
+    const firstObavijest = seededPostOfType("obavijest");
+    const firstHutba = seededPostOfType("hutba");
+    const firstSmrtovnica = seededPostOfType("smrtovnica");
+
     await page.goto(`${ROUTES.home}?vrsta=hutba`);
-    await expect(page.getByText("Nema objava u ovoj kategoriji.")).toBeVisible();
+    await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 3, name: firstHutba.title })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: firstObavijest.title })).toHaveCount(
+      0,
+    );
 
     await page.goto(`${ROUTES.home}?vrsta=smrtovnica`);
-    await expect(page.getByText("Nema objava u ovoj kategoriji.")).toBeVisible();
+    await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { level: 3, name: firstSmrtovnica.title }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: firstHutba.title })).toHaveCount(0);
 
     await page.goto(`${ROUTES.home}?vrsta=obavijest`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
-    await expect(page.getByRole("heading", { level: 3, name: POSTS_TITLES[0] })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 3, name: firstObavijest.title })).toBeVisible();
   });
 
   test("unknown post returns a 404 with the branded ErrorBoundary", async ({ page }) => {

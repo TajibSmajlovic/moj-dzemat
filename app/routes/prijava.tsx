@@ -16,7 +16,7 @@ import { getCurrentUser, login } from "#app/features/auth/auth.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
 import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
-import { ROBOTS_NOINDEX } from "#app/lib/seo";
+import { buildNoindexMeta } from "#app/lib/seo";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
 import { getClientIp, loginLimiter } from "#app/server/rate-limit.server";
@@ -30,10 +30,7 @@ const LoginSchema = z.object({
 });
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [
-    { title: formatPageTitle("Prijava", getRootSiteName(matches)) },
-    { name: "robots", content: ROBOTS_NOINDEX },
-  ];
+  return buildNoindexMeta(formatPageTitle("Prijava", getRootSiteName(matches)));
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

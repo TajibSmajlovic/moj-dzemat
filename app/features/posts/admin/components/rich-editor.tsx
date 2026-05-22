@@ -130,7 +130,7 @@ export function RichEditor({
 
 type ToolbarProps = {
   editor: ReturnType<typeof useEditor> & {};
-  onSetLink: () => void;
+  onSetLink: VoidFunction;
 };
 
 function Toolbar({ editor, onSetLink }: ToolbarProps) {
@@ -293,7 +293,7 @@ function Divider() {
 type ToolbarButtonProps = {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  onPress: () => void;
+  onPress: VoidFunction;
   active?: boolean;
   disabled?: boolean;
 };

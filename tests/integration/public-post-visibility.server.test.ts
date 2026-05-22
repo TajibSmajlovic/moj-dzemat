@@ -103,6 +103,45 @@ describe("public post visibility", () => {
     expect(body).not.toContain(postHref("sakriven-nacrt"));
   });
 
+  it("includes only published post images in the image sitemap", async () => {
+    const { user } = await createUser();
+    const published = await createPost({
+      authorId: user.id,
+      slug: "javna-objava-sa-slikom",
+      status: "published",
+    });
+    const draft = await createPost({
+      authorId: user.id,
+      slug: "sakriven-nacrt-sa-slikom",
+      status: "draft",
+    });
+    const publishedImage = await prisma.postImage.create({
+      data: {
+        postId: published.id,
+        contentType: "image/webp",
+        data: Buffer.from([1, 2, 3]),
+        byteSize: 3,
+      },
+    });
+    const draftImage = await prisma.postImage.create({
+      data: {
+        postId: draft.id,
+        contentType: "image/webp",
+        data: Buffer.from([1, 2, 3]),
+        byteSize: 3,
+      },
+    });
+
+    const response = await sitemapLoader();
+    const body = await response.text();
+
+    expect(body).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"');
+    expect(body).toContain(postHref("javna-objava-sa-slikom"));
+    expect(body).toContain(`/slike/${publishedImage.id}`);
+    expect(body).not.toContain(postHref("sakriven-nacrt-sa-slikom"));
+    expect(body).not.toContain(draftImage.id);
+  });
+
   it("does not serve draft images publicly", async () => {
     const { user } = await createUser();
     const draft = await createPost({ authorId: user.id, status: "draft" });

@@ -88,7 +88,7 @@ function commitThemePreference(theme: ThemePreference) {
 
   const startViewTransition = (
     document as Document & {
-      startViewTransition?: (callback: () => void) => unknown;
+      startViewTransition?: (callback: VoidFunction) => unknown;
     }
   ).startViewTransition;
 
@@ -100,7 +100,7 @@ function commitThemePreference(theme: ThemePreference) {
   apply();
 }
 
-function subscribeToThemePreference(onChange: () => void) {
+function subscribeToThemePreference(onChange: VoidFunction) {
   if (globalThis.window === undefined) return () => undefined;
 
   globalThis.addEventListener(THEME_CHANGE_EVENT, onChange);

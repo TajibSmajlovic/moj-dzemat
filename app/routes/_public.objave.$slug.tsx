@@ -3,20 +3,15 @@ import { Link, useRouteLoaderData } from "react-router";
 import { Pencil } from "lucide-react";
 
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
+import { BreadcrumbListJsonLd } from "#app/components/seo/breadcrumb-list-json-ld";
 import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { ShareButton } from "#app/features/posts/components/share-button";
-import { plainExcerpt } from "#app/features/posts/post-excerpt";
+import { buildPostPageMeta } from "#app/features/posts/post-seo";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES, absoluteUrl, adminPostHref, postHref, postImageHref } from "#app/lib/routes";
-import {
-  THEME_COLOR,
-  buildSocialMeta,
-  formatDefaultSocialImageAlt,
-  getDefaultSocialImageUrl,
-} from "#app/lib/seo";
+import { ROUTES, absoluteUrl, adminPostHref, postHref } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
@@ -54,33 +49,7 @@ export function meta({ data, matches }: Route.MetaArgs) {
   }
 
   const { post, siteUrl } = data;
-  const description = plainExcerpt(post.body);
-  const canonical = absoluteUrl(siteUrl, postHref(post.slug));
-  const primaryImage = post.images[0];
-  const imageUrl = primaryImage
-    ? absoluteUrl(siteUrl, postImageHref(primaryImage.id))
-    : getDefaultSocialImageUrl(siteUrl);
-  const imageAlt =
-    primaryImage?.altText ?? (primaryImage ? post.title : formatDefaultSocialImageAlt(siteName));
-
-  return [
-    { title: formatPageTitle(post.title, siteName) },
-    { name: "description", content: description },
-    { name: "theme-color", content: THEME_COLOR },
-    { property: "og:type", content: "article" },
-    { property: "og:site_name", content: siteName },
-    { property: "og:locale", content: "bs_BA" },
-    { property: "og:url", content: canonical },
-    ...buildSocialMeta({
-      title: post.title,
-      description,
-      imageUrl,
-      imageAlt,
-      imageWidth: primaryImage?.width,
-      imageHeight: primaryImage?.height,
-    }),
-    { tagName: "link", rel: "canonical", href: canonical },
-  ];
+  return buildPostPageMeta({ post, siteName, siteUrl });
 }
 
 export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
@@ -114,6 +83,14 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
         siteUrl={siteUrl}
         showPinnedBadge={isAdminLoggedIn}
         showStructuredData
+      />
+
+      <BreadcrumbListJsonLd
+        items={[
+          { name: "Početna", url: absoluteUrl(siteUrl, ROUTES.home) },
+          { name: "Objave", url: absoluteUrl(siteUrl, ROUTES.posts) },
+          { name: post.title, url: absoluteUrl(siteUrl, postHref(post.slug)) },
+        ]}
       />
     </main>
   );
