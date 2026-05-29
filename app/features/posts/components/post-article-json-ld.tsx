@@ -1,8 +1,9 @@
 import { JsonLdScript } from "#app/components/seo/json-ld-script";
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/features/posts/post-type";
 import { toIsoDate } from "#app/lib/date";
-import { absoluteUrl, postHref, postImageHref } from "#app/lib/routes";
+import { absoluteUrl } from "#app/lib/routes";
 
 type PostArticleJsonLdImage = {
   id: string;

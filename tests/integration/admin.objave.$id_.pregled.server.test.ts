@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
-import { adminPostPreviewHref } from "#app/lib/routes";
+import { adminPostPreviewHref } from "#app/features/posts/post-routes";
 import {
   action as previewAction,
   loader as previewLoader,

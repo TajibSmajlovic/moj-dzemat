@@ -5,11 +5,11 @@ import { motion } from "motion/react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { cardReveal } from "#app/lib/motion";
-import { postHref, postImageHref } from "#app/lib/routes";
 import { shareOnFacebook } from "#app/lib/share";
 
 export type PostCardData = {

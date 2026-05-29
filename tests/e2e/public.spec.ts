@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { ROUTES, postHref } from "../../app/lib/routes";
+import { postHref } from "../../app/features/posts/post-routes";
+import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-data";
 
 function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {

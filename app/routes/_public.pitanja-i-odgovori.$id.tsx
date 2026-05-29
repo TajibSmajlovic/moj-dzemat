@@ -3,11 +3,12 @@ import { SegmentErrorBoundary } from "#app/components/layout/segment-error-bound
 import { BreadcrumbListJsonLd } from "#app/components/seo/breadcrumb-list-json-ld";
 import { BackLink } from "#app/components/ui/back-link";
 import { QaDetailArticle } from "#app/features/qa/components/qa-detail-article";
+import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { qaExcerpt } from "#app/features/qa/qa-seo";
 import { getPublicQuestionById, getRelatedPublicQuestions } from "#app/features/qa/qa.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES, absoluteUrl, qaQuestionHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   buildPublicPageMeta,

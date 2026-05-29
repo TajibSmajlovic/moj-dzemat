@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ROUTES, postHref } from "../../app/lib/routes";
+import { postHref } from "../../app/features/posts/post-routes";
+import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./fixtures/seed-data";
 
 type JsonLdObject = {

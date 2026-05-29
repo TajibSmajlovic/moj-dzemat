@@ -13,10 +13,10 @@ import {
 } from "#app/components/ui/carousel";
 import { PostArticleJsonLd } from "#app/features/posts/components/post-article-json-ld";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
+import { postImageHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { motionTransitions } from "#app/lib/motion";
-import { postImageHref } from "#app/lib/routes";
 
 type PostDetailImage = {
   id: string;

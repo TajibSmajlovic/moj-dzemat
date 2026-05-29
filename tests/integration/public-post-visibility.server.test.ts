@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ROUTES, postHref, postImageHref } from "#app/lib/routes";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
+import { ROUTES } from "#app/lib/routes";
 import { DAY_SECONDS } from "#app/lib/time";
 import { loader as publicHomeLoader } from "#app/routes/_public._index";
 import { loader as publicPostLoader } from "#app/routes/_public.objave.$slug";

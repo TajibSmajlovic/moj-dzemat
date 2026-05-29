@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { adminQaHref } from "#app/features/qa/qa-routes";
 import { getPublicAnsweredQuestions } from "#app/features/qa/qa.server";
 import { ADMIN_QUESTIONS_PAGE_SIZE } from "#app/lib/pagination";
-import { ROUTES, adminQaHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import { action as adminQaAction, loader as adminQaLoader } from "#app/routes/admin.pitanja._index";
 import { prisma } from "#app/server/db.server";
 

@@ -10,12 +10,10 @@ import { Button } from "#app/components/ui/button";
 import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
 import { QaQuestionStatusBadge } from "#app/features/qa/admin/components/qa-question-status-badge";
-import { QaAnswerSchema } from "#app/features/qa/qa-schema";
+import { QA_ANSWER_MAX_LENGTH, QaAnswerSchema } from "#app/features/qa/qa-schema";
 import type { AdminQuestionRow } from "#app/features/qa/qa.server";
 import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
-
-const MAX_ANSWER_LENGTH = 5000;
 
 type QaAnswerFormProps = {
   question: AdminQuestionRow;
@@ -70,7 +68,7 @@ export function QaAnswerForm({ question, lastResult, submitting, cancelTo }: QaA
           <Textarea
             {...answerTextareaProps}
             value={answer}
-            maxLength={MAX_ANSWER_LENGTH}
+            maxLength={QA_ANSWER_MAX_LENGTH}
             placeholder="Upišite odgovor koji će biti prikazan javno."
             aria-describedby={[answerHintId, answerErrorId].filter(Boolean).join(" ")}
             onChange={(event) => setAnswer(event.currentTarget.value)}
@@ -86,7 +84,7 @@ export function QaAnswerForm({ question, lastResult, submitting, cancelTo }: QaA
           >
             <span>Odgovor se prikazuje kao običan tekst, s očuvanim prelomima redova.</span>
             <span className="font-medium tabular-nums">
-              {answer.length}/{MAX_ANSWER_LENGTH}
+              {answer.length}/{QA_ANSWER_MAX_LENGTH}
             </span>
           </div>
 

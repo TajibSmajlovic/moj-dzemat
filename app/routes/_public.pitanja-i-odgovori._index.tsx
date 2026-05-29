@@ -16,6 +16,7 @@ import {
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
 import { QaPageJsonLd } from "#app/features/qa/components/qa-page-json-ld";
 import { QaQuestionForm } from "#app/features/qa/components/qa-question-form";
+import { qaListHref } from "#app/features/qa/qa-routes";
 import { QaSubmitSchema } from "#app/features/qa/qa-schema";
 import {
   QA_PAGE_SIZE,
@@ -24,7 +25,7 @@ import {
 } from "#app/features/qa/qa.server";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
-import { ROUTES, absoluteUrl, qaListHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   buildPublicPageMeta,

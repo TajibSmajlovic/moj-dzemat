@@ -1,7 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 
+import { postHref } from "../../../app/features/posts/post-routes";
 import type { PostTypeValue } from "../../../app/features/posts/post-type";
-import { ROUTES, postHref } from "../../../app/lib/routes";
+import { ROUTES } from "../../../app/lib/routes";
 import { fillPostForm } from "./post-form";
 
 export const ADMIN_POSTS_URL = new RegExp(`${ROUTES.adminPosts}$`);

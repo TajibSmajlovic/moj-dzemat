@@ -18,18 +18,11 @@ import {
 } from "#app/components/ui/table";
 import { QaQuestionStatusBadge } from "#app/features/qa/admin/components/qa-question-status-badge";
 import { QaAdminIntents } from "#app/features/qa/admin/qa-intents";
+import { adminQaAnswerHref } from "#app/features/qa/qa-routes";
 import type { AdminQuestionRow, AdminQuestionTab } from "#app/features/qa/qa.server";
 import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
-import { adminQaAnswerHref } from "#app/lib/routes";
-
-type PaginationState = {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  rangeStart: number;
-  rangeEnd: number;
-};
+import type { PaginationState } from "#app/lib/pagination";
 
 type QaAdminListProps = {
   questions: AdminQuestionRow[];

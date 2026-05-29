@@ -14,11 +14,11 @@ import {
   toggleAdminQuestionHidden,
 } from "#app/features/qa/admin/qa-admin.server";
 import { QaAdminIntents, type QaAdminIntent } from "#app/features/qa/admin/qa-intents";
+import { adminQaHref } from "#app/features/qa/qa-routes";
 import { cn } from "#app/lib/cn";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { parsePageParam } from "#app/lib/pagination";
-import { adminQaHref } from "#app/lib/routes";
 import { useActionToast } from "#app/lib/toast";
 
 import type { Route } from "./+types/admin.pitanja._index";

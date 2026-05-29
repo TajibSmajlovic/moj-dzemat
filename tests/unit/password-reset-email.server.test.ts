@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
+import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
-import { passwordResetHref } from "#app/lib/routes";
 
 describe("buildPasswordResetEmail", () => {
   it("builds a branded password reset email with a button and fallback link", () => {

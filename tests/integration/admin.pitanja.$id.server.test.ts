@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { adminQaAnswerHref, adminQaHref } from "#app/features/qa/qa-routes";
 import { getPublicAnsweredQuestions } from "#app/features/qa/qa.server";
-import { adminQaAnswerHref, adminQaHref } from "#app/lib/routes";
 import {
   action as adminQaAnswerAction,
   loader as adminQaAnswerLoader,

@@ -1,7 +1,30 @@
-type PaginationStateArgs = {
+export type PaginationStateArgs = {
   page: number;
   pageSize: number;
   totalItems: number;
+};
+
+export type PaginationState = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  skip: number;
+  rangeStart: number;
+  rangeEnd: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type LoadMorePaginationState = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  take: number;
+  visibleItems: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 };
 
 export const ADMIN_POSTS_PAGE_SIZE = 20;
@@ -19,7 +42,11 @@ export function parsePageParam(value: string | null) {
   return page;
 }
 
-export function getPaginationState({ page, pageSize, totalItems }: PaginationStateArgs) {
+export function getPaginationState({
+  page,
+  pageSize,
+  totalItems,
+}: PaginationStateArgs): PaginationState {
   const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
   const skip = (page - 1) * pageSize;
 
@@ -36,7 +63,11 @@ export function getPaginationState({ page, pageSize, totalItems }: PaginationSta
   };
 }
 
-export function getLoadMorePaginationState({ page, pageSize, totalItems }: PaginationStateArgs) {
+export function getLoadMorePaginationState({
+  page,
+  pageSize,
+  totalItems,
+}: PaginationStateArgs): LoadMorePaginationState {
   const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
   const take = page * pageSize;
 

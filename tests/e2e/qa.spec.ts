@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ROUTES, adminQaHref, qaQuestionHref } from "../../app/lib/routes";
+import { adminQaHref, qaQuestionHref } from "../../app/features/qa/qa-routes";
+import { ROUTES } from "../../app/lib/routes";
 import { prisma } from "../../app/server/db.server";
 import {
   QA_PAGINATION_EXTRA_COUNT,

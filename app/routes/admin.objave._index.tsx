@@ -9,9 +9,10 @@ import { getAdminPostListPage } from "#app/features/posts/admin/admin-post-list.
 import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
 import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
+import { adminPostsPageHref } from "#app/features/posts/post-routes";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { parsePageParam } from "#app/lib/pagination";
-import { ROUTES, adminPostsPageHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";

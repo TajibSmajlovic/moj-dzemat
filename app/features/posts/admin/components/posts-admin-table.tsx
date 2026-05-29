@@ -19,11 +19,13 @@ import {
 import { PostStatusBadge } from "#app/features/posts/admin/components/post-status-badge";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
+import { adminPostHref } from "#app/features/posts/post-routes";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
-import { ROUTES, adminPostHref } from "#app/lib/routes";
+import type { PaginationState } from "#app/lib/pagination";
+import { ROUTES } from "#app/lib/routes";
 
 type PostRow = {
   id: string;
@@ -35,14 +37,6 @@ type PostRow = {
   featured: boolean;
   pinned: boolean;
   images: { id: string }[];
-};
-
-type PaginationState = {
-  page: number;
-  totalPages: number;
-  totalItems: number;
-  rangeStart: number;
-  rangeEnd: number;
 };
 
 type Props = {

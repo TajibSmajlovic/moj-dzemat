@@ -3,10 +3,10 @@ import { MessageCircleQuestion } from "lucide-react";
 import { JsonLdScript } from "#app/components/seo/json-ld-script";
 import { ShareButton } from "#app/features/posts/components/share-button";
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
+import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { qaSingleQuestionJsonLd } from "#app/features/qa/qa-seo";
 import type { PublicQuestion } from "#app/features/qa/qa.server";
 import { formatDateShort, toIsoDate } from "#app/lib/date";
-import { qaQuestionHref } from "#app/lib/routes";
 
 type QaDetailArticleProps = {
   question: PublicQuestion;

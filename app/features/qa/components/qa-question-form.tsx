@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
-import { QaSubmitSchema } from "#app/features/qa/qa-schema";
+import { QA_QUESTION_MAX_LENGTH, QaSubmitSchema } from "#app/features/qa/qa-schema";
 import { cn } from "#app/lib/cn";
 import type { HoneypotToken } from "#app/lib/honeypot";
 
@@ -65,7 +65,7 @@ export function QaQuestionForm({
           <Label htmlFor={fields.question.id}>Vaše pitanje</Label>
           <Textarea
             {...getTextareaProps(fields.question)}
-            maxLength={1000}
+            maxLength={QA_QUESTION_MAX_LENGTH}
             placeholder="Upišite pitanje koje želite postaviti."
             aria-describedby={[questionHintId, questionErrorId].filter(Boolean).join(" ")}
             className={cn(

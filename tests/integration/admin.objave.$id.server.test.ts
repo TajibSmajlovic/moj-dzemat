@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
-import { adminPostHref } from "#app/lib/routes";
+import { adminPostHref } from "#app/features/posts/post-routes";
 import { action as editPostAction, loader as editPostLoader } from "#app/routes/admin.objave.$id";
 import { prisma } from "#app/server/db.server";
 

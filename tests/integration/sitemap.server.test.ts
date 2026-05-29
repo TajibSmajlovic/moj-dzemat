@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { ROUTES, postHref, postImageHref, qaQuestionHref } from "#app/lib/routes";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
+import { qaQuestionHref } from "#app/features/qa/qa-routes";
+import { ROUTES } from "#app/lib/routes";
 import { buildSitemapXml, loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";

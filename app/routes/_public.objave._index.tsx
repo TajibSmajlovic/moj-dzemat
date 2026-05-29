@@ -8,6 +8,7 @@ import { BreadcrumbListJsonLd } from "#app/components/seo/breadcrumb-list-json-l
 import { Button } from "#app/components/ui/button";
 import { PostCard } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
+import { postsArchiveHref } from "#app/features/posts/post-routes";
 import { formatPostArchiveTitle } from "#app/features/posts/post-type";
 import {
   countPublicPosts,
@@ -26,7 +27,7 @@ import {
   parsePageParam,
   PUBLIC_POSTS_PAGE_SIZE,
 } from "#app/lib/pagination";
-import { ROUTES, absoluteUrl, postsArchiveHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,

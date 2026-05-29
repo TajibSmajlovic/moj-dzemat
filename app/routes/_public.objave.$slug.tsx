@@ -9,10 +9,11 @@ import { BackButton } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { ShareButton } from "#app/features/posts/components/share-button";
+import { adminPostHref, postHref } from "#app/features/posts/post-routes";
 import { buildPostPageMeta } from "#app/features/posts/post-seo";
 import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES, absoluteUrl, adminPostHref, postHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
