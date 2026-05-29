@@ -2,9 +2,9 @@ import { z } from "zod";
 
 import { requiredString } from "#app/lib/form-schema";
 
-export const QA_QUESTION_MIN_LENGTH = 5;
+const QA_QUESTION_MIN_LENGTH = 5;
+const QA_ANSWER_MIN_LENGTH = 5;
 export const QA_QUESTION_MAX_LENGTH = 1000;
-export const QA_ANSWER_MIN_LENGTH = 5;
 export const QA_ANSWER_MAX_LENGTH = 5000;
 
 export const QuestionFieldSchema = requiredString("Pitanje je obavezno.")
