@@ -8,7 +8,7 @@ import { loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { loader as imageLoader } from "#app/routes/slike.$id";
 import { prisma } from "#app/server/db.server";
 
-import { createPost, createUser } from "../factories";
+import { createPost, createQuestion, createUser } from "../factories";
 import { callLoader } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
@@ -47,6 +47,36 @@ describe("public post visibility", () => {
     expect(result.posts.map((post) => post.title)).toContain("Javna objava");
     expect(result.posts.map((post) => post.title)).not.toContain("Sakriven nacrt");
     expect(result.featured.map((post) => post.title)).toEqual(["Javna objava"]);
+  });
+
+  it("returns the latest public Q&A preview on the homepage", async () => {
+    const base = Date.parse("2026-05-20T12:00:00.000Z");
+
+    for (let index = 0; index < 7; index += 1) {
+      await createQuestion({
+        question: `Javno pitanje ${index + 1}?`,
+        answer: `Javni odgovor ${index + 1}.`,
+        answeredAt: new Date(base - index * 60_000),
+      });
+    }
+    await createQuestion({
+      question: "Sakriveno pitanje?",
+      answer: "Sakriven odgovor.",
+      isHidden: true,
+      answeredAt: new Date("2026-05-21T12:00:00.000Z"),
+    });
+    await createQuestion({ question: "Pitanje koje još čeka odgovor?" });
+
+    const result = await callHomeLoader();
+
+    expect(result.qaPreview).toHaveLength(5);
+    expect(result.qaPreview.map((question) => question.question)).toEqual([
+      "Javno pitanje 1?",
+      "Javno pitanje 2?",
+      "Javno pitanje 3?",
+      "Javno pitanje 4?",
+      "Javno pitanje 5?",
+    ]);
   });
 
   it("orders public posts by published date after pinned status", async () => {

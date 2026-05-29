@@ -5,6 +5,7 @@ type PaginationStateArgs = {
 };
 
 export const ADMIN_POSTS_PAGE_SIZE = 20;
+export const ADMIN_QUESTIONS_PAGE_SIZE = 20;
 export const PUBLIC_POSTS_PAGE_SIZE = 10;
 
 export function parsePageParam(value: string | null) {

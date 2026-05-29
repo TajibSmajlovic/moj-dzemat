@@ -2,6 +2,7 @@ import { Link, useRouteLoaderData } from "react-router";
 
 import { Pencil } from "lucide-react";
 
+import { PageMain } from "#app/components/layout/page-main";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { BreadcrumbListJsonLd } from "#app/components/seo/breadcrumb-list-json-ld";
 import { BackButton } from "#app/components/ui/back-link";
@@ -59,7 +60,7 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
   const isAdminLoggedIn = layoutData?.isAdminLoggedIn ?? false;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
+    <PageMain className="max-w-3xl py-3 sm:py-6">
       <div className="flex items-center justify-between">
         <BackButton fallback={ROUTES.home} label="Nazad na listu" />
 
@@ -92,14 +93,14 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
           { name: post.title, url: absoluteUrl(siteUrl, postHref(post.slug)) },
         ]}
       />
-    </main>
+    </PageMain>
   );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-3 sm:py-6">
+    <PageMain className="max-w-3xl py-3 sm:py-6">
       <SegmentErrorBoundary error={error} backTo={ROUTES.posts} backLabel="Pregled svih objava" />
-    </main>
+    </PageMain>
   );
 }

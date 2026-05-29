@@ -3,14 +3,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ADMIN_EMAIL, ADMIN_PASSWORD, BASE_TIME, SEEDED_POSTS } from "./fixtures/seed-data";
+import {
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
+  BASE_TIME,
+  SEEDED_POSTS,
+  SEEDED_QA_QUESTIONS,
+} from "./fixtures/seed-data";
 
 /**
    Playwright global setup. Wipes `prisma/e2e.db`, runs `migrate
    deploy`, then seeds a deterministic admin + post set (including a
-   second posts page for pagination coverage) + one active site
-   announcement. Runs before Playwright starts its `webServer`, which
-   points at the same database via `DATABASE_URL=file:./e2e.db`.
+   second posts page for pagination coverage), Q&A rows, and one active
+   site announcement. Runs before Playwright starts its `webServer`,
+   which points at the same database via `DATABASE_URL=file:./e2e.db`.
  */
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -30,10 +36,8 @@ export default async function globalSetup() {
 
   // Set DATABASE_URL before importing the shared client (adapter reads it at init).
   process.env.DATABASE_URL = databaseUrl;
-  const [{ prisma }, { createPost, createSiteAnnouncement, createUser }] = await Promise.all([
-    import("../../app/server/db.server"),
-    import("../factories"),
-  ]);
+  const [{ prisma }, { createPost, createQuestion, createSiteAnnouncement, createUser }] =
+    await Promise.all([import("../../app/server/db.server"), import("../factories")]);
 
   try {
     const { user: admin } = await createUser({
@@ -52,6 +56,16 @@ export default async function globalSetup() {
         type: post.type,
         publishedAt: timestamp,
         createdAt: timestamp,
+      });
+    }
+
+    for (const question of SEEDED_QA_QUESTIONS) {
+      await createQuestion({
+        question: question.question,
+        answer: question.answer,
+        isHidden: question.isHidden,
+        answeredAt: question.answeredAt,
+        createdAt: question.createdAt,
       });
     }
 

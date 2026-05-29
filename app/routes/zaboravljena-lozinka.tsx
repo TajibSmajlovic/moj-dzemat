@@ -35,10 +35,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return buildNoindexMeta(formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)));
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader() {
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPage(request)),
+    ...(await getAuthPage()),
   };
 }
 
@@ -103,7 +103,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
     return (
       <PublicAuthShell
         announcement={loaderData.announcement}
-        isAdminLoggedIn={loaderData.isAdminLoggedIn}
         eyebrow="Siguran pristup"
         title="Provjerite email"
         description="Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke."
@@ -144,7 +143,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
   return (
     <PublicAuthShell
       announcement={loaderData.announcement}
-      isAdminLoggedIn={loaderData.isAdminLoggedIn}
       eyebrow="Admin pristup"
       title="Zaboravljena lozinka"
       description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."

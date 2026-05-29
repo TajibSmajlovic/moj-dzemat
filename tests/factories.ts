@@ -82,3 +82,28 @@ export async function createSiteAnnouncement(options: CreateSiteAnnouncementOpti
     },
   });
 }
+
+type CreateQuestionOptions = {
+  question?: string;
+  answer?: string | null;
+  isHidden?: boolean;
+  answeredAt?: Date | null;
+  createdAt?: Date;
+};
+
+export async function createQuestion(options: CreateQuestionOptions = {}) {
+  const question = options.question ?? `Pitanje ${unique("q")}?`;
+  const answer = options.answer === undefined ? null : options.answer;
+  const answeredAt =
+    options.answeredAt === undefined ? (answer ? new Date() : null) : options.answeredAt;
+
+  return prisma.question.create({
+    data: {
+      question,
+      answer: answer ?? undefined,
+      isHidden: options.isHidden ?? false,
+      answeredAt,
+      createdAt: options.createdAt,
+    },
+  });
+}

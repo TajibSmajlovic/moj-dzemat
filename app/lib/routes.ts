@@ -3,9 +3,12 @@ export const ROUTES = {
   posts: "/objave",
   images: "/slike",
   admin: "/admin",
+  adminQa: "/admin/pitanja",
   adminPosts: "/admin/objave",
   adminPostNew: "/admin/objave/nova",
   adminAnnouncementBar: "/admin/obavijesna-traka",
+  qa: "/pitanja-i-odgovori",
+  qaHvala: "/pitanja-i-odgovori/hvala",
   login: "/prijava",
   logout: "/odjava",
   forgotPassword: "/zaboravljena-lozinka",
@@ -36,6 +39,46 @@ export function adminAnnouncementBarEditHref(id: string): string {
   return `${ROUTES.adminAnnouncementBar}?${params.toString()}`;
 }
 
+export function adminQaHref({
+  tab,
+  page = 1,
+}: {
+  tab?: "neodgovorena" | "odgovorena";
+  page?: number;
+} = {}): string {
+  const params = new URLSearchParams();
+
+  if (tab && tab !== "neodgovorena") {
+    params.set("tab", tab);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  const query = params.toString();
+  return query ? `${ROUTES.adminQa}?${query}` : ROUTES.adminQa;
+}
+
+export function adminQaAnswerHref(
+  id: string,
+  {
+    from,
+  }: {
+    from?: "neodgovorena" | "odgovorena";
+  } = {},
+): string {
+  const params = new URLSearchParams();
+
+  if (from) {
+    params.set("from", from);
+  }
+
+  const query = params.toString();
+
+  return query ? `${ROUTES.adminQa}/${id}?${query}` : `${ROUTES.adminQa}/${id}`;
+}
+
 export function adminPostHref(id: string): string {
   return `${ROUTES.adminPosts}/${id}`;
 }
@@ -46,6 +89,14 @@ export function adminPostPreviewHref(id: string): string {
 
 export function postHref(slug: string): string {
   return `${ROUTES.posts}/${slug}`;
+}
+
+export function qaQuestionHref(id: string): string {
+  return `${ROUTES.qa}/${id}`;
+}
+
+export function qaListHref({ page = 1 }: { page?: number } = {}): string {
+  return page > 1 ? `${ROUTES.qa}?page=${page}` : ROUTES.qa;
 }
 
 export function postsArchiveHref({

@@ -45,11 +45,8 @@ export function meta({ matches }: Route.MetaArgs) {
   return buildNoindexMeta(formatPageTitle("Nova lozinka", getRootSiteName(matches)));
 }
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  const [verification, chrome] = await Promise.all([
-    verifyResetToken(params.token),
-    getAuthPage(request),
-  ]);
+export async function loader({ params }: Route.LoaderArgs) {
+  const [verification, chrome] = await Promise.all([verifyResetToken(params.token), getAuthPage()]);
 
   if (!verification.ok) {
     logger.warn({ reason: verification.reason }, "password reset page opened with invalid token");
@@ -120,7 +117,6 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
     return (
       <PublicAuthShell
         announcement={loaderData.announcement}
-        isAdminLoggedIn={loaderData.isAdminLoggedIn}
         eyebrow="Siguran pristup"
         title="Link nije važeći"
         description="Ovaj link je istekao, već iskorišten ili više ne odgovara trenutnom stanju naloga."
@@ -157,7 +153,6 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
   return (
     <PublicAuthShell
       announcement={loaderData.announcement}
-      isAdminLoggedIn={loaderData.isAdminLoggedIn}
       eyebrow="Admin pristup"
       title="Postavite novu lozinku"
       description="Odaberite novu lozinku za administratorski nalog. Nakon uspješnog spremanja odmah ćemo vas prijaviti."

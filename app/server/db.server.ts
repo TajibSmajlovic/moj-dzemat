@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 /**
    Shared Prisma client.
@@ -44,4 +44,15 @@ export const prisma = globalThis.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.__prisma = prisma;
+}
+
+export function isPrismaKnownRequestError(
+  error: unknown,
+  code: string,
+): error is Prisma.PrismaClientKnownRequestError {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === code;
+}
+
+export function isPrismaNotFoundError(error: unknown): boolean {
+  return isPrismaKnownRequestError(error, "P2025");
 }

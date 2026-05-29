@@ -41,7 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPage(request)),
+    ...(await getAuthPage()),
   };
 }
 
@@ -103,7 +103,6 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
   return (
     <PublicAuthShell
       announcement={loaderData.announcement}
-      isAdminLoggedIn={loaderData.isAdminLoggedIn}
       eyebrow="Admin panel"
       title="Prijava za uredništvo"
       description="Upravljajte objavama i sadržajem džematske stranice."

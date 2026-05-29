@@ -6,14 +6,16 @@ import { shareOnFacebook } from "#app/lib/share";
 type ShareButtonProps = {
   path?: string;
   className?: string;
+  tabIndex?: number;
 };
 
-export function ShareButton({ path, className }: ShareButtonProps) {
+export function ShareButton({ path, className, tabIndex }: ShareButtonProps) {
   return (
     <Button
       variant="outline"
       size="sm"
       type="button"
+      tabIndex={tabIndex}
       onClick={() => shareOnFacebook(path)}
       className={cn("gap-2", className)}
     >

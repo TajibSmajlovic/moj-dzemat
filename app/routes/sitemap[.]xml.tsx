@@ -1,40 +1,54 @@
-import { ROUTES, absoluteUrl, postHref, postImageHref } from "#app/lib/routes";
+import { getPublicAnsweredQuestionSitemap } from "#app/features/qa/qa.server";
+import { ROUTES, absoluteUrl, postHref, postImageHref, qaQuestionHref } from "#app/lib/routes";
 import { MINUTE_SECONDS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
 const MAX_ENTRIES = 10_000;
 const SITEMAP_CACHE_SECONDS = 10 * MINUTE_SECONDS;
+const STATIC_ENTRY_COUNT = 2;
+// Keep answered Q&A pages from being crowded out by a large post archive.
+const RESERVED_QA_DYNAMIC_ENTRIES = 1000;
 
 /**
    Dynamic sitemap. Small enough to fit in a single file so we don't
-   bother with a sitemap index. Home page first, then each post by
-   `updatedAt` (so Google re-crawls when content is edited). Public post
-   images are attached with the Google image sitemap extension.
+   bother with a sitemap index. Home page and Q&A list come first, then
+   posts by `updatedAt` and visible answered questions by `answeredAt`.
+   Public post images are attached with the Google image sitemap extension.
  */
 export async function loader() {
   const siteUrl = env().APP_URL;
+  const dynamicEntryLimit = Math.max(MAX_ENTRIES - STATIC_ENTRY_COUNT, 0);
+  const questionEntryLimit = Math.min(RESERVED_QA_DYNAMIC_ENTRIES, dynamicEntryLimit);
+  const qaSitemap = await getPublicAnsweredQuestionSitemap({ take: questionEntryLimit });
+  const postEntryLimit = Math.max(dynamicEntryLimit - qaSitemap.questions.length, 0);
 
   const posts = await prisma.post.findMany({
     where: { status: "published" },
     orderBy: { updatedAt: "desc" },
-    take: MAX_ENTRIES,
+    take: postEntryLimit,
     select: {
       slug: true,
       updatedAt: true,
       images: { orderBy: { position: "asc" }, select: { id: true } },
     },
   });
-  const homepageLastmod = posts[0]?.updatedAt.toISOString();
+  const homepageLastmod = newestDate(posts[0]?.updatedAt, qaSitemap.lastAnsweredAt)?.toISOString();
+  const qaLastmod = qaSitemap.lastAnsweredAt?.toISOString();
 
   const urls = [
     { loc: absoluteUrl(siteUrl, ROUTES.home), lastmod: homepageLastmod },
+    { loc: absoluteUrl(siteUrl, ROUTES.qa), lastmod: qaLastmod },
     ...posts.map((post) => ({
       loc: absoluteUrl(siteUrl, postHref(post.slug)),
       lastmod: post.updatedAt.toISOString(),
       images: post.images.map((image) => ({
         loc: absoluteUrl(siteUrl, postImageHref(image.id)),
       })),
+    })),
+    ...qaSitemap.questions.map((question) => ({
+      loc: absoluteUrl(siteUrl, qaQuestionHref(question.id)),
+      lastmod: question.answeredAt.toISOString(),
     })),
   ];
 
@@ -81,4 +95,16 @@ function escapeXml(value: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;");
+}
+
+function newestDate(...dates: (Date | null | undefined)[]): Date | undefined {
+  let newest: Date | undefined;
+
+  for (const date of dates) {
+    if (date instanceof Date && (!newest || date > newest)) {
+      newest = date;
+    }
+  }
+
+  return newest;
 }

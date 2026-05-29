@@ -61,6 +61,7 @@ afterEach(async () => {
   await prisma.password.deleteMany();
   await prisma.user.deleteMany();
   await prisma.siteAnnouncement.deleteMany();
+  await prisma.question.deleteMany();
 });
 
 afterAll(async () => {
