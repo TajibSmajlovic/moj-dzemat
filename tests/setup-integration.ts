@@ -62,6 +62,7 @@ afterEach(async () => {
   await prisma.user.deleteMany();
   await prisma.siteAnnouncement.deleteMany();
   await prisma.question.deleteMany();
+  await prisma.importantDate.deleteMany();
 });
 
 afterAll(async () => {

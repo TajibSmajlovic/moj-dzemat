@@ -7,6 +7,7 @@ import {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
   BASE_TIME,
+  SEEDED_IMPORTANT_DATES,
   SEEDED_POSTS,
   SEEDED_QA_QUESTIONS,
 } from "./fixtures/seed-data";
@@ -36,8 +37,10 @@ export default async function globalSetup() {
 
   // Set DATABASE_URL before importing the shared client (adapter reads it at init).
   process.env.DATABASE_URL = databaseUrl;
-  const [{ prisma }, { createPost, createQuestion, createSiteAnnouncement, createUser }] =
-    await Promise.all([import("../../app/server/db.server"), import("../factories")]);
+  const [
+    { prisma },
+    { createImportantDate, createPost, createQuestion, createSiteAnnouncement, createUser },
+  ] = await Promise.all([import("../../app/server/db.server"), import("../factories")]);
 
   try {
     const { user: admin } = await createUser({
@@ -73,6 +76,14 @@ export default async function globalSetup() {
       message: "Džuma namaz u 13:00",
       isActive: true,
     });
+
+    for (const importantDate of SEEDED_IMPORTANT_DATES) {
+      await createImportantDate({
+        title: importantDate.title,
+        date: importantDate.date,
+        description: importantDate.description,
+      });
+    }
   } finally {
     await prisma.$disconnect();
   }

@@ -86,6 +86,39 @@ export const SEEDED_QA_QUESTIONS = [
   ...SEEDED_QA_PENDING,
 ] as const satisfies readonly SeededQuestion[];
 
+export type SeededImportantDate = {
+  key: string;
+  title: string;
+  date: string; // "YYYY-MM-DD"
+  description: string | null;
+};
+
+/** today + offsetDays as a "YYYY-MM-DD" string (UTC calendar math). */
+const pad = (n: number) => String(n).padStart(2, "0");
+function ymdFromToday(offsetDays: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + offsetDays);
+
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+// "Upcoming" depends on the run date, so generate dates relative to now:
+// one future (shows on the home page) and one past (admin only).
+export const SEEDED_IMPORTANT_DATES = [
+  {
+    key: "future",
+    title: "E2E važan nadolazeći datum",
+    date: ymdFromToday(30),
+    description: "Nadolazeći E2E datum koji se prikazuje na početnoj stranici.",
+  },
+  {
+    key: "past",
+    title: "E2E prošli važan datum",
+    date: ymdFromToday(-30),
+    description: "Prošli E2E datum koji se prikazuje samo u administraciji.",
+  },
+] as const satisfies readonly [SeededImportantDate, SeededImportantDate];
+
 export const QA_PAGINATION_EXTRA_COUNT = 22;
 export const QA_PAGINATION_EXTRA_PREFIX = "E2E dodatno pitanje za paginaciju";
 

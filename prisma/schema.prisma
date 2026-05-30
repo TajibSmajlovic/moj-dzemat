@@ -156,3 +156,19 @@ model Question {
   @@index([answer, createdAt])
   @@index([answeredAt])
 }
+
+// Upcoming community calendar dates (date-only). Admin manages all rows;
+// the public home page shows only the next few upcoming entries. `date`
+// is a DateTime pinned to UTC midnight of the calendar day and always read
+// back via UTC extraction, so the displayed day never shifts with the
+// server/browser timezone.
+model ImportantDate {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime // UTC midnight of the calendar day (date-only)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+}
