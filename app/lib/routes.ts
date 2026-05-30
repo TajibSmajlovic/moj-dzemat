@@ -7,6 +7,7 @@ export const ROUTES = {
   adminPosts: "/admin/objave",
   adminPostNew: "/admin/objave/nova",
   adminAnnouncementBar: "/admin/obavijesna-traka",
+  adminImportantDates: "/admin/vazni-datumi",
   qa: "/pitanja-i-odgovori",
   qaHvala: "/pitanja-i-odgovori/hvala",
   login: "/prijava",

@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDateLong, formatDateShort, toIsoDate } from "#app/lib/date";
+import {
+  dateToYmd,
+  formatDateLong,
+  formatDateShort,
+  formatYmdLong,
+  getTodayYmd,
+  getYmdBadgeParts,
+  isValidYmd,
+  toIsoDate,
+  ymdToUtcDate,
+} from "#app/lib/date";
 
 describe("toIsoDate", () => {
   it("round-trips a Date through ISO", () => {
@@ -75,5 +85,96 @@ describe("formatDateShort", () => {
   it("returns an empty string for invalid input", () => {
     expect(formatDateShort("nope")).toBe("");
     expect(formatDateShort(Number.NaN)).toBe("");
+  });
+});
+
+describe("isValidYmd", () => {
+  it("accepts a real calendar day", () => {
+    expect(isValidYmd("2026-06-16")).toBe(true);
+    expect(isValidYmd("2026-01-01")).toBe(true);
+    expect(isValidYmd("2024-02-29")).toBe(true); // leap year
+  });
+
+  it("rejects impossible or malformed days", () => {
+    expect(isValidYmd("2026-13-01")).toBe(false);
+    expect(isValidYmd("2026-02-30")).toBe(false);
+    expect(isValidYmd("2026-6-1")).toBe(false);
+    expect(isValidYmd("")).toBe(false);
+    expect(isValidYmd("not-a-date")).toBe(false);
+  });
+
+  it("rejects non-strings", () => {
+    expect(isValidYmd(undefined)).toBe(false);
+    expect(isValidYmd(null)).toBe(false);
+    expect(isValidYmd(20_260_616)).toBe(false);
+    expect(isValidYmd(new Date())).toBe(false);
+  });
+});
+
+describe("getTodayYmd", () => {
+  it("returns today's calendar day in YYYY-MM-DD form", () => {
+    expect(getTodayYmd()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(isValidYmd(getTodayYmd())).toBe(true);
+  });
+});
+
+describe("formatYmdLong", () => {
+  it("formats a YMD string with long Bosnian month names", () => {
+    expect(formatYmdLong("2026-06-16")).toBe("16. jun 2026.");
+    expect(formatYmdLong("2026-01-01")).toBe("1. januar 2026.");
+    expect(formatYmdLong("2026-12-31")).toBe("31. decembar 2026.");
+  });
+
+  it("returns an empty string for invalid input", () => {
+    expect(formatYmdLong("2026-02-30")).toBe("");
+    expect(formatYmdLong("nope")).toBe("");
+  });
+});
+
+describe("getYmdBadgeParts", () => {
+  it("returns abbreviated month, day, and weekday", () => {
+    // 2026-06-16 is a Tuesday in the proleptic Gregorian calendar.
+    expect(getYmdBadgeParts("2026-06-16")).toEqual({
+      month: "JUN",
+      day: "16",
+      weekday: "UTO",
+    });
+    // 2026-01-01 is a Thursday.
+    expect(getYmdBadgeParts("2026-01-01")).toEqual({
+      month: "JAN",
+      day: "01",
+      weekday: "ČET",
+    });
+  });
+
+  it("returns null for invalid input", () => {
+    expect(getYmdBadgeParts("2026-02-30")).toBeNull();
+    expect(getYmdBadgeParts("nope")).toBeNull();
+  });
+});
+
+describe("ymdToUtcDate", () => {
+  it("pins the calendar day to UTC midnight", () => {
+    expect(ymdToUtcDate("2026-06-16")?.toISOString()).toBe("2026-06-16T00:00:00.000Z");
+  });
+
+  it("returns null for invalid input", () => {
+    expect(ymdToUtcDate("2026-02-30")).toBeNull();
+    expect(ymdToUtcDate("nope")).toBeNull();
+  });
+});
+
+describe("dateToYmd", () => {
+  it("round-trips a UTC-midnight date", () => {
+    expect(dateToYmd(new Date("2026-06-16T00:00:00.000Z"))).toBe("2026-06-16");
+  });
+
+  it("extracts the UTC calendar day even late in the day", () => {
+    expect(dateToYmd(new Date("2026-06-16T23:30:00.000Z"))).toBe("2026-06-16");
+  });
+
+  it("returns an empty string for invalid input", () => {
+    expect(dateToYmd(Number.NaN)).toBe("");
+    expect(dateToYmd("nope")).toBe("");
   });
 });

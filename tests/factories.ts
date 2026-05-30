@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
+import { ymdToUtcDate } from "#app/lib/date";
 import { prisma } from "#app/server/db.server";
 
 let seq = 0;
@@ -79,6 +80,25 @@ export async function createSiteAnnouncement(options: CreateSiteAnnouncementOpti
     data: {
       message: options.message ?? "Džuma namaz u 13:00",
       isActive: options.isActive ?? true,
+    },
+  });
+}
+
+type CreateImportantDateOptions = {
+  title?: string;
+  date?: string; // "YYYY-MM-DD"
+  description?: string | null;
+};
+
+export async function createImportantDate(options: CreateImportantDateOptions = {}) {
+  const date = ymdToUtcDate(options.date ?? "2026-06-16");
+  if (!date) throw new Error(`Invalid factory date: ${options.date}`);
+
+  return prisma.importantDate.create({
+    data: {
+      title: options.title ?? "Bajram namaz",
+      date,
+      description: options.description === undefined ? "Test opis." : options.description,
     },
   });
 }

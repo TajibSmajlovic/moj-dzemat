@@ -16,6 +16,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#app/components/ui/carousel";
+import { ImportantDatesHomeSection } from "#app/features/important-dates/components/important-dates-home-section";
+import { getUpcomingImportantDates } from "#app/features/important-dates/important-dates.server";
 import { FeaturedHeroCard } from "#app/features/posts/components/featured-hero-card";
 import { PostCard, type PostCardData } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
@@ -77,17 +79,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   const featuredPromise = getFeaturedPostCards();
   const postsPromise = getPublicPostCards({ activeType, take: HOME_POST_LIMIT });
   const qaPreviewPromise = getPublicAnsweredQuestions({ take: QA_HOME_PREVIEW_LIMIT });
+  const importantDatesPromise = getUpcomingImportantDates();
 
-  const [featured, posts, qaPreview] = await Promise.all([
+  const [featured, posts, qaPreview, importantDates] = await Promise.all([
     featuredPromise,
     postsPromise,
     qaPreviewPromise,
+    importantDatesPromise,
   ]);
 
   return {
     featured,
     posts,
     qaPreview,
+    importantDates,
     activeType,
     location: getDzematLocation({
       address: environment.DZEMAT_ADDRESS,
@@ -97,7 +102,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { posts, featured, qaPreview, activeType, location } = loaderData;
+  const { posts, featured, qaPreview, importantDates, activeType, location } = loaderData;
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
   const facebookPageUrl = useRootFacebookPageUrl();
@@ -151,6 +156,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         </div>
 
         <QaHomePreview questions={qaPreview} />
+
+        <ImportantDatesHomeSection dates={importantDates} />
 
         {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
       </PageMain>

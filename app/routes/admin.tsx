@@ -1,6 +1,14 @@
 import { Form, Link, NavLink, Outlet } from "react-router";
 
-import { ArrowLeft, BellRing, HelpCircle, LogOut, Newspaper, type LucideIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  BellRing,
+  CalendarDays,
+  HelpCircle,
+  LogOut,
+  Newspaper,
+  type LucideIcon,
+} from "lucide-react";
 
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
@@ -88,6 +96,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               badgeCount={pendingQuestionCount}
               badgeLabel={`${pendingQuestionCount} neodgovorenih pitanja`}
             />
+            <AdminTab to={ROUTES.adminImportantDates} label="Važni datumi" icon={CalendarDays} />
             <AdminTab
               to={ROUTES.adminAnnouncementBar}
               label="Obavijesna traka"
