@@ -235,7 +235,8 @@ export default function QaIndexPage({ loaderData }: Route.ComponentProps) {
       <Sheet open={mobileFormOpen} onOpenChange={setMobileFormOpen}>
         <SheetContent
           side="bottom"
-          className="max-h-[92svh] gap-0 overflow-y-auto rounded-t-2xl p-0 lg:hidden"
+          className="max-h-[92dvh] gap-0 overflow-y-auto rounded-t-2xl p-0 lg:hidden"
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <SheetHeader className="border-border border-b px-5 py-4 text-left">
             <SheetTitle className="font-display text-xl">Postavite pitanje</SheetTitle>
