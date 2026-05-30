@@ -77,34 +77,34 @@ describe("admin important dates route", () => {
     });
     expect(inserted?.description).toBe("Klanja se u 06:00.");
     expect(inserted?.date.toISOString()).toBe("2026-06-16T00:00:00.000Z");
+  });
 
-    it("returns 400 with a field error when the date is invalid", async () => {
-      const formData = new FormData();
-      formData.set("intent", "create");
-      formData.set("title", "Neispravan datum");
-      formData.set("date", "2026-02-30");
-      withHoneypot(formData);
+  it("returns 400 with a field error when the date is invalid", async () => {
+    const formData = new FormData();
+    formData.set("intent", "create");
+    formData.set("title", "Neispravan datum");
+    formData.set("date", "2026-02-30");
+    withHoneypot(formData);
 
-      const result = await callAction(formData, cookie);
+    const result = await callAction(formData, cookie);
 
-      expect(statusOf(result)).toBe(400);
-      const body = payloadOf<ConformReply>(result);
-      expect(body.result.error.date?.[0]).toMatch(/ispravan datum/i);
-    });
+    expect(statusOf(result)).toBe(400);
+    const body = payloadOf<ConformReply>(result);
+    expect(body.result.error.date?.[0]).toMatch(/ispravan datum/i);
+  });
 
-    it("returns 400 with a field error when the title is missing", async () => {
-      const formData = new FormData();
-      formData.set("intent", "create");
-      formData.set("title", "   ");
-      formData.set("date", "2026-06-16");
-      withHoneypot(formData);
+  it("returns 400 with a field error when the title is missing", async () => {
+    const formData = new FormData();
+    formData.set("intent", "create");
+    formData.set("title", "   ");
+    formData.set("date", "2026-06-16");
+    withHoneypot(formData);
 
-      const result = await callAction(formData, cookie);
+    const result = await callAction(formData, cookie);
 
-      expect(statusOf(result)).toBe(400);
-      const body = payloadOf<ConformReply>(result);
-      expect(body.result.error.title?.[0]).toMatch(/obavezan/i);
-    });
+    expect(statusOf(result)).toBe(400);
+    const body = payloadOf<ConformReply>(result);
+    expect(body.result.error.title?.[0]).toMatch(/obavezan/i);
   });
 
   it("changes the title, date, and description of an existing row", async () => {
