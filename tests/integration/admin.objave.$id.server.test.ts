@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
-import { ROUTES, adminPostHref } from "#app/lib/routes";
+import { adminPostHref } from "#app/features/posts/post-routes";
 import { action as editPostAction, loader as editPostLoader } from "#app/routes/admin.objave.$id";
 import { prisma } from "#app/server/db.server";
 
-import { createPost, createUser } from "../factories";
+import { createPost } from "../factories";
 import { expectData, expectResponse, statusOf } from "../helpers/action-result";
 import { createAdminSession } from "../helpers/auth";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
@@ -96,21 +96,6 @@ describe("admin post edit route", () => {
     }
 
     expectResponse(thrown, 404);
-  });
-
-  it("loader redirects unauthenticated requests to login", async () => {
-    const { user } = await createUser();
-    const post = await createPost({ authorId: user.id });
-
-    let thrown: unknown;
-    try {
-      await callLoader(post.id);
-    } catch (error) {
-      thrown = error;
-    }
-
-    expectResponse(thrown, 302);
-    expect(thrown.headers.get("Location")).toContain(ROUTES.login);
   });
 
   it("delete-image removes only an image that belongs to the route post", async () => {

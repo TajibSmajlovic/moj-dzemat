@@ -1,6 +1,7 @@
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { formatPageTitle } from "#app/lib/branding";
-import { absoluteUrl, postHref, postImageHref } from "#app/lib/routes";
+import { absoluteUrl } from "#app/lib/routes";
 import {
   buildPublicPageMeta,
   formatDefaultSocialImageAlt,

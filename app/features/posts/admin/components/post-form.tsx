@@ -21,6 +21,7 @@ import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
 import { RichEditor } from "#app/features/posts/admin/components/rich-editor";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
+import { adminPostPreviewHref, postImageHref } from "#app/features/posts/post-routes";
 import {
   MAX_IMAGES_PER_POST,
   MAX_IMAGE_ALT_TEXT_LENGTH,
@@ -29,7 +30,6 @@ import {
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import { POST_TYPES, POST_TYPE_LABEL } from "#app/features/posts/post-type";
 import { IntentInput } from "#app/lib/intent";
-import { adminPostPreviewHref, postImageHref } from "#app/lib/routes";
 import { useFetcherToast } from "#app/lib/toast";
 
 type PostFormImage = { id: string; altText: string | null };

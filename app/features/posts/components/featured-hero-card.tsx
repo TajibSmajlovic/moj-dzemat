@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 
 import type { PostCardData } from "#app/features/posts/components/post-card";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
+import { postHref } from "#app/features/posts/post-routes";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import {
   featuredHeroExcerptReveal,
@@ -13,7 +14,6 @@ import {
   featuredHeroReveal,
   featuredHeroTitleReveal,
 } from "#app/lib/motion";
-import { postHref } from "#app/lib/routes";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,

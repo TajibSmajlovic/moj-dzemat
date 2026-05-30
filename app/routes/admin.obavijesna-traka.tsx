@@ -26,7 +26,7 @@ import {
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { requireId } from "#app/features/posts/admin/post-admin.server";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { ROUTES, adminAnnouncementBarEditHref, adminAnnouncementBarNewHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -215,8 +215,12 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
       navigation.formData?.get("intent") === AnnouncementIntents.Update);
 
   const closeSheet = () => void navigate(ROUTES.adminAnnouncementBar);
-  const openNew = () => void navigate(adminAnnouncementBarNewHref());
-  const openEdit = (id: string) => void navigate(adminAnnouncementBarEditHref(id));
+  const openNew = () => void navigate(`${ROUTES.adminAnnouncementBar}?new=1`);
+  const openEdit = (id: string) => {
+    const params = new URLSearchParams({ edit: id });
+
+    void navigate(`${ROUTES.adminAnnouncementBar}?${params.toString()}`);
+  };
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-import { ROUTES, postHref } from "../../app/lib/routes";
+import { postHref } from "../../app/features/posts/post-routes";
+import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-data";
 
 function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {
@@ -40,6 +41,7 @@ test.describe("public", () => {
       }),
     ).toHaveAttribute("aria-current", "page");
     await expect(banner.getByRole("link", { name: "Objave" })).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Pitanja i odgovori" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Facebook" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
   });
@@ -62,7 +64,8 @@ test.describe("public", () => {
     await expect(dropdown).toBeVisible();
     await expect(dropdown.getByRole("link", { name: "Početna" })).toBeVisible();
     await expect(dropdown.getByRole("link", { name: "Objave" })).toBeVisible();
-    await expect(dropdown.getByRole("link", { name: "Admin" })).toBeVisible();
+    await expect(dropdown.getByRole("link", { name: "Pitanja i odgovori" })).toBeVisible();
+    await expect(dropdown.getByRole("link", { name: "Admin" })).toHaveCount(0);
 
     await dropdown.getByRole("link", { name: "Objave" }).click();
 

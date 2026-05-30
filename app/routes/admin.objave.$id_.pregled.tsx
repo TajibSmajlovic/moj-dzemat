@@ -10,11 +10,12 @@ import { PostStatusBadge } from "#app/features/posts/admin/components/post-statu
 import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
+import { adminPostHref, adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
-import { ROUTES, adminPostHref, adminPostPreviewHref, postHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";

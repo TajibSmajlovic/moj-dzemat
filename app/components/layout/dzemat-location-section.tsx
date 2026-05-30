@@ -12,7 +12,7 @@ type DzematLocationSectionProps = {
 
 export function DzematLocationSection({ location, siteName }: DzematLocationSectionProps) {
   return (
-    <motion.section aria-label="Lokacija džemata" {...scrollReveal} className="mt-10 sm:mt-14">
+    <motion.section aria-label="Lokacija džemata" {...scrollReveal} className="mt-8 sm:mt-12">
       <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
         <div
           aria-hidden="true"

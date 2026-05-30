@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import {
   createImageRows,
   type ImageAltTextUpdate,
@@ -7,7 +5,7 @@ import {
 } from "#app/features/posts/admin/post-images.server";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
-import { prisma } from "#app/server/db.server";
+import { isPrismaKnownRequestError, prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
 
 /**
@@ -122,8 +120,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
  */
 export function isSlugConflict(error: unknown): boolean {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2002" &&
+    isPrismaKnownRequestError(error, "P2002") &&
     Array.isArray(error.meta?.target) &&
     error.meta.target.includes("slug")
   );

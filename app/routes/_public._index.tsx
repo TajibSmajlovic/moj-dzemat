@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { DzematLocationSection } from "#app/components/layout/dzemat-location-section";
+import { PageMain } from "#app/components/layout/page-main";
 import { HomeStructuredData } from "#app/components/seo/home-structured-data";
 import { Button } from "#app/components/ui/button";
 import {
@@ -25,6 +26,8 @@ import {
   getPublicPostCards,
   HOME_POST_LIMIT,
 } from "#app/features/posts/public-posts.server";
+import { QaHomePreview } from "#app/features/qa/components/qa-home-preview";
+import { getPublicAnsweredQuestions, QA_HOME_PREVIEW_LIMIT } from "#app/features/qa/qa.server";
 import {
   formatSiteDescription,
   getRootSiteName,
@@ -73,12 +76,18 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const featuredPromise = getFeaturedPostCards();
   const postsPromise = getPublicPostCards({ activeType, take: HOME_POST_LIMIT });
+  const qaPreviewPromise = getPublicAnsweredQuestions({ take: QA_HOME_PREVIEW_LIMIT });
 
-  const [featured, posts] = await Promise.all([featuredPromise, postsPromise]);
+  const [featured, posts, qaPreview] = await Promise.all([
+    featuredPromise,
+    postsPromise,
+    qaPreviewPromise,
+  ]);
 
   return {
     featured,
     posts,
+    qaPreview,
     activeType,
     location: getDzematLocation({
       address: environment.DZEMAT_ADDRESS,
@@ -88,7 +97,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { posts, featured, activeType, location } = loaderData;
+  const { posts, featured, qaPreview, activeType, location } = loaderData;
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
   const facebookPageUrl = useRootFacebookPageUrl();
@@ -105,7 +114,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         />
       ) : null}
 
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+      <PageMain className="pb-0 sm:pb-0">
         {featured.length > 0 ? <Featured featured={featured} /> : null}
 
         <section className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
@@ -141,8 +150,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </Button>
         </div>
 
+        <QaHomePreview questions={qaPreview} />
+
         {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
-      </main>
+      </PageMain>
     </>
   );
 }

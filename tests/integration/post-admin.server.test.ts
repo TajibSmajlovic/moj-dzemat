@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
-import { ROUTES, adminPostPreviewHref, postHref } from "#app/lib/routes";
+import { adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
+import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";

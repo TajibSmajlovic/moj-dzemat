@@ -1,26 +1,36 @@
 import { Form, Link, NavLink, Outlet } from "react-router";
 
-import { ArrowLeft, BellRing, LogOut, Newspaper, type LucideIcon } from "lucide-react";
+import { ArrowLeft, BellRing, HelpCircle, LogOut, Newspaper, type LucideIcon } from "lucide-react";
 
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { Button } from "#app/components/ui/button";
 import { requireAdmin } from "#app/features/auth/auth.server";
+import { countAdminQuestions } from "#app/features/qa/qa.server";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { ROUTES } from "#app/lib/routes";
+import { prisma } from "#app/server/db.server";
 
 import type { Route } from "./+types/admin";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireAdmin(request);
+  const [pendingQuestionCount, activeAnnouncementCount] = await Promise.all([
+    countAdminQuestions("neodgovorena"),
+    prisma.siteAnnouncement.count({ where: { isActive: true } }),
+  ]);
 
-  return { user: { email: user.email, name: user.name } };
+  return {
+    user: { email: user.email, name: user.name },
+    pendingQuestionCount,
+    hasActiveAnnouncement: activeAnnouncementCount > 0,
+  };
 }
 
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {
-  const { user } = loaderData;
+  const { user, pendingQuestionCount, hasActiveAnnouncement } = loaderData;
   const siteName = useRootSiteName();
 
   return (
@@ -63,10 +73,27 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <nav aria-label="Admin sekcije" className="border-border/60 border-t">
-          <div className="mx-auto flex max-w-5xl gap-1 px-4">
-            <AdminTab to={ROUTES.adminPosts} label="Objave" icon={Newspaper} />
-            <AdminTab to={ROUTES.adminAnnouncementBar} label="Obavijesna traka" icon={BellRing} />
+        <nav
+          aria-label="Admin sekcije"
+          className="border-border/60 overflow-x-auto overflow-y-hidden border-t"
+        >
+          <div className="mx-auto flex w-full max-w-5xl gap-1 px-4">
+            <div className="-ml-3 sm:-ml-4">
+              <AdminTab to={ROUTES.adminPosts} label="Objave" icon={Newspaper} />
+            </div>
+            <AdminTab
+              to={ROUTES.adminQa}
+              label="Pitanja"
+              icon={HelpCircle}
+              badgeCount={pendingQuestionCount}
+              badgeLabel={`${pendingQuestionCount} neodgovorenih pitanja`}
+            />
+            <AdminTab
+              to={ROUTES.adminAnnouncementBar}
+              label="Obavijesna traka"
+              icon={BellRing}
+              activeIndicator={hasActiveAnnouncement ? "Aktivna" : null}
+            />
           </div>
         </nav>
       </header>
@@ -87,13 +114,36 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   );
 }
 
-function AdminTab({ to, label, icon: Icon }: { to: string; label: string; icon: LucideIcon }) {
+function AdminTab({
+  to,
+  label,
+  icon: Icon,
+  badgeCount,
+  badgeLabel,
+  activeIndicator,
+}: {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  badgeCount?: number;
+  badgeLabel?: string;
+  activeIndicator?: string | null;
+}) {
+  const showBadge = badgeCount !== undefined && badgeCount > 0;
+
   return (
     <NavLink
       to={to}
+      aria-label={
+        showBadge && badgeLabel
+          ? `${label}, ${badgeLabel}`
+          : activeIndicator
+            ? `${label}, ${activeIndicator.toLowerCase()}`
+            : undefined
+      }
       className={({ isActive }) =>
         cn(
-          "-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors",
+          "-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4",
           isActive
             ? "border-primary text-primary"
             : "text-muted-foreground hover:text-foreground border-transparent",
@@ -102,6 +152,21 @@ function AdminTab({ to, label, icon: Icon }: { to: string; label: string; icon: 
     >
       <Icon className="h-4 w-4" aria-hidden="true" />
       {label}
+      {activeIndicator ? (
+        <span
+          className="bg-primary h-2 w-2 rounded-full"
+          title={activeIndicator}
+          aria-hidden="true"
+        />
+      ) : null}
+      {showBadge ? (
+        <span
+          className="bg-primary/10 text-primary inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums"
+          title={badgeLabel}
+        >
+          {badgeCount > 99 ? "99+" : badgeCount}
+        </span>
+      ) : null}
     </NavLink>
   );
 }

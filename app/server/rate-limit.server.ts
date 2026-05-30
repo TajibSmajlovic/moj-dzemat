@@ -78,6 +78,12 @@ export const forgotPasswordLimiter = createRateLimiter({
   max: 5,
 });
 
+export const qaQuestionLimiter = createRateLimiter({
+  name: "qa-question",
+  windowMs: HOUR_MS,
+  max: 5,
+});
+
 export const staticFileLimiter = createRateLimiter({
   name: "static-files",
   windowMs: MINUTE_MS,

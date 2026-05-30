@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { postsArchiveHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { PUBLIC_POSTS_PAGE_SIZE } from "#app/lib/pagination";
-import { ROUTES, postsArchiveHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import { loader as objaveLoader } from "#app/routes/_public.objave._index";
 
 import { createPost } from "../factories";

@@ -3,10 +3,12 @@ import { Link, redirect } from "react-router";
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 
+import { PageMain } from "#app/components/layout/page-main";
 import { BreadcrumbListJsonLd } from "#app/components/seo/breadcrumb-list-json-ld";
 import { Button } from "#app/components/ui/button";
 import { PostCard } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
+import { postsArchiveHref } from "#app/features/posts/post-routes";
 import { formatPostArchiveTitle } from "#app/features/posts/post-type";
 import {
   countPublicPosts,
@@ -25,7 +27,7 @@ import {
   parsePageParam,
   PUBLIC_POSTS_PAGE_SIZE,
 } from "#app/lib/pagination";
-import { ROUTES, absoluteUrl, postsArchiveHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
@@ -94,7 +96,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
     <>
       {breadcrumbItems ? <BreadcrumbListJsonLd items={breadcrumbItems} /> : null}
 
-      <main className="mx-auto min-h-[40vh] max-w-5xl px-4 py-6 sm:py-8">
+      <PageMain>
         <section className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
           <div className="space-y-1">
             <h1 className="font-display text-foreground text-2xl font-semibold text-balance sm:text-3xl">
@@ -145,7 +147,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
             </p>
           </motion.div>
         )}
-      </main>
+      </PageMain>
     </>
   );
 }

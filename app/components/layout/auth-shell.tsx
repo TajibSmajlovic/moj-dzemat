@@ -9,7 +9,6 @@ import { sectionReveal, softFade } from "#app/lib/motion";
 
 type PublicAuthShellProps = {
   announcement: { message: string } | null;
-  isAdminLoggedIn: boolean;
   eyebrow: string;
   title: string;
   description: ReactNode;
@@ -25,7 +24,6 @@ type PublicAuthShellProps = {
 
 export function PublicAuthShell({
   announcement,
-  isAdminLoggedIn,
   eyebrow,
   title,
   description,
@@ -37,7 +35,7 @@ export function PublicAuthShell({
   return (
     <div className="bg-background text-foreground relative flex min-h-screen flex-col">
       <AnnouncementBar announcement={announcement} />
-      <SiteHeader isAdminLoggedIn={isAdminLoggedIn} />
+      <SiteHeader />
 
       <main className="flex flex-1 flex-col">
         <section className="from-cream-dark/45 via-background to-background sm:from-cream-dark/55 flex flex-1 bg-linear-to-b">

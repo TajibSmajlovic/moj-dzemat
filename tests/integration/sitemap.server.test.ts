@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { postHref, postImageHref } from "#app/lib/routes";
+import { postHref, postImageHref } from "#app/features/posts/post-routes";
+import { qaQuestionHref } from "#app/features/qa/qa-routes";
+import { ROUTES } from "#app/lib/routes";
 import { buildSitemapXml, loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
-import { createPost, createUser } from "../factories";
+import { createPost, createQuestion, createUser } from "../factories";
 
 describe("sitemap route", () => {
-  it("returns valid XML with only the homepage when there are no posts", async () => {
+  it("returns valid XML with static public pages when there are no posts or questions", async () => {
     const response = await sitemapLoader();
     const body = await response.text();
 
@@ -17,7 +19,8 @@ describe("sitemap route", () => {
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=600");
     expect(body).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(body).toContain(`<loc>${env().APP_URL}/</loc>`);
-    expect(body.match(/<url>/g)).toHaveLength(1);
+    expect(body).toContain(`<loc>${env().APP_URL}${ROUTES.qa}</loc>`);
+    expect(body.match(/<url>/g)).toHaveLength(2);
     expect(body).not.toContain("<lastmod>");
   });
 
@@ -73,6 +76,45 @@ describe("sitemap route", () => {
     expect(body).toContain(
       `<image:image><image:loc>${env().APP_URL}${postImageHref(image.id)}</image:loc></image:image>`,
     );
+  });
+
+  it("includes only visible answered Q&A pages", async () => {
+    const olderAnsweredAt = new Date("2026-05-01T10:00:00.000Z");
+    const newestAnsweredAt = new Date("2026-05-03T10:00:00.000Z");
+    const older = await createQuestion({
+      question: "Starije javno pitanje?",
+      answer: "Stariji javni odgovor.",
+      answeredAt: olderAnsweredAt,
+    });
+    const newest = await createQuestion({
+      question: "Novije javno pitanje?",
+      answer: "Noviji javni odgovor.",
+      answeredAt: newestAnsweredAt,
+    });
+    const hidden = await createQuestion({
+      question: "Sakriveno pitanje?",
+      answer: "Sakriven javni odgovor.",
+      isHidden: true,
+      answeredAt: new Date("2026-05-04T10:00:00.000Z"),
+    });
+    const pending = await createQuestion({
+      question: "Pitanje koje još čeka odgovor?",
+    });
+
+    const response = await sitemapLoader();
+    const body = await response.text();
+
+    expect(body).toContain(
+      `<loc>${env().APP_URL}${ROUTES.qa}</loc><lastmod>${newestAnsweredAt.toISOString()}</lastmod>`,
+    );
+    expect(body).toContain(
+      `<loc>${env().APP_URL}${qaQuestionHref(newest.id)}</loc><lastmod>${newestAnsweredAt.toISOString()}</lastmod>`,
+    );
+    expect(body).toContain(
+      `<loc>${env().APP_URL}${qaQuestionHref(older.id)}</loc><lastmod>${olderAnsweredAt.toISOString()}</lastmod>`,
+    );
+    expect(body).not.toContain(qaQuestionHref(hidden.id));
+    expect(body).not.toContain(qaQuestionHref(pending.id));
   });
 
   it("escapes XML special characters in generated entries", () => {

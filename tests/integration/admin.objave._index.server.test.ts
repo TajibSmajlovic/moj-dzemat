@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { adminPostsPageHref } from "#app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "#app/lib/pagination";
-import { ROUTES, adminPostsPageHref } from "#app/lib/routes";
+import { ROUTES } from "#app/lib/routes";
 import {
   action as adminPostsAction,
   loader as adminPostsLoader,

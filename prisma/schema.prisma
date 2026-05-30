@@ -142,3 +142,17 @@ model SiteAnnouncement {
 
   @@index([isActive, createdAt])
 }
+
+model Question {
+  id         String    @id @default(cuid())
+  question   String
+  answer     String?
+  isHidden   Boolean   @default(false)
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([answer, isHidden, answeredAt])
+  @@index([answer, createdAt])
+  @@index([answeredAt])
+}

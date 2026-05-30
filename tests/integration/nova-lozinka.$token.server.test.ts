@@ -2,10 +2,11 @@ import crypto from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MIN_PASSWORD_LENGTH_MESSAGE } from "#app/features/auth/auth-policy";
+import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { verifyPassword } from "#app/features/auth/auth.server";
 import { signResetToken } from "#app/features/auth/reset-token.server";
 import { getSession } from "#app/features/auth/session.server";
-import { DEFAULT_LOGGED_IN_REDIRECT, passwordResetHref } from "#app/lib/routes";
+import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/lib/routes";
 import {
   action as newPasswordAction,
   loader as newPasswordLoader,

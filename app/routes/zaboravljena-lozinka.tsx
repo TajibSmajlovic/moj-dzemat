@@ -12,11 +12,12 @@ import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getAuthPage } from "#app/features/auth/auth-page.server";
 import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
+import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
 import { signResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
-import { ROUTES, absoluteUrl, passwordResetHref } from "#app/lib/routes";
+import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { sendEmail } from "#app/server/email.server";
@@ -35,10 +36,10 @@ export function meta({ matches }: Route.MetaArgs) {
   return buildNoindexMeta(formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)));
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader() {
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPage(request)),
+    ...(await getAuthPage()),
   };
 }
 
@@ -103,7 +104,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
     return (
       <PublicAuthShell
         announcement={loaderData.announcement}
-        isAdminLoggedIn={loaderData.isAdminLoggedIn}
         eyebrow="Siguran pristup"
         title="Provjerite email"
         description="Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke."
@@ -144,7 +144,6 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
   return (
     <PublicAuthShell
       announcement={loaderData.announcement}
-      isAdminLoggedIn={loaderData.isAdminLoggedIn}
       eyebrow="Admin pristup"
       title="Zaboravljena lozinka"
       description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."

@@ -9,7 +9,16 @@ import {
 } from "react";
 import { Link, useLocation } from "react-router";
 
-import { ExternalLink, Home, LogIn, Menu, Newspaper, X, type LucideIcon } from "lucide-react";
+import {
+  ExternalLink,
+  HelpCircle,
+  Home,
+  LockKeyhole,
+  Menu,
+  Newspaper,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
@@ -42,28 +51,34 @@ type HeaderNavItem = InternalNavItem | ExternalNavItem;
 const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
   { type: "internal", label: "Početna", to: ROUTES.home, Icon: Home },
   { type: "internal", label: "Objave", to: ROUTES.posts, Icon: Newspaper },
+  { type: "internal", label: "Pitanja i odgovori", to: ROUTES.qa, Icon: HelpCircle },
 ];
 
-export function SiteHeader({ isAdminLoggedIn = false }: { isAdminLoggedIn?: boolean }) {
+export function SiteHeader({ adminHref = ROUTES.login }: { adminHref?: string }) {
   const { pathname } = useLocation();
   const siteName = useRootSiteName();
   const facebookPageUrl = useRootFacebookPageUrl();
-  const navItems = buildNavItems({
-    adminHref: isAdminLoggedIn ? ROUTES.adminPosts : ROUTES.login,
-    facebookPageUrl,
-  });
+  const navItems = buildNavItems({ facebookPageUrl });
 
   // Reset menu state on route changes without a setState effect.
   return (
-    <SiteHeaderContent key={pathname} navItems={navItems} pathname={pathname} siteName={siteName} />
+    <SiteHeaderContent
+      key={pathname}
+      adminHref={adminHref}
+      navItems={navItems}
+      pathname={pathname}
+      siteName={siteName}
+    />
   );
 }
 
 function SiteHeaderContent({
+  adminHref,
   navItems,
   pathname,
   siteName,
 }: {
+  adminHref: string;
   navItems: HeaderNavItem[];
   pathname: string;
   siteName: string;
@@ -83,6 +98,7 @@ function SiteHeaderContent({
         <div className="flex shrink-0 items-center gap-2">
           <DesktopNavigation items={navItems} pathname={pathname} />
           <ThemeToggle />
+          <DesktopAdminAccess href={adminHref} />
           <MobileMenuToggle controls={mobileMenuId} open={menuOpen} onToggle={toggleMenu} />
         </div>
       </div>
@@ -99,6 +115,7 @@ function SiteHeaderContent({
         <div className="overflow-hidden">
           <MobileNavigation
             id={mobileMenuId}
+            adminHref={adminHref}
             items={navItems}
             open={menuOpen}
             pathname={pathname}
@@ -198,6 +215,21 @@ function DesktopNavigation({ items, pathname }: { items: HeaderNavItem[]; pathna
   );
 }
 
+function DesktopAdminAccess({ href }: { href: string }) {
+  return (
+    <Button
+      asChild
+      variant="outline"
+      size="icon"
+      className="border-border bg-background hover:bg-accent hidden rounded-full xl:inline-flex"
+    >
+      <Link to={href} aria-label="Administracija" title="Administracija" prefetch="intent">
+        <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+      </Link>
+    </Button>
+  );
+}
+
 function DesktopNavItem({ item, pathname }: { item: HeaderNavItem; pathname: string }) {
   const active = isNavItemActive(item, pathname);
   const className = cn(
@@ -233,12 +265,14 @@ function DesktopNavItem({ item, pathname }: { item: HeaderNavItem; pathname: str
 }
 
 function MobileNavigation({
+  adminHref,
   id,
   items,
   onNavigate,
   open,
   pathname,
 }: {
+  adminHref: string;
   id: string;
   items: HeaderNavItem[];
   onNavigate: VoidFunction;
@@ -268,6 +302,13 @@ function MobileNavigation({
         ))}
       </nav>
 
+      <MobileAdminAccess
+        href={adminHref}
+        index={primaryItems.length}
+        open={open}
+        onNavigate={onNavigate}
+      />
+
       {externalItems.length > 0 ? (
         <div className="mt-5 flex justify-end gap-2 px-2 pb-1">
           {externalItems.map((item, index) => (
@@ -281,6 +322,37 @@ function MobileNavigation({
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function MobileAdminAccess({
+  href,
+  index,
+  onNavigate,
+  open,
+}: {
+  href: string;
+  index: number;
+  onNavigate: VoidFunction;
+  open: boolean;
+}) {
+  return (
+    <div className="border-border/70 mt-3 border-t px-2 pt-3">
+      <Link
+        to={href}
+        onClick={onNavigate}
+        prefetch="intent"
+        className={cn(
+          "focus-visible:ring-ring focus-visible:ring-offset-background text-muted-foreground hover:bg-accent/70 hover:text-accent-foreground flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-[background-color,color,opacity,transform] duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          open ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0",
+        )}
+        style={staggerStyle(index, open)}
+        tabIndex={open ? undefined : -1}
+      >
+        <LockKeyhole className="text-primary h-4 w-4" aria-hidden="true" />
+        Administracija
+      </Link>
     </div>
   );
 }
@@ -385,17 +457,8 @@ function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement |
   };
 }
 
-function buildNavItems({
-  adminHref,
-  facebookPageUrl,
-}: {
-  adminHref: string;
-  facebookPageUrl: string | null;
-}): HeaderNavItem[] {
-  const items: HeaderNavItem[] = [
-    ...PRIMARY_NAV_ITEMS,
-    { type: "internal", label: "Admin", to: adminHref, Icon: LogIn },
-  ];
+function buildNavItems({ facebookPageUrl }: { facebookPageUrl: string | null }): HeaderNavItem[] {
+  const items: HeaderNavItem[] = [...PRIMARY_NAV_ITEMS];
 
   if (facebookPageUrl) {
     items.push({

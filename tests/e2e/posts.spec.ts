@@ -1,7 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+import {
+  adminPostsPageHref,
+  postHref,
+  postsArchiveHref,
+} from "../../app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
-import { ROUTES, adminPostsPageHref, postHref, postsArchiveHref } from "../../app/lib/routes";
+import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./fixtures/seed-data";
 import { loginAsAdmin } from "./utils/admin";
 import { fillPostForm, uploadTinyPng } from "./utils/post-form";
