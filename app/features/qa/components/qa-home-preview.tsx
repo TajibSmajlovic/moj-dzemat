@@ -20,7 +20,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
       <div className="grid gap-6 lg:grid-cols-[0.9fr_2fr] lg:gap-8">
         <div className="space-y-3">
           <p className="text-secondary text-xs font-semibold tracking-[0.14em] uppercase">
-            Pitanja i odgovori
+            Odgovori na vaša pitanja
           </p>
           <h2
             id="qa-home-preview-heading"
@@ -35,9 +35,9 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
               prefetch="intent"
               className="text-primary font-medium underline-offset-4 transition-colors hover:underline"
             >
-              postavite vlastito
+              postavite
             </Link>{" "}
-            pitanje.
+            vlastito pitanje.
           </p>
         </div>
 
