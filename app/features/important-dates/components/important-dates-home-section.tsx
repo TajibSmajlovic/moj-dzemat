@@ -1,5 +1,6 @@
 import type { PublicImportantDate } from "#app/features/important-dates/important-dates.server";
-import { dateToYmd, formatYmdLong, getYmdBadgeParts } from "#app/lib/date";
+import { cn } from "#app/lib/cn";
+import { dateToYmd, getYmdBadgeParts } from "#app/lib/date";
 
 type Props = {
   dates: PublicImportantDate[];
@@ -13,7 +14,7 @@ export function ImportantDatesHomeSection({ dates }: Props) {
   return (
     <section
       aria-labelledby="important-dates-home-heading"
-      className="border-border/60 mt-8 border-t border-b py-8 sm:mt-10 sm:py-10"
+      className={cn("border-border/60 border-b py-8 sm:py-10")}
     >
       <div className="grid gap-6 lg:grid-cols-[0.9fr_2fr] lg:gap-8">
         <div className="space-y-3">
@@ -64,13 +65,10 @@ function ImportantDateRow({ entry }: { entry: PublicImportantDate }) {
         </time>
       ) : null}
 
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="min-w-0 flex-1 space-y-1 self-center">
         <h3 className="font-display text-foreground leading-snug font-semibold text-pretty">
           {entry.title}
         </h3>
-        <p className="text-muted-foreground text-xs">
-          <time dateTime={ymd}>{formatYmdLong(ymd)}</time>
-        </p>
         {entry.description ? (
           <p className="text-muted-foreground line-clamp-2 text-sm leading-6 text-pretty">
             {entry.description}
