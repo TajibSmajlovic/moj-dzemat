@@ -1,5 +1,5 @@
-export const YOUTUBE_PROVIDER = "youtube";
-export type VideoProvider = typeof YOUTUBE_PROVIDER;
+const YOUTUBE_PROVIDER = "youtube";
+type VideoProvider = typeof YOUTUBE_PROVIDER;
 
 export const MAX_VIDEOS_PER_POST = 3;
 
