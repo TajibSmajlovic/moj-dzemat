@@ -14,10 +14,12 @@ import {
   persistPostAndImages,
   type PersistedPost,
 } from "#app/features/posts/admin/post-persist.server";
+import { resolveVideoInputs } from "#app/features/posts/admin/post-videos.server";
 import { adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
 import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 import { PostFormSchema } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
+import type { ParsedVideo } from "#app/features/posts/post-video";
 import { invariant, invariantResponse } from "#app/lib/invariant";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -96,10 +98,12 @@ export async function createOrUpdatePostFromForm({
 
   let processedImages: ProcessedPostImage[];
   let imageAltTextUpdates: ImageAltTextUpdate[] = [];
+  let videoInputs: ParsedVideo[] = [];
 
   try {
     imageAltTextUpdates = existingImageAltTextUpdates(formData);
     processedImages = await processUploadedImages(formData);
+    videoInputs = resolveVideoInputs(formData);
   } catch (error) {
     if (error instanceof FormError) {
       return data(
@@ -128,6 +132,7 @@ export async function createOrUpdatePostFromForm({
       status,
       title,
       type,
+      videoInputs,
     });
 
     logger.info(
@@ -139,6 +144,7 @@ export async function createOrUpdatePostFromForm({
         status: savedPost.status,
         type,
         imageCount: processedImages.length,
+        videoCount: videoInputs.length,
       },
       "post saved",
     );

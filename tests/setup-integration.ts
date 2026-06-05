@@ -56,6 +56,7 @@ afterEach(async () => {
   const { prisma } = await import("#app/server/db.server");
   // Order matters: children first so FK cascades don't surprise us.
   await prisma.postImage.deleteMany();
+  await prisma.postVideo.deleteMany();
   await prisma.post.deleteMany();
   await prisma.session.deleteMany();
   await prisma.password.deleteMany();

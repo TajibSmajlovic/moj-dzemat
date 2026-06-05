@@ -9,14 +9,16 @@ import {
   type SubmissionResult,
 } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { Eye, ImagePlus, Pin, Star, Trash2 } from "lucide-react";
+import { Eye, ImagePlus, Pin, Play, Plus, Star, Trash2 } from "lucide-react";
 
 import { Field } from "#app/components/forms/field";
 import { FormActions } from "#app/components/forms/form-actions";
 import { SelectField } from "#app/components/forms/select-field";
+import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { Checkbox } from "#app/components/ui/checkbox";
 import { ConfirmAction } from "#app/components/ui/confirm-action";
+import { Input } from "#app/components/ui/input";
 import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
 import { RichEditor } from "#app/features/posts/admin/components/rich-editor";
@@ -29,10 +31,16 @@ import {
 } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import { POST_TYPES, POST_TYPE_LABEL } from "#app/features/posts/post-type";
+import {
+  MAX_VIDEOS_PER_POST,
+  parseYouTubeUrl,
+  youtubeThumbnailUrl,
+} from "#app/features/posts/post-video";
 import { IntentInput } from "#app/lib/intent";
 import { useFetcherToast } from "#app/lib/toast";
 
 type PostFormImage = { id: string; altText: string | null };
+type PostFormVideo = { id: string; url: string; providerId: string };
 
 type PostFormProps = {
   /**
@@ -50,6 +58,7 @@ type PostFormProps = {
     featured: boolean;
     pinned: boolean;
     images: PostFormImage[];
+    videos?: PostFormVideo[];
   };
   lastResult?: SubmissionResult<string[]> | null;
   submitting?: boolean;
@@ -93,6 +102,12 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
       {isEdit ? <input type="hidden" name="id" value={post!.id} /> : null}
 
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        {form.errors?.length ? (
+          <Alert variant="destructive">
+            <AlertDescription>{form.errors[0]}</AlertDescription>
+          </Alert>
+        ) : null}
+
         <Field
           label="Naslov"
           errors={fields.title.errors}
@@ -167,6 +182,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         </div>
 
         <ImagesSection post={post} remainingSlots={remainingSlots} />
+        <VideosSection videos={post?.videos} />
       </div>
 
       <FormActions>
@@ -342,6 +358,115 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
   );
 }
 
+function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
+  const [urls, setUrls] = useState<string[]>(() =>
+    videos && videos.length > 0 ? videos.map((video) => video.url) : [""],
+  );
+
+  const updateUrl = (index: number, value: string) =>
+    setUrls((current) =>
+      current.map((url, currentIndex) => (currentIndex === index ? value : url)),
+    );
+
+  const removeUrl = (index: number) =>
+    setUrls((current) => current.filter((_, currentIndex) => currentIndex !== index));
+
+  const addUrl = () => setUrls((current) => [...current, ""]);
+
+  const filledCount = urls.filter((url) => url.trim()).length;
+  const canAddMore = urls.length < MAX_VIDEOS_PER_POST;
+
+  return (
+    <section aria-label="Video" className="border-border space-y-3 rounded-md border p-4">
+      <header className="flex items-center justify-between gap-3">
+        <h3 className="font-display flex items-center gap-2 text-sm font-semibold">
+          <Play className="text-destructive h-4 w-4" aria-hidden="true" />
+          Video (YouTube)
+        </h3>
+        <span className="text-muted-foreground text-xs">
+          {filledCount}/{MAX_VIDEOS_PER_POST} · opcionalno
+        </span>
+      </header>
+
+      <ul className="space-y-3">
+        {urls.map((url, index) => {
+          const trimmed = url.trim();
+          const parsed = trimmed ? parseYouTubeUrl(trimmed) : null;
+          const invalid = Boolean(trimmed) && !parsed;
+          const errorId = invalid ? `video-url-${index}-error` : undefined;
+
+          return (
+            <li key={index} className="space-y-2">
+              <div className="flex items-start gap-2">
+                <Input
+                  name="videoUrl"
+                  type="url"
+                  inputMode="url"
+                  autoComplete="off"
+                  value={url}
+                  onChange={(event) => updateUrl(index, event.currentTarget.value)}
+                  aria-label={`YouTube link ${index + 1}`}
+                  aria-describedby={errorId}
+                  aria-invalid={invalid || undefined}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Ukloni video ${index + 1}`}
+                  onClick={() => removeUrl(index)}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+
+              {invalid ? (
+                <p id={errorId} className="text-destructive text-xs">
+                  Unesite ispravan YouTube link.
+                </p>
+              ) : null}
+
+              {parsed ? (
+                <div className="bg-muted relative aspect-video w-full max-w-xs overflow-hidden rounded-xl">
+                  <img
+                    src={youtubeThumbnailUrl(parsed.videoId)}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="bg-background/90 text-foreground absolute inset-0 m-auto inline-flex h-12 w-12 items-center justify-center rounded-full shadow-md"
+                  >
+                    <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+                  </span>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+
+      {canAddMore ? (
+        <Button type="button" variant="outline" size="sm" onClick={addUrl} className="gap-2">
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Dodaj video
+        </Button>
+      ) : (
+        <p className="text-muted-foreground text-xs">
+          Dosegli ste maksimum od {MAX_VIDEOS_PER_POST} videa.
+        </p>
+      )}
+
+      <p className="text-muted-foreground text-xs">
+        Podržani su YouTube linkovi, npr. https://www.youtube.com/watch?v=...
+      </p>
+    </section>
+  );
+}
+
 function formatFileSize(bytes: number) {
   if (bytes >= 1024 * 1024) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -402,6 +527,7 @@ function ExistingImage({ postId, image }: ExistingImageProps) {
         loading="lazy"
         className="aspect-video w-full object-cover"
       />
+
       <div className="border-border space-y-2 border-t p-2">
         <div className="space-y-1 text-left">
           <Label htmlFor={altInputId} className="text-xs">
@@ -413,6 +539,7 @@ function ExistingImage({ postId, image }: ExistingImageProps) {
             defaultValue={image.altText ?? ""}
           />
         </div>
+
         <div className="text-right">
           <ConfirmAction
             onConfirm={requestDelete}

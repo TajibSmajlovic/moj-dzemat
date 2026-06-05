@@ -35,6 +35,10 @@ export async function loader({ params }: Route.LoaderArgs) {
         orderBy: { position: "asc" },
         select: { id: true, altText: true, width: true, height: true },
       },
+      videos: {
+        orderBy: { position: "asc" },
+        select: { id: true, providerId: true },
+      },
     },
   });
 

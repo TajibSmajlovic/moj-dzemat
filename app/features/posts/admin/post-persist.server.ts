@@ -3,8 +3,10 @@ import {
   type ImageAltTextUpdate,
   type ProcessedPostImage,
 } from "#app/features/posts/admin/post-images.server";
+import { reconcilePostVideos } from "#app/features/posts/admin/post-videos.server";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
+import type { ParsedVideo } from "#app/features/posts/post-video";
 import { isPrismaKnownRequestError, prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
 
@@ -29,6 +31,7 @@ export type PersistPostArgs = {
   status: PostStatusValue;
   title: string;
   type: PostTypeValue;
+  videoInputs: ParsedVideo[];
 };
 
 export type PersistedPost = {
@@ -52,6 +55,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
       status,
       title,
       type,
+      videoInputs,
     } = args;
 
     const clashing = await tx.post.findFirst({
@@ -97,6 +101,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
           });
 
     await createImageRows(tx, post.id, processedImages);
+    await reconcilePostVideos(tx, post.id, videoInputs);
 
     if (intent === "update" && existingId && imageAltTextUpdates.length > 0) {
       await Promise.all(

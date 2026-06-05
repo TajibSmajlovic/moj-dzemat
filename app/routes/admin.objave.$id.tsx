@@ -30,6 +30,10 @@ const POST_FORM_SELECT = {
     orderBy: { position: "asc" as const },
     select: { id: true, altText: true },
   },
+  videos: {
+    orderBy: { position: "asc" as const },
+    select: { id: true, url: true, providerId: true },
+  },
 } as const;
 
 const SUPPORTED_INTENTS = {

@@ -13,8 +13,10 @@ import {
 } from "#app/components/ui/carousel";
 import { PostArticleJsonLd } from "#app/features/posts/components/post-article-json-ld";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
+import { YouTubeFacade } from "#app/features/posts/components/youtube-facade";
 import { postImageHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
+import { youtubeEmbedUrl } from "#app/features/posts/post-video";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { motionTransitions } from "#app/lib/motion";
 
@@ -23,6 +25,11 @@ type PostDetailImage = {
   altText: string | null;
   width: number | null;
   height: number | null;
+};
+
+type PostDetailVideo = {
+  id: string;
+  providerId: string;
 };
 
 type PostDetailPost = {
@@ -34,6 +41,7 @@ type PostDetailPost = {
   updatedAt: Date | string;
   pinned: boolean;
   images: PostDetailImage[];
+  videos: PostDetailVideo[];
 };
 
 type PostDetailArticleProps = {
@@ -54,6 +62,7 @@ export function PostDetailArticle({
   // `body` is stored already sanitised by `sanitizePostBody` at write
   // time, so the renderer trusts the value as-is.
   const bodyHtml = post.body;
+  const media = buildMedia(post);
 
   return (
     <>
@@ -86,9 +95,7 @@ export function PostDetailArticle({
           </div>
         </div>
 
-        {post.images.length > 0 && (
-          <PostImagesCarousel images={post.images} fallbackAlt={post.title} />
-        )}
+        {media.length > 0 ? <PostMediaCarousel media={media} fallbackAlt={post.title} /> : null}
 
         <div className="bg-border mb-8 h-px" />
 
@@ -101,43 +108,66 @@ export function PostDetailArticle({
   );
 }
 
-const PostImagesCarousel = ({
-  images,
-  fallbackAlt,
-}: {
-  images: PostDetailImage[];
-  fallbackAlt: string;
-}) => {
+type MediaItem =
+  | { kind: "image"; key: string; image: PostDetailImage }
+  | { kind: "video"; key: string; videoId: string };
+
+function buildMedia(post: PostDetailPost): MediaItem[] {
+  return [
+    ...post.videos.map((video) => ({
+      kind: "video" as const,
+      key: video.id,
+      videoId: video.providerId,
+    })),
+    ...post.images.map((image) => ({ kind: "image" as const, key: image.id, image })),
+  ];
+}
+
+const PostMediaCarousel = ({ media, fallbackAlt }: { media: MediaItem[]; fallbackAlt: string }) => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const showPrevious = () => {
     setLightboxIndex((current) => {
       if (current === null) return current;
-      return current === 0 ? images.length - 1 : current - 1;
+
+      return current === 0 ? media.length - 1 : current - 1;
     });
   };
 
   const showNext = () => {
     setLightboxIndex((current) => {
       if (current === null) return current;
-      return current === images.length - 1 ? 0 : current + 1;
+
+      return current === media.length - 1 ? 0 : current + 1;
     });
   };
 
-  if (images.length === 1 && images[0])
+  const renderItem = (item: MediaItem, index: number) =>
+    item.kind === "image" ? (
+      <ExpandableImage
+        image={item.image}
+        index={index}
+        fallbackAlt={fallbackAlt}
+        onOpen={setLightboxIndex}
+        priority={index === 0}
+      />
+    ) : (
+      <YouTubeFacade
+        videoId={item.videoId}
+        title={fallbackAlt}
+        onExpand={() => setLightboxIndex(index)}
+      />
+    );
+
+  if (media.length === 1 && media[0])
     return (
       <div className="mb-8">
-        <ExpandableImage
-          image={images[0]}
-          index={0}
-          fallbackAlt={fallbackAlt}
-          onOpen={setLightboxIndex}
-          priority
-        />
+        {renderItem(media[0], 0)}
+
         <AnimatePresence>
           {lightboxIndex === null ? null : (
-            <ImageLightbox
-              images={images}
+            <MediaLightbox
+              media={media}
               activeIndex={lightboxIndex}
               fallbackAlt={fallbackAlt}
               onClose={() => setLightboxIndex(null)}
@@ -153,26 +183,19 @@ const PostImagesCarousel = ({
     <div className="mb-8">
       <Carousel className="w-full">
         <CarouselContent>
-          {images.map((image, index) => (
-            <CarouselItem key={image.id}>
-              <ExpandableImage
-                image={image}
-                index={index}
-                fallbackAlt={fallbackAlt}
-                onOpen={setLightboxIndex}
-                priority={index === 0}
-              />
-            </CarouselItem>
+          {media.map((item, index) => (
+            <CarouselItem key={item.key}>{renderItem(item, index)}</CarouselItem>
           ))}
         </CarouselContent>
 
         <CarouselPrevious />
         <CarouselNext />
       </Carousel>
+
       <AnimatePresence>
         {lightboxIndex === null ? null : (
-          <ImageLightbox
-            images={images}
+          <MediaLightbox
+            media={media}
             activeIndex={lightboxIndex}
             fallbackAlt={fallbackAlt}
             onClose={() => setLightboxIndex(null)}
@@ -230,23 +253,24 @@ function ExpandableImage({
   );
 }
 
-function ImageLightbox({
-  images,
+function MediaLightbox({
+  media,
   activeIndex,
   fallbackAlt,
   onClose,
   onPrevious,
   onNext,
 }: {
-  images: PostDetailImage[];
+  media: MediaItem[];
   activeIndex: number;
   fallbackAlt: string;
   onClose: VoidFunction;
   onPrevious: VoidFunction;
   onNext: VoidFunction;
 }) {
-  const image = images[activeIndex];
-  const canNavigate = images.length > 1;
+  const item = media[activeIndex];
+  const canNavigate = media.length > 1;
+  const allImages = media.every((mediaItem) => mediaItem.kind === "image");
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -266,13 +290,17 @@ function ImageLightbox({
     };
   }, [canNavigate, onClose, onNext, onPrevious]);
 
-  if (!image || typeof document === "undefined") return null;
+  if (!item || typeof document === "undefined") return null;
+
+  const activeNoun = item.kind === "video" ? "videa" : "slike";
+  const counterKind = item.kind === "video" ? "Video" : "Slika";
+  const closeLabel = item.kind === "video" ? "Zatvori prikaz videa" : "Zatvori prikaz slike";
 
   return createPortal(
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label="Pregled slike preko cijelog ekrana"
+      aria-label={`Pregled ${activeNoun} preko cijelog ekrana`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -282,13 +310,13 @@ function ImageLightbox({
     >
       <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-5">
         <div className="border-lightbox-foreground/15 bg-lightbox-foreground/10 text-lightbox-foreground/85 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md sm:text-sm">
-          Slika {activeIndex + 1}
-          {canNavigate ? ` od ${images.length}` : null}
+          {counterKind} {activeIndex + 1}
+          {canNavigate ? ` od ${media.length}` : null}
         </div>
 
         <button
           type="button"
-          aria-label="Zatvori prikaz slike"
+          aria-label={closeLabel}
           onClick={onClose}
           className="border-lightbox-foreground/15 bg-lightbox-foreground/10 text-lightbox-foreground/90 hover:bg-lightbox-foreground/20 focus-visible:ring-ring focus-visible:ring-offset-lightbox inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
@@ -301,27 +329,46 @@ function ImageLightbox({
         className="flex h-full items-center justify-center px-0 pt-14 pb-10 sm:px-12"
         onClick={(event) => event.stopPropagation()}
       >
-        <motion.img
-          key={image.id}
-          src={postImageHref(image.id)}
-          alt={formatImageAlt(image, activeIndex, fallbackAlt)}
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={motionTransitions.lightbox}
-          className="ring-lightbox-foreground/10 max-h-full max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
-        />
+        {item.kind === "image" ? (
+          <motion.img
+            key={item.image.id}
+            src={postImageHref(item.image.id)}
+            alt={formatImageAlt(item.image, activeIndex, fallbackAlt)}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={motionTransitions.lightbox}
+            className="ring-lightbox-foreground/10 max-h-full max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
+          />
+        ) : (
+          <iframe
+            key={item.videoId}
+            src={youtubeEmbedUrl(item.videoId, { autoplay: true })}
+            title={fallbackAlt}
+            className="ring-lightbox-foreground/10 aspect-video max-h-full w-full max-w-4xl rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
+            allow="autoplay; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        )}
       </div>
 
       {canNavigate ? (
         <>
-          <LightboxNavButton label="Prethodna slika" direction="previous" onClick={onPrevious} />
-          <LightboxNavButton label="Sljedeća slika" direction="next" onClick={onNext} />
+          <LightboxNavButton
+            label={allImages ? "Prethodna slika" : "Prethodni medij"}
+            direction="previous"
+            onClick={onPrevious}
+          />
+          <LightboxNavButton
+            label={allImages ? "Sljedeća slika" : "Sljedeći medij"}
+            direction="next"
+            onClick={onNext}
+          />
         </>
       ) : null}
 
-      {image.altText ? (
+      {item.kind === "image" && item.image.altText ? (
         <p className="text-lightbox-foreground/80 absolute inset-x-4 bottom-4 text-center text-sm">
-          {image.altText}
+          {item.image.altText}
         </p>
       ) : null}
     </motion.div>,

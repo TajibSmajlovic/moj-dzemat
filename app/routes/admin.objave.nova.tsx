@@ -49,9 +49,9 @@ export default function AdminNewPost() {
         title="Nova objava"
         description={
           <>
-            Popunite polja i po želji dodajte slike (do 3). Ukoliko želite da objavite odmah,
-            označite opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i napraviti
-            dodatne izmjene po potrebi.
+            Popunite polja i po želji dodajte slike ili YouTube linkove. Ukoliko želite da objavite
+            odmah, označite opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i
+            napraviti dodatne izmjene po potrebi.
           </>
         }
       />
