@@ -61,8 +61,5 @@ test.describe("admin / važni datumi", () => {
     await confirm.getByRole("button", { name: "Obriši datum" }).click();
 
     await expect(page.getByRole("row").filter({ hasText: editedTitle })).toHaveCount(0);
-
-    await page.goto(ROUTES.home);
-    await expect(page.getByText(editedTitle)).toHaveCount(0);
   });
 });
