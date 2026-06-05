@@ -2,6 +2,11 @@ import { JsonLdScript } from "#app/components/seo/json-ld-script";
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { POST_TYPE_LABEL, type PostTypeValue } from "#app/features/posts/post-type";
+import {
+  youtubeEmbedUrl,
+  youtubeThumbnailUrl,
+  youtubeWatchUrl,
+} from "#app/features/posts/post-video";
 import { toIsoDate } from "#app/lib/date";
 import { absoluteUrl } from "#app/lib/routes";
 
@@ -20,6 +25,7 @@ type PostArticleJsonLdPost = {
   publishedAt: Date | string;
   updatedAt: Date | string;
   images: PostArticleJsonLdImage[];
+  videos: { providerId: string }[];
 };
 
 type PostArticleJsonLdProps = {
@@ -39,6 +45,7 @@ export function PostArticleJsonLd({
 
   const canonical = absoluteUrl(siteUrl, postHref(post.slug));
   const organizationId = `${siteUrl}/#organization`;
+  const description = plainExcerpt(post.body);
   const imageObjects = post.images.map((image) => ({
     "@type": "ImageObject",
     url: absoluteUrl(siteUrl, postImageHref(image.id)),
@@ -55,7 +62,7 @@ export function PostArticleJsonLd({
         "@id": `${canonical}#article`,
         url: canonical,
         headline: post.title,
-        description: plainExcerpt(post.body),
+        description,
         datePublished: toIsoDate(post.publishedAt),
         dateModified: toIsoDate(post.updatedAt),
         inLanguage: "bs-BA",
@@ -65,6 +72,17 @@ export function PostArticleJsonLd({
         },
         articleSection: POST_TYPE_LABEL[post.type],
         image: imageObjects.length > 0 ? imageObjects : undefined,
+        video: post.videos.length
+          ? post.videos.map((video) => ({
+              "@type": "VideoObject",
+              name: post.title,
+              description,
+              thumbnailUrl: youtubeThumbnailUrl(video.providerId),
+              uploadDate: toIsoDate(post.publishedAt),
+              embedUrl: youtubeEmbedUrl(video.providerId),
+              contentUrl: youtubeWatchUrl(video.providerId),
+            }))
+          : undefined,
         author: {
           "@type": "Organization",
           "@id": organizationId,

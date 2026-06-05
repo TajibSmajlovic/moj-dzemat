@@ -1,4 +1,11 @@
-import { data, useActionData, useNavigate, useNavigation, useSearchParams } from "react-router";
+import {
+  data,
+  Link,
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useSearchParams,
+} from "react-router";
 
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Plus } from "lucide-react";
@@ -149,12 +156,10 @@ export default function AdminImportantDates({ loaderData }: Route.ComponentProps
       navigation.formData?.get("intent") === ImportantDateIntents.Update);
 
   const closeSheet = () => void navigate(ROUTES.adminImportantDates);
-  const openNew = () => void navigate(`${ROUTES.adminImportantDates}?new=1`);
-  const openEdit = (id: string) => {
-    const params = new URLSearchParams({ edit: id });
 
-    void navigate(`${ROUTES.adminImportantDates}?${params.toString()}`);
-  };
+  const newHref = `${ROUTES.adminImportantDates}?new=1`;
+  const getEditHref = (id: string) =>
+    `${ROUTES.adminImportantDates}?${new URLSearchParams({ edit: id }).toString()}`;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -162,9 +167,11 @@ export default function AdminImportantDates({ loaderData }: Route.ComponentProps
         title="Važni datumi"
         description="Upravljajte nadolazećim važnim datumima koji se prikazuju na početnoj stranici."
         actions={
-          <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" onClick={openNew}>
-            <Plus className="h-5 w-5" aria-hidden="true" />
-            Novi datum
+          <Button asChild size="lg" className="gap-2 rounded-xl shadow-lg">
+            <Link to={newHref}>
+              <Plus className="h-5 w-5" aria-hidden="true" />
+              Novi datum
+            </Link>
           </Button>
         }
       />
@@ -172,7 +179,7 @@ export default function AdminImportantDates({ loaderData }: Route.ComponentProps
       <ImportantDateList
         importantDates={importantDates}
         deletingId={deletingId}
-        onEdit={openEdit}
+        getEditHref={getEditHref}
       />
 
       <Sheet

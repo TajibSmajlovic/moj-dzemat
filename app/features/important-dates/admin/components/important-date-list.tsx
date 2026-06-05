@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import { CalendarOff, Pencil } from "lucide-react";
 
 import { AdminPanel } from "#app/components/admin/admin-panel";
@@ -27,10 +29,10 @@ export type ImportantDateRow = {
 type Props = {
   importantDates: ImportantDateRow[];
   deletingId: string | null;
-  onEdit: (id: string) => void;
+  getEditHref: (id: string) => string;
 };
 
-export function ImportantDateList({ importantDates, deletingId, onEdit }: Props) {
+export function ImportantDateList({ importantDates, deletingId, getEditHref }: Props) {
   if (importantDates.length === 0) {
     return (
       <EmptyState>
@@ -54,7 +56,7 @@ export function ImportantDateList({ importantDates, deletingId, onEdit }: Props)
             importantDate={importantDate}
             past={dateToYmd(importantDate.date) < todayYmd}
             deleting={deletingId === importantDate.id}
-            onEdit={onEdit}
+            getEditHref={getEditHref}
           />
         ))}
       </div>
@@ -88,13 +90,12 @@ export function ImportantDateList({ importantDates, deletingId, onEdit }: Props)
                     </div>
                   </TableCell>
                   <TableCell>
-                    <button
-                      type="button"
-                      onClick={() => onEdit(importantDate.id)}
+                    <Link
+                      to={getEditHref(importantDate.id)}
                       className="hover:text-primary line-clamp-2 text-left font-medium transition-colors"
                     >
                       {importantDate.title}
-                    </button>
+                    </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground max-w-xs text-sm">
                     {importantDate.description ? (
@@ -104,7 +105,7 @@ export function ImportantDateList({ importantDates, deletingId, onEdit }: Props)
                     )}
                   </TableCell>
                   <TableCell>
-                    <ImportantDateActions importantDate={importantDate} onEdit={onEdit} />
+                    <ImportantDateActions importantDate={importantDate} getEditHref={getEditHref} />
                   </TableCell>
                 </TableRow>
               );
@@ -120,12 +121,12 @@ function ImportantDateMobileCard({
   importantDate,
   past,
   deleting,
-  onEdit,
+  getEditHref,
 }: {
   importantDate: ImportantDateRow;
   past: boolean;
   deleting: boolean;
-  onEdit: (id: string) => void;
+  getEditHref: (id: string) => string;
 }) {
   const ymd = dateToYmd(importantDate.date);
 
@@ -143,13 +144,12 @@ function ImportantDateMobileCard({
         {past ? <PastBadge /> : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => onEdit(importantDate.id)}
-        className="font-display hover:text-primary mt-3 line-clamp-3 min-w-0 text-left text-lg leading-tight font-semibold text-pretty transition-colors"
+      <Link
+        to={getEditHref(importantDate.id)}
+        className="font-display hover:text-primary mt-3 line-clamp-3 block min-w-0 text-left text-lg leading-tight font-semibold text-pretty transition-colors"
       >
         {importantDate.title}
-      </button>
+      </Link>
 
       {importantDate.description ? (
         <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">
@@ -158,7 +158,7 @@ function ImportantDateMobileCard({
       ) : null}
 
       <div className="border-border/60 mt-4 border-t pt-3">
-        <ImportantDateActions importantDate={importantDate} onEdit={onEdit} mobile />
+        <ImportantDateActions importantDate={importantDate} getEditHref={getEditHref} mobile />
       </div>
     </article>
   );
@@ -175,11 +175,11 @@ function PastBadge() {
 
 type ActionProps = {
   importantDate: ImportantDateRow;
-  onEdit: (id: string) => void;
+  getEditHref: (id: string) => string;
   mobile?: boolean;
 };
 
-function ImportantDateActions({ importantDate, onEdit, mobile = false }: ActionProps) {
+function ImportantDateActions({ importantDate, getEditHref, mobile = false }: ActionProps) {
   const actionClassName = mobile ? "size-10 rounded-full" : undefined;
 
   return (
@@ -190,13 +190,10 @@ function ImportantDateActions({ importantDate, onEdit, mobile = false }: ActionP
           : "flex items-center justify-end gap-1"
       }
     >
-      <IconActionButton
-        label="Uredi"
-        tone="primary"
-        className={actionClassName}
-        onClick={() => onEdit(importantDate.id)}
-      >
-        <Pencil className="h-4 w-4" aria-hidden="true" />
+      <IconActionButton asChild label="Uredi" tone="primary" className={actionClassName}>
+        <Link to={getEditHref(importantDate.id)}>
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+        </Link>
       </IconActionButton>
       <DeleteRecordButton
         id={importantDate.id}

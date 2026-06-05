@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
 import { adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
+import { MAX_VIDEOS_PER_POST, youtubeWatchUrl } from "#app/features/posts/post-video";
 import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 
@@ -34,6 +35,28 @@ function payloadOf(result: unknown): unknown {
 type ConformReply = {
   result: { error: Record<string, string[] | undefined> };
 };
+
+const VIDEO_ONE = "dQw4w9WgXcQ";
+const VIDEO_TWO = "oHg5SJYRHA0";
+const VIDEO_THREE = "9bZkp7q19f0";
+const VIDEO_FOUR = "M7lc1UVf-VE";
+
+function validPostFormData({
+  slug = `video-post-${Date.now()}`,
+  title = "Objava sa videom",
+}: {
+  slug?: string;
+  title?: string;
+} = {}) {
+  const formData = new FormData();
+  formData.set("title", title);
+  formData.set("slug", slug);
+  formData.set("type", "obavijest");
+  formData.set("body", "Tekst objave.");
+  formData.set("publish", "on");
+
+  return formData;
+}
 
 describe("createOrUpdatePostFromForm", () => {
   describe("create", () => {
@@ -184,6 +207,168 @@ describe("createOrUpdatePostFromForm", () => {
       expect(post?.images[0]?.byteSize ?? 0).toBeGreaterThan(0);
     });
 
+    it("attaches a youtube video", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "sa-videom" });
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_ONE}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const post = await prisma.post.findUnique({
+        where: { slug: "sa-videom" },
+        include: { videos: true },
+      });
+      expect(post?.videos).toHaveLength(1);
+      expect(post?.videos[0]).toMatchObject({
+        provider: "youtube",
+        providerId: VIDEO_ONE,
+        position: 0,
+        url: youtubeWatchUrl(VIDEO_ONE),
+      });
+    });
+
+    it("attaches multiple videos in order", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "vise-videa" });
+      for (const id of [VIDEO_ONE, VIDEO_TWO, VIDEO_THREE]) {
+        formData.append("videoUrl", `https://www.youtube.com/watch?v=${id}`);
+      }
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const videos = await prisma.postVideo.findMany({
+        where: { post: { slug: "vise-videa" } },
+        orderBy: { position: "asc" },
+      });
+      expect(videos.map((video) => video.providerId)).toEqual([VIDEO_ONE, VIDEO_TWO, VIDEO_THREE]);
+      expect(videos.map((video) => video.position)).toEqual([0, 1, 2]);
+    });
+
+    it("extracts the id from a youtu.be link", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "youtu-be-video" });
+      formData.append("videoUrl", `https://youtu.be/${VIDEO_ONE}?si=abc`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const video = await prisma.postVideo.findFirst({
+        where: { post: { slug: "youtu-be-video" } },
+      });
+      expect(video?.providerId).toBe(VIDEO_ONE);
+      expect(video?.url).toBe(youtubeWatchUrl(VIDEO_ONE));
+    });
+
+    it("dedupes the same video submitted twice", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "dupli-video" });
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_ONE}`);
+      formData.append("videoUrl", `https://youtu.be/${VIDEO_ONE}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const videos = await prisma.postVideo.findMany({
+        where: { post: { slug: "dupli-video" } },
+      });
+      expect(videos).toHaveLength(1);
+      expect(videos[0]?.providerId).toBe(VIDEO_ONE);
+    });
+
+    it("rejects more than MAX_VIDEOS_PER_POST", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "previse-videa" });
+      for (const id of [VIDEO_ONE, VIDEO_TWO, VIDEO_THREE, VIDEO_FOUR]) {
+        formData.append("videoUrl", `https://www.youtube.com/watch?v=${id}`);
+      }
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(400);
+      const body = payloadOf(result) as ConformReply;
+      expect(body.result.error[""]?.[0]).toMatch(/najvi[sš]e/i);
+      expect(body.result.error[""]?.[0]).toContain(String(MAX_VIDEOS_PER_POST));
+
+      const stored = await prisma.post.findUnique({ where: { slug: "previse-videa" } });
+      expect(stored).toBeNull();
+    });
+
+    it("rejects an invalid video link", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "neispravan-video" });
+      formData.append("videoUrl", "https://vimeo.com/1");
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(400);
+      const body = payloadOf(result) as ConformReply;
+      expect(body.result.error[""]?.[0]).toMatch(/YouTube/);
+
+      const stored = await prisma.post.findUnique({ where: { slug: "neispravan-video" } });
+      expect(stored).toBeNull();
+    });
+
+    it("creates a post with both an image and a video", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "slika-i-video" });
+      formData.append("images", tinyPngFile("a.png"));
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_ONE}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const post = await prisma.post.findUnique({
+        where: { slug: "slika-i-video" },
+        include: { images: true, videos: true },
+      });
+      expect(post?.images).toHaveLength(1);
+      expect(post?.videos).toHaveLength(1);
+    });
+
+    it("creates no video rows when none submitted", async () => {
+      const { user } = await createUser();
+      const formData = validPostFormData({ slug: "bez-videa" });
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "create",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      await expect(prisma.postVideo.count()).resolves.toBe(0);
+    });
+
     it("rejects creates with more than MAX_IMAGES_PER_POST in one go", async () => {
       const { user } = await createUser();
       const formData = new FormData();
@@ -326,6 +511,164 @@ describe("createOrUpdatePostFromForm", () => {
       expect(statusOf(result)).toBe(302);
       const stored = await prisma.postImage.findUnique({ where: { id: image.id } });
       expect(stored?.altText).toBe("Novi opis slike");
+    });
+
+    it("adds videos to a post that had none", async () => {
+      const { user } = await createUser();
+      const post = await createPost({ authorId: user.id });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_ONE}`);
+      formData.append("videoUrl", `https://youtu.be/${VIDEO_TWO}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const videos = await prisma.postVideo.findMany({
+        where: { postId: post.id },
+        orderBy: { position: "asc" },
+      });
+      expect(videos.map((video) => video.providerId)).toEqual([VIDEO_ONE, VIDEO_TWO]);
+      expect(videos.map((video) => video.position)).toEqual([0, 1]);
+    });
+
+    it("replaces existing videos", async () => {
+      const { user } = await createUser();
+      const post = await createPost({ authorId: user.id });
+      await prisma.postVideo.createMany({
+        data: [
+          {
+            postId: post.id,
+            provider: "youtube",
+            providerId: VIDEO_ONE,
+            url: youtubeWatchUrl(VIDEO_ONE),
+            position: 0,
+          },
+          {
+            postId: post.id,
+            provider: "youtube",
+            providerId: VIDEO_TWO,
+            url: youtubeWatchUrl(VIDEO_TWO),
+            position: 1,
+          },
+        ],
+      });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_THREE}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const videos = await prisma.postVideo.findMany({ where: { postId: post.id } });
+      expect(videos).toHaveLength(1);
+      expect(videos[0]).toMatchObject({
+        providerId: VIDEO_THREE,
+        position: 0,
+        url: youtubeWatchUrl(VIDEO_THREE),
+      });
+    });
+
+    it("removes all videos when none submitted", async () => {
+      const { user } = await createUser();
+      const post = await createPost({ authorId: user.id });
+      await prisma.postVideo.createMany({
+        data: [
+          {
+            postId: post.id,
+            provider: "youtube",
+            providerId: VIDEO_ONE,
+            url: youtubeWatchUrl(VIDEO_ONE),
+            position: 0,
+          },
+          {
+            postId: post.id,
+            provider: "youtube",
+            providerId: VIDEO_TWO,
+            url: youtubeWatchUrl(VIDEO_TWO),
+            position: 1,
+          },
+        ],
+      });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      await expect(prisma.postVideo.count({ where: { postId: post.id } })).resolves.toBe(0);
+    });
+
+    it("keeps images intact when only videos change", async () => {
+      const { user } = await createUser();
+      const post = await createPost({ authorId: user.id });
+      const image = await prisma.postImage.create({
+        data: {
+          postId: post.id,
+          contentType: "image/webp",
+          altText: "Postojeca slika",
+          data: new Uint8Array([1]),
+          byteSize: 1,
+          position: 0,
+        },
+      });
+      await prisma.postVideo.create({
+        data: {
+          postId: post.id,
+          provider: "youtube",
+          providerId: VIDEO_ONE,
+          url: youtubeWatchUrl(VIDEO_ONE),
+          position: 0,
+        },
+      });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+      formData.append("videoUrl", `https://www.youtube.com/watch?v=${VIDEO_TWO}`);
+
+      const result = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(result)).toBe(302);
+      const storedImage = await prisma.postImage.findUnique({ where: { id: image.id } });
+      expect(storedImage).toMatchObject({
+        id: image.id,
+        postId: post.id,
+        altText: "Postojeca slika",
+        position: 0,
+      });
+      const videos = await prisma.postVideo.findMany({ where: { postId: post.id } });
+      expect(videos.map((video) => video.providerId)).toEqual([VIDEO_TWO]);
     });
 
     it("rejects updates that would steal another post's slug", async () => {
