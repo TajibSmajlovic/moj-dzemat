@@ -105,7 +105,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@vitest/coverage-v8": "^4.1.6",
     "dotenv": "^17.4.2",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import-helpers": "^2.0.1",
