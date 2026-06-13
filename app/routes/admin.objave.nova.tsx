@@ -4,7 +4,10 @@ import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { PostForm } from "#app/features/posts/admin/components/post-form";
-import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
+import {
+  createOrUpdatePostFromForm,
+  parsePostFormData,
+} from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
@@ -24,12 +27,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const user = await requireAdmin(request);
 
-  const formData = await request.clone().formData();
+  const formData = await parsePostFormData(request);
   const intent = formData.get("intent");
   invariantResponse(intent === PostAdminIntents.Create, "Unsupported intent");
 
   return createOrUpdatePostFromForm({
-    request,
+    formData,
     authorId: user.id,
     intent: "create",
   });

@@ -87,15 +87,17 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   const hash = await hashPassword(submission.value.password);
-  await prisma.password.upsert({
-    where: { userId: verification.userId },
-    create: { userId: verification.userId, hash },
-    update: { hash },
-  });
+  await prisma.$transaction([
+    prisma.password.upsert({
+      where: { userId: verification.userId },
+      create: { userId: verification.userId, hash },
+      update: { hash },
+    }),
+    prisma.session.deleteMany({ where: { userId: verification.userId } }),
+  ]);
 
   // Log the admin in immediately. Rotate the session id so any
-  // pre-existing cookie from the same browser is invalidated alongside
-  // the password change.
+  // pre-existing cookie is replaced after all old sessions were revoked.
   const headers = await startSessionFor(request, verification.userId);
   logger.info({ userId: verification.userId }, "password reset completed");
 

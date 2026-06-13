@@ -55,10 +55,17 @@ export async function togglePostStatus(postId: string, userId: string) {
 }
 
 type CreateOrUpdateArgs = {
-  request: Request;
+  formData?: FormData;
+  request?: Request;
   authorId: string;
   intent: "create" | "update";
 };
+
+export async function parsePostFormData(request: Request): Promise<FormData> {
+  return parseFormData(request, {
+    maxFileSize: MAX_UPLOAD_BYTES,
+  });
+}
 
 /**
    Parses the multipart body via `@mjackson/form-data-parser` (which
@@ -67,15 +74,15 @@ type CreateOrUpdateArgs = {
    On success redirects published posts publicly and drafts to admin preview.
  */
 export async function createOrUpdatePostFromForm({
+  formData,
   request,
   authorId,
   intent,
 }: CreateOrUpdateArgs) {
-  const formData = await parseFormData(request, {
-    maxFileSize: MAX_UPLOAD_BYTES,
-  });
+  const parsedFormData = formData ?? (request ? await parsePostFormData(request) : null);
+  invariant(parsedFormData, "Post form data or request is required.");
 
-  const submission = parseWithZod(formData, { schema: PostFormSchema });
+  const submission = parseWithZod(parsedFormData, { schema: PostFormSchema });
   if (submission.status !== "success") {
     return data({ result: submission.reply() }, { status: 400 });
   }
@@ -94,16 +101,16 @@ export async function createOrUpdatePostFromForm({
   }
 
   const status: PostStatusValue = publish ? "published" : "draft";
-  const existingId = intent === "update" ? requireId(formData.get("id")) : null;
+  const existingId = intent === "update" ? requireId(parsedFormData.get("id")) : null;
 
   let processedImages: ProcessedPostImage[];
   let imageAltTextUpdates: ImageAltTextUpdate[] = [];
   let videoInputs: ParsedVideo[] = [];
 
   try {
-    imageAltTextUpdates = existingImageAltTextUpdates(formData);
-    processedImages = await processUploadedImages(formData);
-    videoInputs = resolveVideoInputs(formData);
+    imageAltTextUpdates = existingImageAltTextUpdates(parsedFormData);
+    processedImages = await processUploadedImages(parsedFormData);
+    videoInputs = resolveVideoInputs(parsedFormData);
   } catch (error) {
     if (error instanceof FormError) {
       return data(
