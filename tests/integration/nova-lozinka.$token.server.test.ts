@@ -17,6 +17,7 @@ import { createUser } from "../factories";
 import { expectResponse, payloadOf, statusOf } from "../helpers/action-result";
 import { withHoneypot } from "../helpers/honeypot";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
+import { sessionCookieFor } from "../helpers/session";
 
 function sha1Suffix(password: string) {
   return crypto.createHash("sha1").update(password).digest("hex").toUpperCase().slice(5);
@@ -90,6 +91,24 @@ describe("new password route", () => {
     expect(sessionCookie).toBeTruthy();
     const session = await getSession(sessionCookie);
     expect(session.get("userId")).toBe(user.id);
+  });
+
+  it("revokes existing sessions when the password changes", async () => {
+    const { user } = await createUser({ password: "old-password-123" });
+    const oldCookie = await sessionCookieFor(user.id);
+    const oldSession = await getSession(oldCookie);
+    const token = await resetTokenForUser(user.id);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("ABCDEF:1", { status: 200 }));
+
+    const result = await callAction(token, passwordForm("brand-new-password"));
+
+    expect(result).toBeInstanceOf(Response);
+    expect(await prisma.session.findUnique({ where: { id: oldSession.id } })).toBeNull();
+
+    const newCookie = (result as Response).headers.getSetCookie().at(-1)?.split(";")[0];
+    const newSession = await getSession(newCookie);
+    expect(newSession.id).not.toBe(oldSession.id);
+    expect(newSession.get("userId")).toBe(user.id);
   });
 
   it("returns 400 when the password confirmation does not match", async () => {

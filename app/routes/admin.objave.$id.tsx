@@ -5,7 +5,11 @@ import { AdminPanel } from "#app/components/admin/admin-panel";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { PostForm } from "#app/features/posts/admin/components/post-form";
-import { createOrUpdatePostFromForm, requireId } from "#app/features/posts/admin/post-admin.server";
+import {
+  createOrUpdatePostFromForm,
+  parsePostFormData,
+  requireId,
+} from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
@@ -65,7 +69,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAdmin(request);
   const routePostId = requireId(params.id);
 
-  const formData = await request.clone().formData();
+  const formData = await parsePostFormData(request);
   const intent = parseIntent(formData, SUPPORTED_INTENTS);
 
   switch (intent) {
@@ -92,7 +96,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       invariantResponse(bodyPostId === routePostId, "Neispravan zahtjev.");
 
       return createOrUpdatePostFromForm({
-        request,
+        formData,
         authorId: user.id,
         intent: "update",
       });

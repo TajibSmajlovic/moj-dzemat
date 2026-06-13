@@ -49,6 +49,16 @@ describe("login route", () => {
     expect(response.headers.get("Location")).toBe(DEFAULT_LOGGED_IN_REDIRECT);
   });
 
+  it("carries a safe redirect target from the query into loader data", async () => {
+    const result = await callLoader(loginLoader, {
+      url: `${ENDPOINT}?redirectTo=${encodeURIComponent(ROUTES.adminImportantDates)}`,
+    });
+
+    expect(result).not.toBeInstanceOf(Response);
+    if (result instanceof Response) return;
+    expect(result.redirectTo).toBe(ROUTES.adminImportantDates);
+  });
+
   it("issues a session and redirects to a safe internal target after successful login", async () => {
     await createUser({
       email: "admin@dzemat.ba",

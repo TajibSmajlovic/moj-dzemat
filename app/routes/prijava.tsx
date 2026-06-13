@@ -39,8 +39,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect(DEFAULT_LOGGED_IN_REDIRECT);
   }
 
+  const url = new URL(request.url);
+
   return {
     honeypot: honeypotToken(),
+    redirectTo: safeRedirect(url.searchParams.get("redirectTo") ?? undefined, ""),
     ...(await getAuthPage()),
   };
 }
@@ -159,7 +162,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
         <input
           type="hidden"
           name="redirectTo"
-          defaultValue={fields.redirectTo.initialValue ?? ""}
+          defaultValue={fields.redirectTo.initialValue ?? loaderData.redirectTo}
         />
 
         <Button type="submit" className="w-full">
