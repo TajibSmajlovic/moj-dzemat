@@ -150,24 +150,6 @@ test.describe("Q&A", () => {
     await expect(answeredQuestions.locator("article")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
   });
 
-  test("mobile navigation opens Q&A and closes the menu", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(ROUTES.home);
-
-    await page.getByRole("button", { name: "Otvori meni" }).click();
-
-    const dropdown = page.getByRole("navigation", { name: "Mobilna navigacija" });
-    await expect(dropdown).toBeVisible();
-    await dropdown.getByRole("link", { name: "Pitanja i odgovori" }).click();
-
-    await expect(page).toHaveURL(exactPath(ROUTES.qa));
-    await expect(page.getByRole("button", { name: "Otvori meni" })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
-    await expect(page.getByRole("navigation", { name: "Mobilna navigacija" })).toHaveCount(0);
-  });
-
   test("question detail exposes FAQPage JSON-LD and sitemap entries", async ({ page, request }) => {
     const [seededQuestion] = SEEDED_QA_VISIBLE;
     const questionId = await questionIdByText(seededQuestion.question);

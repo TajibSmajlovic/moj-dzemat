@@ -1,13 +1,13 @@
 /**
    Thin wrappers that build a `Request` and invoke a route's `loader`
-   or `action` in tests. Keeps the boilerplate (`{ request, params,
-   context: {} } as LoaderArgs`) in one place so individual integration
+   or `action` in tests. Keeps the boilerplate (`{ request, url, pattern,
+   params, context } as LoaderArgs`) in one place so individual integration
    tests stay focused on the assertion they're making.
 
    The `as Parameters<F>[0]` cast is intentional: React Router's
    generated `LoaderArgs` / `ActionArgs` types have framework-internal
-   fields we don't reproduce in tests, but the loader/action body only
-   touches `request` / `params` / `context`.
+   context types we don't reproduce in tests. The runtime URL and route
+   pattern are derived from the test request.
  */
 
 type RouteFn = (args: never) => unknown;
@@ -36,7 +36,14 @@ export function callLoader<F extends RouteFn>(
 ): ReturnType<F> {
   const headers = requestHeaders(options.headers, options.cookie);
   const request = new Request(options.url, { headers });
-  const args = { request, params: options.params ?? {}, context: {} };
+  const url = new URL(request.url);
+  const args = {
+    request,
+    url,
+    pattern: url.pathname,
+    params: options.params ?? {},
+    context: {},
+  };
 
   return loader(args as Parameters<F>[0]) as ReturnType<F>;
 }
@@ -59,7 +66,14 @@ export function callAction<F extends RouteFn>(
     body: options.formData,
     headers,
   });
-  const args = { request, params: options.params ?? {}, context: {} };
+  const url = new URL(request.url);
+  const args = {
+    request,
+    url,
+    pattern: url.pathname,
+    params: options.params ?? {},
+    context: {},
+  };
 
   return action(args as Parameters<F>[0]) as ReturnType<F>;
 }

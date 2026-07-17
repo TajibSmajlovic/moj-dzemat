@@ -3,8 +3,9 @@
 `Moj Džemat` is a lightweight community publishing app for Bosnian-Herzegovinian
 džemats. It has two main surfaces:
 
-- a public website for browsing community posts
-- a simple admin area for managing posts and the site-wide announcement banner
+- a public website for posts, answered questions, and upcoming community dates
+- an admin area for publishing posts, answering questions, managing important
+  dates, and controlling the site-wide announcement banner
 
 The app is intentionally small operationally: React Router SSR on Express,
 Prisma + SQLite, admin-only authentication, Resend-backed email in production,
@@ -35,7 +36,7 @@ and pull request expectations live in [CONTRIBUTING.md](CONTRIBUTING.md).
 ```text
 app/
   components/          reusable UI primitives, layout chrome, forms, icons, and generic admin pieces
-  features/            vertical slices for posts, announcements, auth, and theme behavior
+  features/            vertical slices for posts, Q&A, important dates, announcements, auth, and theme
   lib/                 small shared app helpers used across multiple slices
   routes/              file-based routes for public pages, auth, admin, sitemap, and dev helpers
   server/              server infrastructure: Prisma, env, email, logging, security, image pipeline
@@ -47,34 +48,36 @@ scripts/               build orchestration and other repo scripts
 public/                static assets
 ```
 
-Route files intentionally stay thin. They compose loaders/actions, route
-metadata, and page UI while delegating domain work to `app/features/*`.
-Feature-owned schemas, intent constants, components, and server actions live
-together so a post or announcement change is usually contained to one slice.
-Cross-cutting server pieces that should not know about a domain live in
-`app/server`, and generic UI remains in `app/components`.
+Route files own request-level loader/action coordination, route metadata, and
+page composition. Reusable domain schemas, intent constants, components, and
+server logic live in `app/features/*`. Cross-cutting server pieces that should
+not know about a domain live in `app/server`, and generic UI remains in
+`app/components`.
 
 Useful route groups:
 
-| Area      | Routes                                                                                                             |
-| --------- | ------------------------------------------------------------------------------------------------------------------ |
-| Public    | `/`, `/objave`, `/objave/:slug`, `/robots.txt`, `/sitemap.xml`                                                     |
-| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                             |
-| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/obavijesna-traka` |
-| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                   |
-| Resources | `/slike/:id`, `/resources/healthcheck`                                                                             |
+| Area      | Routes                                                                                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public    | `/`, `/objave`, `/objave/:slug`, `/pitanja-i-odgovori`, `/pitanja-i-odgovori/:id`, `/robots.txt`, `/sitemap.xml`                                            |
+| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                                                                      |
+| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/pitanja`, `/admin/vazni-datumi`, `/admin/obavijesna-traka` |
+| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                                                            |
+| Resources | `/slike/:id`, `/resources/healthcheck`, `/resources/readiness`                                                                                              |
 
 ## Deployment
 
 Production is designed for Fly.io with LiteFS:
 
-- the Docker image runs the built app on Node 22 Alpine
+- the Docker image runs the built app on Node 24 Alpine
 - `start.sh` applies `prisma migrate deploy` on boot
 - the same startup flow reruns the Prisma seed so configured admins always exist
-- Fly health checks hit `/resources/healthcheck`
+- Fly routes traffic using the database-aware `/resources/readiness` check;
+  `/resources/healthcheck` remains a shallow process diagnostic
 
-Production configuration lives outside the repo. Before deploying, make sure
-these values are set in Fly secrets or environment configuration:
+Deployment configuration lives in `Dockerfile`, `fly.toml`, `litefs.yml`, and
+`start.sh`. Environment-specific values stay outside the repo. Before
+deploying, make sure these values are set in Fly secrets or environment
+configuration:
 
 - `APP_URL`
 - `SESSION_SECRET`, `PASSWORD_RESET_SECRET`, and `HONEYPOT_SECRET`

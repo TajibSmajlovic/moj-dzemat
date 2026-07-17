@@ -14,10 +14,10 @@ function toResponseBody(data: Uint8Array | Buffer): Uint8Array<ArrayBuffer> {
 }
 
 /**
-   Streams a single post image blob. Images are content-addressable by
-   their database id and live forever at this URL (we only ever insert
-   new rows, never mutate), so we set a long immutable cache header and
-   let browsers + CDNs do the heavy lifting.
+   Streams a single post image blob. An existing image id always resolves to
+   the same bytes; edits insert a new row rather than replacing image data.
+   That makes a long immutable cache safe, while deleting the row still makes
+   future uncached requests return 404.
 
    The body is copied into a plain `Uint8Array` backed by a single
    `ArrayBuffer` so every runtime (Node + undici) streams the exact byte

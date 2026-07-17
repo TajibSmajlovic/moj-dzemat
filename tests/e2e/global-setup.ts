@@ -15,9 +15,10 @@ import {
 /**
    Playwright global setup. Wipes `prisma/e2e.db`, runs `migrate
    deploy`, then seeds a deterministic admin + post set (including a
-   second posts page for pagination coverage), Q&A rows, and one active
-   site announcement. Runs before Playwright starts its `webServer`,
-   which points at the same database via `DATABASE_URL=file:./e2e.db`.
+   second posts page for pagination coverage), Q&A rows, one active site
+   announcement, and important dates. Runs before Playwright starts its
+   `webServer`, which points at the same database via
+   `DATABASE_URL=file:./e2e.db`.
  */
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");

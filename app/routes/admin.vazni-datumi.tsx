@@ -28,8 +28,8 @@ import {
 } from "#app/features/important-dates/admin/important-date-intents";
 import { ImportantDateFormSchema } from "#app/features/important-dates/important-date-schema";
 import { getAdminImportantDates } from "#app/features/important-dates/important-dates.server";
-import { requireId } from "#app/features/posts/admin/post-admin.server";
 import { dateToYmd, ymdToUtcDate } from "#app/lib/date";
+import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { invariant } from "#app/lib/invariant";
 import { ROUTES } from "#app/lib/routes";
@@ -40,15 +40,15 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.vazni-datumi";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
   const importantDates = await getAdminImportantDates();
 
   return { importantDates };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const formData = await request.formData();
   const intent = parseIntent(formData, ImportantDateIntents);
 

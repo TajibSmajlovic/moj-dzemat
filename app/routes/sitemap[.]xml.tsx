@@ -8,14 +8,14 @@ import { env } from "#app/server/env.server";
 
 const MAX_ENTRIES = 10_000;
 const SITEMAP_CACHE_SECONDS = 10 * MINUTE_SECONDS;
-const STATIC_ENTRY_COUNT = 2;
+const STATIC_ENTRY_COUNT = 3;
 // Keep answered Q&A pages from being crowded out by a large post archive.
 const RESERVED_QA_DYNAMIC_ENTRIES = 1000;
 
 /**
    Dynamic sitemap. Small enough to fit in a single file so we don't
-   bother with a sitemap index. Home page and Q&A list come first, then
-   posts by `updatedAt` and visible answered questions by `answeredAt`.
+   bother with a sitemap index. Home, post archive, and Q&A list come first,
+   then posts by `updatedAt` and visible answered questions by `answeredAt`.
    Public post images are attached with the Google image sitemap extension.
  */
 export async function loader() {
@@ -36,10 +36,12 @@ export async function loader() {
     },
   });
   const homepageLastmod = newestDate(posts[0]?.updatedAt, qaSitemap.lastAnsweredAt)?.toISOString();
+  const postsLastmod = posts[0]?.updatedAt.toISOString();
   const qaLastmod = qaSitemap.lastAnsweredAt?.toISOString();
 
   const urls = [
     { loc: absoluteUrl(siteUrl, ROUTES.home), lastmod: homepageLastmod },
+    { loc: absoluteUrl(siteUrl, ROUTES.posts), lastmod: postsLastmod },
     { loc: absoluteUrl(siteUrl, ROUTES.qa), lastmod: qaLastmod },
     ...posts.map((post) => ({
       loc: absoluteUrl(siteUrl, postHref(post.slug)),

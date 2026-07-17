@@ -1,3 +1,5 @@
+import { absoluteUrl } from "#app/lib/routes";
+
 export const THEME_COLOR = "#1a4737";
 export const ROBOTS_MAX_IMAGE_PREVIEW_LARGE = "max-image-preview:large";
 export const ROBOTS_NOINDEX = "noindex";
@@ -32,14 +34,8 @@ type PublicPageMetaArgs = SocialMetaArgs & {
   socialTitle?: string;
 };
 
-export function absoluteSiteUrl(siteUrl: string | undefined, path: string): string {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-  return siteUrl ? `${siteUrl}${normalizedPath}` : normalizedPath;
-}
-
 export function getDefaultSocialImageUrl(siteUrl?: string): string {
-  return absoluteSiteUrl(siteUrl, DEFAULT_SOCIAL_IMAGE.path);
+  return absoluteUrl(siteUrl, DEFAULT_SOCIAL_IMAGE.path);
 }
 
 export function formatDefaultSocialImageAlt(siteName: string): string {

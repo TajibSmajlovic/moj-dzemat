@@ -8,9 +8,9 @@ import { PostForm } from "#app/features/posts/admin/components/post-form";
 import {
   createOrUpdatePostFromForm,
   parsePostFormData,
-  requireId,
 } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
+import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROUTES } from "#app/lib/routes";
@@ -45,15 +45,15 @@ const SUPPORTED_INTENTS = {
   DeleteImage: PostAdminIntents.DeleteImage,
 } as const;
 
-export function meta({ data }: Route.MetaArgs) {
-  if (!data?.post) {
+export function meta({ loaderData }: Route.MetaArgs) {
+  if (!loaderData?.post) {
     return buildNoindexMeta("Objava · Admin", ROBOTS_NOINDEX_NOFOLLOW);
   }
-  return buildNoindexMeta(`Uredi „${data.post.title}" · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
+  return buildNoindexMeta(`Uredi „${loaderData.post.title}" · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, params, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
   const id = requireId(params.id);
   const post = await prisma.post.findUnique({
     where: { id },
@@ -65,8 +65,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { post };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, params, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const routePostId = requireId(params.id);
 
   const formData = await parsePostFormData(request);

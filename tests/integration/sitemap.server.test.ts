@@ -19,8 +19,9 @@ describe("sitemap route", () => {
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=600");
     expect(body).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(body).toContain(`<loc>${env().APP_URL}/</loc>`);
+    expect(body).toContain(`<loc>${env().APP_URL}${ROUTES.posts}</loc>`);
     expect(body).toContain(`<loc>${env().APP_URL}${ROUTES.qa}</loc>`);
-    expect(body.match(/<url>/g)).toHaveLength(2);
+    expect(body.match(/<url>/g)).toHaveLength(3);
     expect(body).not.toContain("<lastmod>");
   });
 
@@ -50,6 +51,9 @@ describe("sitemap route", () => {
 
     expect(body).toContain(
       `<loc>${env().APP_URL}/</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
+    );
+    expect(body).toContain(
+      `<loc>${env().APP_URL}${ROUTES.posts}</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
     );
   });
 

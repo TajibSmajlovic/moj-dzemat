@@ -18,10 +18,13 @@ export const ROUTES = {
   robotsTxt: "/robots.txt",
   sitemapXml: "/sitemap.xml",
   healthcheck: "/resources/healthcheck",
+  readiness: "/resources/readiness",
 } as const;
 
 export const DEFAULT_LOGGED_IN_REDIRECT = ROUTES.adminPosts;
 
-export function absoluteUrl(siteUrl: string, path: string): string {
-  return `${siteUrl}${path}`;
+export function absoluteUrl(siteUrl: string | undefined, path: string): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  return siteUrl ? `${siteUrl.replace(/\/+$/, "")}${normalizedPath}` : normalizedPath;
 }

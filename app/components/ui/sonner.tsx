@@ -39,11 +39,9 @@ const TOAST_ICON_CLASSES: Record<ToastTone, string> = {
 };
 
 /**
- * Thin wrapper around sonner's Toaster. The shadcn default pulls `useTheme`
- * from next-themes; we're not running next-themes (dark mode lands later
- * via a `.dark` class flip on <html>), so sonner is told to inherit from
- * the `dark` class directly via `theme="system"` + `richColors={false}`
- * while still respecting our CSS tokens for surface colours.
+ * Thin wrapper around sonner's Toaster. The app owns theme state instead of
+ * using next-themes, so rich colors stay disabled and toast surfaces use the
+ * same semantic CSS tokens that respond to the `.dark` class on <html>.
  */
 function Toaster({ ...props }: ToasterProps) {
   return (

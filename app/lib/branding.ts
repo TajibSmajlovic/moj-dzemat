@@ -34,10 +34,10 @@ export function getRootSiteName(matches: readonly unknown[]): string {
   const root = matches[0];
   if (!root || typeof root !== "object") return DEFAULT_SITE_NAME;
 
-  const { data } = root as { data?: unknown };
-  if (!data || typeof data !== "object") return DEFAULT_SITE_NAME;
+  const { loaderData } = root as { loaderData?: unknown };
+  if (!loaderData || typeof loaderData !== "object") return DEFAULT_SITE_NAME;
 
-  const { siteName } = data as { siteName?: unknown };
+  const { siteName } = loaderData as { siteName?: unknown };
 
   return typeof siteName === "string" ? siteName : DEFAULT_SITE_NAME;
 }
@@ -46,10 +46,10 @@ export function getRootSiteUrl(matches: readonly unknown[]): string | undefined 
   const root = matches[0];
   if (!root || typeof root !== "object") return undefined;
 
-  const { data } = root as { data?: unknown };
-  if (!data || typeof data !== "object") return undefined;
+  const { loaderData } = root as { loaderData?: unknown };
+  if (!loaderData || typeof loaderData !== "object") return undefined;
 
-  const { siteUrl } = data as { siteUrl?: unknown };
+  const { siteUrl } = loaderData as { siteUrl?: unknown };
 
   return typeof siteUrl === "string" ? siteUrl : undefined;
 }

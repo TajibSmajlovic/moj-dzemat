@@ -28,8 +28,7 @@ const publicPostOrderBy: Prisma.PostOrderByWithRelationInput[] = [
 
 type PublicPostCardRecord = Prisma.PostGetPayload<{ select: typeof publicPostCardSelect }>;
 
-export function getActivePostType(request: Request): PostTypeValue | "all" {
-  const url = new URL(request.url);
+export function getActivePostType(url: URL): PostTypeValue | "all" {
   const rawType = url.searchParams.get("vrsta");
 
   return isPostType(rawType) ? rawType : "all";

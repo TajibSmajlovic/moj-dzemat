@@ -10,9 +10,7 @@ type AccordionRenderArgs<TItem> = {
 };
 
 type ClassNameValue<TItem> =
-  | string
-  | ((args: AccordionRenderArgs<TItem>) => string | undefined)
-  | undefined;
+  string | ((args: AccordionRenderArgs<TItem>) => string | undefined) | undefined;
 
 type AccordionProps<TItem> = {
   items: TItem[];

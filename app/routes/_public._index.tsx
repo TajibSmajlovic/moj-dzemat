@@ -52,12 +52,12 @@ import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public._index";
 
-export function meta({ data, matches }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
   const siteDescription = formatSiteDescription(siteName);
   const siteUrl = getRootSiteUrl(matches);
   const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.home) : ROUTES.home;
-  const isFiltered = data?.activeType && data.activeType !== "all";
+  const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
 
   return buildPublicPageMeta({
     title: siteName,
@@ -72,8 +72,8 @@ export function meta({ data, matches }: Route.MetaArgs) {
   });
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const activeType = getActivePostType(request);
+export async function loader({ url }: Route.LoaderArgs) {
+  const activeType = getActivePostType(url);
   const environment = env();
 
   const featuredPromise = getFeaturedPostCards();
@@ -182,24 +182,27 @@ function Featured({ featured }: { featured: PostCardData[] }) {
   }
 
   return (
-    <section aria-label="Istaknute objave" className="mb-8 sm:mb-10">
-      <Carousel
-        className="w-full"
-        opts={{ loop: true, duration: shouldReduceMotion ? 0 : 32 }}
-        plugins={shouldReduceMotion ? [] : [autoplayPlugin]}
-      >
-        <CarouselContent className="items-stretch">
-          {featured.map((post) => (
-            <CarouselItem key={post.slug} className="h-auto">
-              <div className="h-full">
-                <FeaturedHeroCard post={post} />
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
-    </section>
+    <Carousel
+      aria-label="Istaknute objave"
+      className="mb-8 w-full sm:mb-10"
+      opts={{ loop: true, duration: shouldReduceMotion ? 0 : 32 }}
+      plugins={shouldReduceMotion ? [] : [autoplayPlugin]}
+    >
+      <CarouselContent className="items-stretch">
+        {featured.map((post, index) => (
+          <CarouselItem
+            key={post.slug}
+            aria-label={`${index + 1} od ${featured.length}`}
+            className="h-auto"
+          >
+            <div className="h-full">
+              <FeaturedHeroCard post={post} />
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
   );
 }

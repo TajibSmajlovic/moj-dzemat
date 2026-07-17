@@ -33,8 +33,6 @@ model User {
   password Password?
   sessions Session[]
   posts    Post[]
-
-  @@index([email])
 }
 
 model Password {
@@ -61,7 +59,7 @@ model Session {
   @@index([expirationDate])
 }
 
-// Four kinds of posts the community publishes. Order matches how the
+// Canonical identifiers for the five post categories shown in the UI.
 enum PostType {
   obavijest
   smrtovnica

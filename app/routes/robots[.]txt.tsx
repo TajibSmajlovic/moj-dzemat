@@ -3,8 +3,8 @@ import { HOUR_SECONDS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
 /**
-   Minimal robots.txt. Public feed, post pages and images are indexable;
-   admin area and auth routes are not.
+   Minimal robots.txt. Public pages and images are indexable; admin and auth
+   routes are not.
  */
 export function loader() {
   const body = [

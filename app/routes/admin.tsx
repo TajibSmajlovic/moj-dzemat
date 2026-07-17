@@ -19,12 +19,17 @@ import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { ROUTES } from "#app/lib/routes";
+import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 
 import type { Route } from "./+types/admin";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await requireAdmin(request);
+export function meta() {
+  return buildNoindexMeta("Admin Panel", ROBOTS_NOINDEX_NOFOLLOW);
+}
+
+export async function loader({ request, url }: Route.LoaderArgs) {
+  const user = await requireAdmin(request, url);
   const [pendingQuestionCount, activeAnnouncementCount] = await Promise.all([
     countAdminQuestions("neodgovorena"),
     prisma.siteAnnouncement.count({ where: { isActive: true } }),

@@ -9,7 +9,7 @@ import {
 
 /**
    Human-facing labels for the public post kinds. Kept here (not in the
-   schema) because localisation is presentation-layer concern - the DB
+   schema) because localisation is a presentation-layer concern - the DB
    only knows the canonical enum identifier.
  */
 export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica", "price"] as const;

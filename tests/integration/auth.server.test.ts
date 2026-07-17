@@ -192,7 +192,7 @@ describe("auth.server", () => {
 
       let thrown: unknown;
       try {
-        await requireAdmin(request);
+        await requireAdmin(request, new URL(request.url));
       } catch (error) {
         thrown = error;
       }
@@ -211,8 +211,9 @@ describe("auth.server", () => {
     it("returns the user when a valid session is attached", async () => {
       const { user } = await createUser({ password: "hunter2pass1" });
       const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const request = authedRequest(cookie);
 
-      const result = await requireAdmin(authedRequest(cookie));
+      const result = await requireAdmin(request, new URL(request.url));
       expect(result).toMatchObject({ id: user.id, email: user.email });
     });
   });
