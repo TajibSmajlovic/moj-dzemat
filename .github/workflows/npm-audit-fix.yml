@@ -34,23 +34,43 @@ jobs:
 
       - name: Check for npm audit issues
         id: audit
-        run: |
-          if npm audit; then
-            echo "has_vulnerabilities=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_vulnerabilities=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Apply npm audit fix
-        if: steps.audit.outputs.has_vulnerabilities == 'true'
-        run: npm audit fix
-
-      - name: Verify npm audit issues are fixed
-        if: steps.audit.outputs.has_vulnerabilities == 'true'
+        continue-on-error: true
         run: npm audit
 
+      - name: Apply safe npm audit fixes
+        id: fix
+        if: steps.audit.outcome == 'failure'
+        continue-on-error: true
+        run: npm audit fix
+
+      - name: Detect dependency changes
+        id: changes
+        if: steps.audit.outcome == 'failure'
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify audit after fixes
+        id: verify
+        if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
+        run: npm audit
+
+      - name: Validate dependency changes
+        if: steps.verify.outcome == 'success'
+        run: |
+          npm run check
+          npm run knip
+          npm run test:run
+          npm run build
+
       - name: Create pull request
-        if: steps.audit.outputs.has_vulnerabilities == 'true'
+        if: >
+          steps.changes.outputs.changed == 'true' &&
+          steps.verify.outcome == 'success'
         uses: peter-evans/create-pull-request@v8
         with:
           branch: automation/npm-audit-fix
@@ -58,10 +78,28 @@ jobs:
           title: "chore: fix npm audit issues"
           commit-message: "chore: fix npm audit issues"
           body: |
-            Automated PR created after `npm audit` found a fixable vulnerability.
+            Automated PR created after `npm audit` found vulnerabilities
+            with safe automatic fixes.
 
-            This workflow ran `npm audit fix` and verified that `npm audit` no longer fails.
+            Validation completed:
+            - npm audit
+            - typecheck, lint, and formatting
+            - Knip
+            - unit and integration tests
+            - production build
           labels: |
             dependencies
             npm
             security
+
+      - name: Report vulnerabilities requiring manual action
+        if: >
+          always() &&
+          steps.audit.outcome == 'failure' &&
+          steps.verify.outcome != 'success'
+        run: |
+          echo "## Manual dependency update required" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`npm audit fix\` could not produce a clean dependency graph." >> "$GITHUB_STEP_SUMMARY"
+          echo "Review the audit output and update the affected direct dependency manually." >> "$GITHUB_STEP_SUMMARY"
+          npm audit

@@ -38,13 +38,13 @@ import {
 
 import type { Route } from "./+types/_public.objave._index";
 
-export function meta({ data, matches }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
   const siteUrl = getRootSiteUrl(matches);
   const title = formatPageTitle("Objave", siteName);
   const description = "Sve javne objave džemata na jednom mjestu.";
   const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.posts) : ROUTES.posts;
-  const isFiltered = data?.activeType && data.activeType !== "all";
+  const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
 
   return buildPublicPageMeta({
     title,
@@ -59,9 +59,8 @@ export function meta({ data, matches }: Route.MetaArgs) {
   });
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const activeType = getActivePostType(request);
-  const url = new URL(request.url);
+export async function loader({ url }: Route.LoaderArgs) {
+  const activeType = getActivePostType(url);
   const page = parsePageParam(url.searchParams.get("page"));
   const totalPosts = await countPublicPosts({ activeType });
   const pagination = getLoadMorePaginationState({
@@ -103,7 +102,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
               {archiveTitle}
             </h1>
             <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed sm:text-base">
-              Pregled svih obavijesti, hutbi, sergija i smrtovnica.
+              Pregled svih obavijesti, hutbi, sergija, smrtovnica i priča.
             </p>
           </div>
 

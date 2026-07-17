@@ -47,14 +47,14 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { post, siteUrl: env().APP_URL };
 }
 
-export function meta({ data, matches }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
 
-  if (!data) {
+  if (!loaderData) {
     return [{ title: formatPageTitle("Objava nije pronađena", siteName) }];
   }
 
-  const { post, siteUrl } = data;
+  const { post, siteUrl } = loaderData;
   return buildPostPageMeta({ post, siteName, siteUrl });
 }
 

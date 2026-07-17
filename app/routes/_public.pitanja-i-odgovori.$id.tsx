@@ -28,14 +28,14 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { question, related, siteUrl: env().APP_URL };
 }
 
-export function meta({ data, matches }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
 
-  if (!data) {
+  if (!loaderData) {
     return [{ title: formatPageTitle("Pitanje nije pronađeno", siteName) }];
   }
 
-  const { question, siteUrl } = data;
+  const { question, siteUrl } = loaderData;
   const title = formatPageTitle(qaExcerpt(question.question, 70), siteName);
   const description = qaExcerpt(question.answer, 160);
   const canonical = absoluteUrl(siteUrl, qaQuestionHref(question.id));

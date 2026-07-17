@@ -50,7 +50,7 @@ export async function action({ request }: Route.ActionArgs) {
   const ip = getClientIp(request);
   const limit = forgotPasswordLimiter.check(ip);
   if (!limit.ok) {
-    logger.warn({ ip }, "forgot-password rate limited");
+    logger.warn("forgot-password rate limited");
     // Keep the user-facing message identical to the success case so
     // attackers can't differentiate rate-limiting from email lookup.
     return data({ result: null, sent: true } as const, { status: 429 });
@@ -80,8 +80,12 @@ export async function action({ request }: Route.ActionArgs) {
       resetUrl: url,
       siteName: formatSiteName(environment.DZEMAT_NAME),
     });
-    await sendEmail({ to: user.email, ...email });
-    logger.info({ email: user.email, userId: user.id }, "password reset email sent");
+    try {
+      await sendEmail({ to: user.email, ...email });
+      logger.info({ email: user.email, userId: user.id }, "password reset email sent");
+    } catch (error) {
+      logger.error({ err: error, userId: user.id }, "password reset email delivery failed");
+    }
   } else {
     logger.info({ email }, "forgot-password requested for unknown email");
   }

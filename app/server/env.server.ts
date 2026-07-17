@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 /**
-   Zod schema for `process.env`. Lives next to `env.server.ts` (which
-   does the parsing + caching) so the schema can be tested in isolation
-   and the parsing helper stays a one-screen file.
+   Zod schema and cached accessor for `process.env`.
 
    Secrets that support rotation (`SESSION_SECRET`, `PASSWORD_RESET_SECRET`)
    accept a comma-separated list: the first value is the current signer,
@@ -59,8 +57,8 @@ export const envSchema = z
 
     PORT: z.coerce.number().int().positive().default(3000),
 
-    // Dev-only hooks. `ENABLE_TEST_ROUTES=true` turns on /dev/last-email and
-    // friends that e2e tests depend on. Never flip this in production.
+    // Dev-only hook. `ENABLE_TEST_ROUTES=true` turns on /dev/last-email for
+    // e2e password-reset flows. Never flip this in production.
     ENABLE_TEST_ROUTES: z
       .enum(["true", "false"])
       .default("false")
@@ -81,7 +79,7 @@ export const envSchema = z
       .default("false")
       .transform((value) => value === "true"),
 
-    // `fly.io` sets this automatically; used by LiteFS awareness helpers.
+    // Optional Fly deployment metadata accepted by the environment schema.
     FLY_REGION: z.string().optional(),
     PRIMARY_REGION: z.string().optional(),
   })
@@ -109,12 +107,7 @@ export const envSchema = z
 
 export type Env = z.infer<typeof envSchema>;
 
-/**
-   Parse + validate process.env at startup. Anything missing or malformed
-   crashes the boot so we never run with half-configured secrets. The
-   actual schema lives in `env-schema.server.ts`; this file is just the
-   cached parse + accessor that the rest of the app imports.
- */
+/** Parse, validate, and cache the runtime environment. */
 
 let cached: Env | undefined;
 
@@ -123,7 +116,7 @@ export function env(): Env {
 
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
-    // Log and throw - Express will crash, systemd/Fly will restart us.
+    // Fail startup; the process supervisor applies its configured restart policy.
     console.error("Invalid environment variables:\n", z.treeifyError(parsed.error));
 
     throw new Error("Invalid environment variables");

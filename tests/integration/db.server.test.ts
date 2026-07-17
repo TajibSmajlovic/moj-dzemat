@@ -4,11 +4,7 @@ import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 
-/**
- * Basic smoke against the Prisma singleton. The singleton applies SQLite
- * PRAGMAs on first connection so these tests also implicitly verify the
- * migration + pragma wiring didn't regress.
- */
+/** Basic smoke tests for the Prisma singleton and migrated SQLite schema. */
 describe("db.server", () => {
   it("creates and reads a user", async () => {
     const { user } = await createUser();

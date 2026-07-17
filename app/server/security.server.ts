@@ -32,8 +32,8 @@ export function securityHeaders(options: { isProd: boolean }): Record<string, st
     "Cross-Origin-Resource-Policy": "same-origin",
   };
   if (options.isProd) {
-    // 180 days, preload-eligible. Fly already terminates TLS, so we
-    // only enable HSTS in prod so localhost HTTP stays usable.
+    // Enforce HTTPS for 180 days, including subdomains. This is intentionally
+    // not an HSTS preload policy. Localhost HTTP remains usable outside prod.
     headers["Strict-Transport-Security"] = `max-age=${HSTS_MAX_AGE_SECONDS}; includeSubDomains`;
     headers["Content-Security-Policy"] = PRODUCTION_CSP;
   }

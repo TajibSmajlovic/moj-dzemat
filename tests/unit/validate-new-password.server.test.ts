@@ -56,6 +56,7 @@ describe("validateNewPassword", () => {
     await expect(validateNewPassword(password)).resolves.toEqual({ kind: "breached" });
     expect(fetchMock).toHaveBeenCalledWith(`https://api.pwnedpasswords.com/range/${prefix}`, {
       headers: { "Add-Padding": "true" },
+      signal: expect.any(AbortSignal) as AbortSignal,
     });
   });
 

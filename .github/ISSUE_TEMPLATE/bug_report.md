@@ -18,8 +18,11 @@ assignees: ""
 - [ ] Admin panel
 - [ ] Auth / password reset
 - [ ] Posts / editor
-- [ ] Image upload / image display
+- [ ] Images / YouTube media
+- [ ] Questions and answers
+- [ ] Important dates
 - [ ] Announcement banner
+- [ ] Theme
 - [ ] SEO / routing
 - [ ] Email
 - [ ] Database / Prisma / seed
@@ -44,12 +47,12 @@ assignees: ""
 
 ## Route / Flow
 
-<!-- Examples: /, /objave, /objave/:slug, /prijava, /admin/objave, /admin/obavijesna-traka -->
+<!-- Examples: /, /objave, /objave/:slug, /pitanja-i-odgovori, /prijava, /admin/objave, /admin/pitanja, /admin/vazni-datumi -->
 
 - Route:
 - Logged in as admin: Yes / No
-- Related post status: Draft / Published / Archived / N/A
-- Related post type: News / Event / Announcement / N/A
+- Related post status: Draft / Published / N/A
+- Related post type: Obavijest / Hutba / Sergija / Smrtovnica / Priča / N/A
 
 ## Environment
 

@@ -12,6 +12,7 @@ import { saveAdminQuestionAnswer } from "#app/features/qa/admin/qa-admin.server"
 import { adminQaHref } from "#app/features/qa/qa-routes";
 import { QaAnswerSchema } from "#app/features/qa/qa-schema";
 import { getAdminQuestionById } from "#app/features/qa/qa.server";
+import { requireId } from "#app/lib/id";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
@@ -20,20 +21,26 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.pitanja.$id";
 
-export function meta({ data }: Route.MetaArgs) {
-  const title = data?.question?.answer ? "Uredi odgovor · Admin" : "Odgovori na pitanje · Admin";
+const QUESTION_ID_OPTIONS = {
+  message: "Pitanje nije pronađeno.",
+  responseInit: { status: 404 },
+};
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  const title = loaderData?.question?.answer
+    ? "Uredi odgovor · Admin"
+    : "Odgovori na pitanje · Admin";
 
   return buildNoindexMeta(title, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAdmin(request);
-  const id = requireQuestionId(params.id);
+export async function loader({ request, params, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
+  const id = requireId(params.id, QUESTION_ID_OPTIONS);
   const question = await getAdminQuestionById(id);
 
   invariantResponse(question, "Pitanje nije pronađeno.", { status: 404 });
 
-  const url = new URL(request.url);
   const fromTab = parseAdminQuestionTab(url.searchParams.get("from"));
 
   return {
@@ -43,9 +50,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
-  const id = requireQuestionId(params.id);
+export async function action({ request, params, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
+  const id = requireId(params.id, QUESTION_ID_OPTIONS);
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: QaAnswerSchema });
 
@@ -107,12 +114,4 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       backLabel="Nazad na pitanja"
     />
   );
-}
-
-function requireQuestionId(value: string | undefined): string {
-  invariantResponse(typeof value === "string" && value.length > 0, "Pitanje nije pronađeno.", {
-    status: 404,
-  });
-
-  return value;
 }

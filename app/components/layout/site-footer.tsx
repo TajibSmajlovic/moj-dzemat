@@ -96,7 +96,7 @@ export function SiteFooter() {
 function ContributionSection() {
   return (
     <section
-      aria-labelledby="footer-contribution-title"
+      aria-label="Doprinos projektu"
       className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm"
     >
       <div className="border-secondary/30 bg-accent/30 border-t-4 p-4 sm:p-5">

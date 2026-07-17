@@ -4,7 +4,7 @@
 # Separate stage so we can copy `node_modules` into subsequent stages
 # without re-running `npm ci`. Alpine for small image size; openssl is
 # needed by Prisma's linux-musl engine.
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl
@@ -19,7 +19,7 @@ RUN npm ci --include=dev --ignore-scripts
 # ---- build -------------------------------------------------------------
 # Compile RR client + server bundles, generate Prisma client, and prune
 # dev dependencies so the runtime image stays small.
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl
@@ -39,18 +39,21 @@ RUN npx prisma generate
 
 
 # ---- runtime -----------------------------------------------------------
-# `flyio/litefs:0.5` is an Alpine image with `litefs` already on PATH and
-# FUSE support compiled in. We layer Node on top so the single container
-# can both mount the FS and serve HTTP.
-FROM flyio/litefs:0.5 AS runtime
+# LiteFS is a static binary, so copy it into the official Node image. This
+# keeps the production runtime on the same Node major as the build stages
+# instead of relying on the LiteFS image's unversioned Alpine nodejs package.
+FROM flyio/litefs:0.5 AS litefs
+
+FROM node:24-alpine AS runtime
 WORKDIR /app
+
+COPY --from=litefs /usr/local/bin/litefs /usr/local/bin/litefs
 
 # Alpine packages:
 #   tini      - proper PID 1 so SIGTERM reaches Node instead of dangling
 #   tzdata    - Europe/Sarajevo zone data for consistent Date formatting
 #   openssl   - Prisma runtime dep
 #   ca-certificates - Resend + any outbound HTTPS
-#   nodejs/npm - runtime + prisma migrate deploy
 #   sqlite    - backup/debug inside the machine
 #   fuse3     - LiteFS FUSE mount
 RUN apk add --no-cache \
@@ -58,8 +61,6 @@ RUN apk add --no-cache \
       tzdata \
       openssl \
       ca-certificates \
-      nodejs \
-      npm \
       sqlite \
       fuse3
 

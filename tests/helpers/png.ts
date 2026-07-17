@@ -4,7 +4,7 @@
  * re-encode (e.g. into WebP via the post-image upload pipeline).
  */
 export const TINY_PNG_BASE64 =
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z8W0AAAAASUVORK5CYII=";
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==";
 
 export function tinyPngFile(name = "img.png"): File {
   const buffer = Buffer.from(TINY_PNG_BASE64, "base64");

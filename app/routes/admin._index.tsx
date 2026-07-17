@@ -11,8 +11,8 @@ import type { Route } from "./+types/admin._index";
    redirects to the login page instead of exposing the existence of the
    posts index via a second redirect hop.
  */
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
 
   return redirect(ROUTES.adminPosts);
 }

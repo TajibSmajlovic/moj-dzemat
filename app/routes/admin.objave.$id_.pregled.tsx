@@ -7,11 +7,12 @@ import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { PostStatusBadge } from "#app/features/posts/admin/components/post-status-badge";
-import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { adminPostHref, adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
 import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
+import { requireId } from "#app/lib/id";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
@@ -24,15 +25,18 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.objave.$id_.pregled";
 
-export function meta({ data }: Route.MetaArgs) {
+export function meta({ loaderData }: Route.MetaArgs) {
   return buildNoindexMeta(
-    formatPageTitle(data?.post ? `Pregled: ${data.post.title}` : "Pregled objave", "Admin"),
+    formatPageTitle(
+      loaderData?.post ? `Pregled: ${loaderData.post.title}` : "Pregled objave",
+      "Admin",
+    ),
     ROBOTS_NOINDEX_NOFOLLOW,
   );
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, params, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
   const id = requireId(params.id);
   const post = await prisma.post.findUnique({
     where: { id },
@@ -62,8 +66,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { post, siteUrl: env().APP_URL };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, params, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const id = requireId(params.id);
   const formData = await request.formData();
   const intent = formData.get("intent");

@@ -1,11 +1,7 @@
-import { prisma } from "#app/server/db.server";
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 
 export async function getAuthPage() {
-  const announcement = await prisma.siteAnnouncement.findFirst({
-    where: { isActive: true },
-    orderBy: { createdAt: "desc" },
-    select: { message: true },
-  });
+  const announcement = await getActiveAnnouncement();
 
   return {
     announcement,

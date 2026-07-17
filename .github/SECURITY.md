@@ -4,10 +4,10 @@
 
 This project is a small application rather than a versioned library. Security fixes are supported for:
 
-| Version                                      | Supported |
-| -------------------------------------------- | --------- |
-| `main` / latest deployed production version  | Yes       |
-| Older commits, forks, or local modifications | No        |
+| Version                                       | Supported |
+| --------------------------------------------- | --------- |
+| `master` / latest deployed production version | Yes       |
+| Older commits, forks, or local modifications  | No        |
 
 ## Reporting a Vulnerability
 
@@ -26,7 +26,10 @@ If private reporting is unavailable, open a public issue that only says you need
 
 Please include enough detail to reproduce and assess the issue safely:
 
-- affected route or flow, such as `/prijava`, `/zaboravljena-lozinka`, `/admin/objave`, `/admin/obavijesna-traka`, `/slike/:id`, or public post pages
+- affected route or flow, such as `/prijava`, `/zaboravljena-lozinka`,
+  `/pitanja-i-odgovori`, `/admin/objave`, `/admin/pitanja`,
+  `/admin/vazni-datumi`, `/admin/obavijesna-traka`, `/slike/:id`, or public
+  post pages
 - whether the issue requires an admin session or affects public visitors
 - clear reproduction steps against a local or test environment when possible
 - proof-of-concept payloads, screenshots, logs, or requests with secrets removed
@@ -41,9 +44,10 @@ Reports are especially useful for:
 - admin authentication, session handling, logout, and session fixation issues
 - password reset links, reset token validation, email delivery, and account bootstrap
 - rate limiting, honeypot protections, and abuse of public auth forms
+- anonymous question submission, answer moderation, and hidden-answer visibility
 - stored or reflected XSS in posts, the rich-text editor, announcements, SEO metadata, or social sharing content
 - image upload processing, MIME sniffing, image serving, and oversized or malformed image payloads
-- access control around admin routes, draft content, archived content, and unpublished images
+- access control around admin routes, draft content, and unpublished images
 - accidental exposure of `/dev/*` test routes, in-memory development email, or test-only flags in production
 - leaked or weak environment secrets, including `SESSION_SECRET`, `PASSWORD_RESET_SECRET`, `HONEYPOT_SECRET`, `RESEND_API_KEY`, GitHub tokens, Fly.io tokens, and analytics tokens
 - Prisma, SQLite, LiteFS, migration, seed, backup, or deployment configuration that could expose or corrupt data

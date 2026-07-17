@@ -40,6 +40,7 @@ async function rotateUserSession(request: Request, userId: string): Promise<Head
 
 const BCRYPT_COST = 10;
 const HIBP_URL = "https://api.pwnedpasswords.com/range/";
+const HIBP_TIMEOUT_MS = 2000;
 
 // ---- Password hashing / validation -------------------------------------
 
@@ -71,6 +72,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
     const suffix = sha1.slice(5);
     const response = await fetch(`${HIBP_URL}${prefix}`, {
       headers: { "Add-Padding": "true" },
+      signal: AbortSignal.timeout(HIBP_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -142,13 +144,14 @@ export function getCurrentUser(request: Request): Promise<CurrentUser | null> {
    Guard used on every `/admin/*` loader + action. Redirects to
    `/prijava?redirectTo=<current>` if no valid session.
  */
-export async function requireAdmin(request: Request) {
+export async function requireAdmin(request: Request, routeUrl: URL) {
   const user = await getCurrentUser(request);
   if (!user) {
-    const url = new URL(request.url);
-    const params = new URLSearchParams({ redirectTo: url.pathname + url.search });
+    const params = new URLSearchParams({
+      redirectTo: routeUrl.pathname + routeUrl.search,
+    });
 
-    logger.warn({ path: url.pathname, search: url.search }, "admin access denied");
+    logger.warn({ path: routeUrl.pathname, search: routeUrl.search }, "admin access denied");
 
     throw redirect(`${ROUTES.login}?${params.toString()}`);
   }

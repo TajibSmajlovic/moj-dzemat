@@ -26,8 +26,11 @@ assignees: ""
 - [ ] Admin panel
 - [ ] Auth / password reset
 - [ ] Posts / editor
-- [ ] Image upload / image display
+- [ ] Images / YouTube media
+- [ ] Questions and answers
+- [ ] Important dates
 - [ ] Announcement banner
+- [ ] Theme
 - [ ] SEO / routing
 - [ ] Email
 - [ ] Database / Prisma / seed

@@ -12,10 +12,9 @@ import { FormError } from "#app/server/form-error.server";
 
 /**
    Single source of truth for "write a post to the DB". Wraps the slug
-   uniqueness check, the upsert of the Post row itself, the insert of
-   any pre-processed image rows, and the alt-text updates for existing
-   images in one `prisma.$transaction` so a failure anywhere never
-   leaves orphaned data behind.
+   uniqueness check, Post create/update, image inserts and alt-text updates,
+   and video reconciliation in one `prisma.$transaction` so a failure anywhere
+   never leaves partially updated media behind.
  */
 
 export type PersistPostArgs = {

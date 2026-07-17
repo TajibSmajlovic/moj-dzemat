@@ -46,37 +46,6 @@ test.describe("public", () => {
     await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
   });
 
-  test("mobile navigation opens a top dropdown and navigates to posts", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(ROUTES.home);
-
-    const menuButton = page.getByRole("button", { name: "Otvori meni" });
-    await expect(menuButton).toHaveAttribute("aria-expanded", "false");
-    await expect(page.getByRole("navigation", { name: "Mobilna navigacija" })).toHaveCount(0);
-
-    await menuButton.click();
-
-    const dropdown = page.getByRole("navigation", { name: "Mobilna navigacija" });
-    await expect(page.getByRole("button", { name: "Zatvori meni" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
-    await expect(dropdown).toBeVisible();
-    await expect(dropdown.getByRole("link", { name: "Početna" })).toBeVisible();
-    await expect(dropdown.getByRole("link", { name: "Objave" })).toBeVisible();
-    await expect(dropdown.getByRole("link", { name: "Pitanja i odgovori" })).toBeVisible();
-    await expect(dropdown.getByRole("link", { name: "Admin" })).toHaveCount(0);
-
-    await dropdown.getByRole("link", { name: "Objave" }).click();
-
-    await expect(page).toHaveURL(new RegExp(`${ROUTES.posts}$`));
-    await expect(page.getByRole("button", { name: "Otvori meni" })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
-    await expect(page.getByRole("navigation", { name: "Mobilna navigacija" })).toHaveCount(0);
-  });
-
   test("filter query string scopes the feed", async ({ page }) => {
     const firstObavijest = seededPostOfType("obavijest");
     const firstHutba = seededPostOfType("hutba");

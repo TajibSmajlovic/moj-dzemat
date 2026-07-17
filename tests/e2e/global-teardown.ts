@@ -11,14 +11,12 @@ export default function globalTeardown() {
     } catch (error: unknown) {
       // Windows does not allow deleting an open SQLite file. The next
       // global setup run deletes/refreshes it before migrations anyway.
-      if (
-        !(
-          typeof error === "object" &&
-          error !== null &&
-          "code" in error &&
-          (error.code === "EBUSY" || error.code === "EPERM" || error.code === "ENOENT")
-        )
-      ) {
+      if (!(
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error.code === "EBUSY" || error.code === "EPERM" || error.code === "ENOENT")
+      )) {
         throw error;
       }
     }

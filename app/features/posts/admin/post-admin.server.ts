@@ -20,19 +20,14 @@ import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 import { PostFormSchema } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { ParsedVideo } from "#app/features/posts/post-video";
-import { invariant, invariantResponse } from "#app/lib/invariant";
+import { requireId } from "#app/lib/id";
+import { invariant } from "#app/lib/invariant";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
 import { MAX_UPLOAD_BYTES } from "#app/server/limits.server";
 import { logger } from "#app/server/logger.server";
 import { redirectWithToast } from "#app/server/toast.server";
-
-export function requireId(value: unknown): string {
-  invariantResponse(typeof value === "string" && value.length > 0, "Missing id");
-
-  return value;
-}
 
 export async function togglePostStatus(postId: string, userId: string) {
   const post = await prisma.post.findUniqueOrThrow({

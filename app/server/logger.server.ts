@@ -9,17 +9,30 @@ import { env } from "#app/server/env.server";
  */
 export const logger = pino({
   level: env().NODE_ENV === "production" ? "info" : "debug",
-  // Strip the cookie and authorization headers from every log line so
-  // session ids / reset tokens can't leak into log storage.
+  // Strip secrets and direct personal identifiers from every log line.
+  // Keep operational ids (requestId/userId) so incidents remain traceable.
   redact: {
     paths: [
       "req.headers.cookie",
       "req.headers.authorization",
       "headers.cookie",
       "headers.authorization",
+      "password",
+      "hash",
+      "token",
+      "email",
+      "to",
+      "ip",
+      "clientIp",
+      "search",
       "*.password",
       "*.hash",
       "*.token",
+      "*.email",
+      "*.to",
+      "*.ip",
+      "*.clientIp",
+      "*.search",
     ],
     censor: "[REDACTED]",
   },
