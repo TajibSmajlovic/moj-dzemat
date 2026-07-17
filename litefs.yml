@@ -1,9 +1,8 @@
 # LiteFS configuration.
 #
-# Single-writer setup. Because Fly scales this app to a single Machine we
-# use a `static` lease (no Consul coordinator) - the one primary always
-# wins. If we ever scale horizontally we will need to switch to `consul`
-# leases; the rest of the config stays the same.
+# Single-writer setup designed for one Fly Machine. We use a `static` lease
+# without a Consul coordinator. Before scaling horizontally, switch to
+# coordinated leases and shared rate-limit state.
 #
 # The FUSE-mounted filesystem lives at `/litefs`; replicated DB files
 # are backed by the Fly volume at `/var/lib/litefs`. SQLite talks to
@@ -21,8 +20,8 @@ data:
 http:
   addr: ":20202"
 
-# Proxy accept SQLite write requests transparently when we scale up.
-# For now with a single writer it's a no-op.
+# The proxy is configured for write forwarding. With the current single-Machine
+# static lease it is effectively a local pass-through.
 proxy:
   addr: ":20203"
   target: "localhost:3000"

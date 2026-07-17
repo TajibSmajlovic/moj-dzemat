@@ -33,13 +33,11 @@ export function meta({ matches }: Route.MetaArgs) {
   return buildNoindexMeta(formatPageTitle("Prijava", getRootSiteName(matches)));
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, url }: Route.LoaderArgs) {
   const currentUser = await getCurrentUser(request);
   if (currentUser) {
     return redirect(DEFAULT_LOGGED_IN_REDIRECT);
   }
-
-  const url = new URL(request.url);
 
   return {
     honeypot: honeypotToken(),

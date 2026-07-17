@@ -8,6 +8,7 @@ import { logger } from "#app/server/logger.server";
  */
 
 const RESEND_URL = "https://api.resend.com/emails";
+const RESEND_TIMEOUT_MS = 5000;
 const DEV_BUFFER_SIZE = 10;
 
 type SendArgs = {
@@ -47,6 +48,7 @@ export async function sendEmail(args: SendArgs): Promise<void> {
       html: args.html,
       text: args.text,
     }),
+    signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
   });
 
   if (!response.ok) {

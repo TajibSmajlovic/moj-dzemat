@@ -39,6 +39,7 @@ const INTENT_FIELD = "intent";
 export type IntentOf<T extends Record<string, string>> = T[keyof T];
 
 type IntentMap = Record<string, string>;
+type SubmissionNavigation = Pick<Navigation, "state" | "formData">;
 
 function intentValues<T extends IntentMap>(intents: T): readonly string[] {
   return Object.values(intents);
@@ -73,7 +74,7 @@ export function IntentInput<T extends string>({
 }
 
 export function useIsSubmittingIntent<T extends string>(
-  navigation: Navigation,
+  navigation: SubmissionNavigation,
   intent: T,
   field: string = INTENT_FIELD,
 ): boolean {
@@ -81,7 +82,7 @@ export function useIsSubmittingIntent<T extends string>(
 }
 
 export function useSubmittingRowId<T extends string>(
-  navigation: Navigation,
+  navigation: SubmissionNavigation,
   intent: T,
   idField = "id",
   intentField: string = INTENT_FIELD,

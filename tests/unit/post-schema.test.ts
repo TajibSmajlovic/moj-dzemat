@@ -44,7 +44,7 @@ describe("PostFormSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("does not accept publishedAt — the DB records it on create", () => {
+  it("does not accept the server-managed publishedAt field", () => {
     const result = PostFormSchema.safeParse({
       ...valid,
       publishedAt: "2026-04-17T15:30",

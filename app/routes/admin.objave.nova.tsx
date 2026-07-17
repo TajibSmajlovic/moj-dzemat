@@ -20,12 +20,12 @@ export function meta(_args: Route.MetaArgs) {
   return buildNoindexMeta("Nova objava · Admin", ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
 
   const formData = await parsePostFormData(request);
   const intent = formData.get("intent");

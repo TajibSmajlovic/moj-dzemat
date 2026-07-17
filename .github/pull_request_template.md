@@ -21,6 +21,8 @@
   - [ ] Admin panel
   - [ ] Auth / password reset
   - [ ] Forms / editor / uploads
+  - [ ] Questions / important dates / announcements
+  - [ ] Theme
   - [ ] SEO / routing
   - [ ] Email
   - [ ] Prisma / migrations / seed

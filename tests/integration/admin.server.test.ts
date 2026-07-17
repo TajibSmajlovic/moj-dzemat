@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ROUTES } from "#app/lib/routes";
-import { loader as adminLayoutLoader } from "#app/routes/admin";
+import { loader as adminLayoutLoader, meta } from "#app/routes/admin";
 
 import { createQuestion, createSiteAnnouncement } from "../factories";
 import { expectData, expectResponse } from "../helpers/action-result";
@@ -13,6 +13,10 @@ function callLoader(cookie?: string) {
 }
 
 describe("admin layout route", () => {
+  it("marks inherited admin pages as noindex, nofollow", () => {
+    expect(meta()).toContainEqual({ name: "robots", content: "noindex,nofollow" });
+  });
+
   it("redirects unauthenticated visitors to login", async () => {
     let thrown: unknown;
     try {

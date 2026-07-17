@@ -24,7 +24,7 @@ import {
   invalidateActiveAnnouncement,
 } from "#app/features/announcements/site-announcement.server";
 import { requireAdmin } from "#app/features/auth/auth.server";
-import { requireId } from "#app/features/posts/admin/post-admin.server";
+import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { ROUTES } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
@@ -35,8 +35,8 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
   const announcements = await prisma.siteAnnouncement.findMany({
     orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
     select: {
@@ -50,8 +50,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { announcements };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const formData = await request.formData();
   const intent = parseIntent(formData, AnnouncementIntents);
 

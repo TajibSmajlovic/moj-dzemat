@@ -62,8 +62,7 @@ export function meta({ matches }: Route.MetaArgs) {
   });
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
+export async function loader({ url }: Route.LoaderArgs) {
   const page = parsePageParam(url.searchParams.get("page"));
   const totalQuestions = await countPublicAnsweredQuestions();
   const pagination = getLoadMorePaginationState({
@@ -89,7 +88,7 @@ export async function action({ request }: Route.ActionArgs) {
   const ip = getClientIp(request);
   const limit = qaQuestionLimiter.check(ip);
   if (!limit.ok) {
-    logger.warn({ ip }, "qa submission rate limited");
+    logger.warn("qa submission rate limited");
     return data({ result: null, ok: false, rateLimited: true } as const, { status: 429 });
   }
 

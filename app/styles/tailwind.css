@@ -10,8 +10,8 @@
 @import "@fontsource-variable/lora/wght-italic.css";
 @import "@fontsource-variable/inter/wght.css";
 
-/* `.dark` class on <html> flips the palette. Admin can add a toggle later
-   without touching a single component: all colors are semantic tokens. */
+/* The theme toggle flips `.dark` on <html>; semantic color tokens let every
+   component follow the selected palette without mode-specific state. */
 @custom-variant dark (&:is(.dark *));
 
 /* Light-mode palette. Tokens are stored as raw `H S% L%` triples so we can

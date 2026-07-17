@@ -4,10 +4,10 @@ import { HOUR_MS, MINUTE_MS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
 /**
-   In-memory, per-IP rate limiter. Because Fly pins this app to a single
-   instance (single SQLite writer), process-local counters are enough -
-   a multi-machine fleet would need Redis or a DB table. Keys are
-   scoped per limiter so forgot-password and login counters don't collide.
+   In-memory, per-IP rate limiter. This deployment is designed for one app
+   Machine, so process-local counters are sufficient. A multi-machine fleet
+   would need shared storage such as Redis or a database table. Keys are scoped
+   per limiter so unrelated counters do not collide.
  */
 
 type RateLimitResult = {
@@ -65,7 +65,7 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
   };
 }
 
-// Separate per-IP limiters for the two public auth write flows.
+// Separate per-IP limiters for each public write flow.
 export const loginLimiter = createRateLimiter({
   name: "login",
   windowMs: HOUR_MS,

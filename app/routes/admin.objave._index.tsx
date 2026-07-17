@@ -7,9 +7,10 @@ import { Button } from "#app/components/ui/button";
 import { requireAdmin } from "#app/features/auth/auth.server";
 import { getAdminPostListPage } from "#app/features/posts/admin/admin-post-list.server";
 import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
-import { requireId, togglePostStatus } from "#app/features/posts/admin/post-admin.server";
+import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
 import { adminPostsPageHref } from "#app/features/posts/post-routes";
+import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { parsePageParam } from "#app/lib/pagination";
 import { ROUTES } from "#app/lib/routes";
@@ -20,9 +21,8 @@ import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave._index";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
-  const url = new URL(request.url);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
   const page = parsePageParam(url.searchParams.get("page"));
   const { posts, pagination } = await getAdminPostListPage({ page });
 
@@ -33,8 +33,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { posts, pagination };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const formData = await request.formData();
   const intent = parseIntent(formData, PostAdminIntents);
 

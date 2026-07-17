@@ -16,17 +16,16 @@ import {
 import { QaAdminIntents, type QaAdminIntent } from "#app/features/qa/admin/qa-intents";
 import { adminQaHref } from "#app/features/qa/qa-routes";
 import { cn } from "#app/lib/cn";
+import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { invariantResponse } from "#app/lib/invariant";
 import { parsePageParam } from "#app/lib/pagination";
 import { useActionToast } from "#app/lib/toast";
 
 import type { Route } from "./+types/admin.pitanja._index";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireAdmin(request);
+export async function loader({ request, url }: Route.LoaderArgs) {
+  await requireAdmin(request, url);
 
-  const url = new URL(request.url);
   const tab = parseAdminQuestionTab(url.searchParams.get("tab"));
   const page = parsePageParam(url.searchParams.get("page"));
   const { questions, pagination } = await getAdminQaListPage({ tab, page });
@@ -40,11 +39,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { tab, questions, pagination, counts };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await requireAdmin(request);
+export async function action({ request, url }: Route.ActionArgs) {
+  const user = await requireAdmin(request, url);
   const formData = await request.formData();
   const intent = parseIntent(formData, QaAdminIntents);
-  const id = requireQuestionId(formData.get("id"));
+  const id = requireId(formData.get("id"));
 
   switch (intent) {
     case QaAdminIntents.ToggleHidden: {
@@ -98,12 +97,6 @@ export default function AdminQaIndex({ loaderData }: Route.ComponentProps) {
       />
     </main>
   );
-}
-
-function requireQuestionId(value: unknown): string {
-  invariantResponse(typeof value === "string" && value.length > 0, "Missing id");
-
-  return value;
 }
 
 function TabPill({

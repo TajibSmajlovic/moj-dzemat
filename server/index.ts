@@ -14,9 +14,9 @@ import { clientIpFromHeaders, staticFileLimiter } from "../app/server/rate-limit
 import { securityHeaders } from "../app/server/security.server";
 
 // Attach a request-scoped child logger to every Express request. Declared
-// once here so route/middleware code can read `req.log` without per-call
-// type casts. Optional because the property is only populated after the
-// request-id middleware below has run.
+// once here so downstream middleware and the Express error handler can read
+// `req.log` without per-call type casts. Optional because the property is only
+// populated after the request-id middleware below has run.
 declare module "express-serve-static-core" {
   // Module augmentation requires `interface` for declaration merging;
   // a type alias cannot extend the upstream `Request`.
@@ -29,6 +29,7 @@ declare module "express-serve-static-core" {
 const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
 const HEALTHCHECK_PATH = ROUTES.healthcheck;
+const HEALTH_PATHS = new Set<string>([ROUTES.healthcheck, ROUTES.readiness]);
 const canonicalUrl = new URL(APP_URL);
 const canonicalHost = canonicalUrl.host.toLowerCase();
 
@@ -62,19 +63,6 @@ async function createServer(): Promise<express.Express> {
 
   app.use(compression());
 
-  // Drop oversized payloads early - RR parses FormData itself, but Node
-  // will hold the full body in memory before our loader/action sees it,
-  // so we short-circuit based on Content-Length.
-  app.use((req, res, next) => {
-    if (req.method === "GET" || req.method === "HEAD") return next();
-    const contentLength = Number(req.headers["content-length"] ?? 0);
-    if (contentLength > MAX_REQUEST_BYTES) {
-      res.status(413).send("Payload too large");
-      return;
-    }
-    next();
-  });
-
   // Request id + baseline security headers. We set the id on every
   // response and reuse it from the incoming header when Fly provides
   // one so log lines trace across the edge.
@@ -89,18 +77,67 @@ async function createServer(): Promise<express.Express> {
       res.setHeader(key, value);
     }
 
-    // Attach a request-scoped child logger so route code can log with
-    // consistent metadata (filled in later todos).
-    req.log = logger.child({
+    const requestLog = logger.child({
       requestId,
       method: req.method,
       path: req.path,
     });
+    req.log = requestLog;
+
+    const logCompletion =
+      !HEALTH_PATHS.has(req.path) &&
+      !req.path.startsWith("/assets/") &&
+      !req.path.startsWith("/.well-known/") &&
+      req.path !== "/logo.svg";
+
+    if (logCompletion) {
+      const startedAt = performance.now();
+      let finished = false;
+
+      res.once("finish", () => {
+        finished = true;
+        const details = {
+          statusCode: res.statusCode,
+          durationMs: Math.round(performance.now() - startedAt),
+        };
+
+        if (res.statusCode >= 500) {
+          requestLog.error(details, "request completed");
+        } else {
+          requestLog.info(details, "request completed");
+        }
+      });
+
+      res.once("close", () => {
+        if (finished) return;
+
+        requestLog.warn(
+          { durationMs: Math.round(performance.now() - startedAt) },
+          "request aborted",
+        );
+      });
+    }
+
+    next();
+  });
+
+  // Drop oversized payloads early - RR parses FormData itself, but Node
+  // will hold the full body in memory before our loader/action sees it,
+  // so we short-circuit based on Content-Length. This runs after request
+  // instrumentation so rejected requests still get security headers and logs.
+  app.use((req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD") return next();
+
+    const contentLength = Number(req.headers["content-length"] ?? 0);
+    if (contentLength > MAX_REQUEST_BYTES) {
+      res.status(413).send("Payload too large");
+      return;
+    }
     next();
   });
 
   app.use((req, res, next) => {
-    if (req.path === HEALTHCHECK_PATH) return next();
+    if (HEALTH_PATHS.has(req.path)) return next();
 
     const requestHost = req.get("host")?.toLowerCase();
     if (!requestHost || requestHost === canonicalHost) return next();
@@ -120,10 +157,11 @@ async function createServer(): Promise<express.Express> {
     return res.redirect(308, target.toString());
   });
 
-  // Liveness + readiness probe. Fly hits this before routing traffic;
-  // keep it cheap (no DB call) so we don't flap during a migration.
+  // Shallow liveness probe: this only confirms that Node + Express can
+  // respond. Fly routes traffic based on the separate readiness resource.
   app.get(HEALTHCHECK_PATH, (_req, res) => {
-    res.status(200).send("ok");
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).send("alive");
   });
 
   // Chrome DevTools probes this on every page load (Chrome 128+).
@@ -178,9 +216,6 @@ async function createServer(): Promise<express.Express> {
             "virtual:react-router/server-build",
           ) as unknown as Promise<ServerBuild>,
         mode: "development",
-        getLoadContext() {
-          return {};
-        },
       }),
     );
   }
@@ -200,13 +235,35 @@ async function createServer(): Promise<express.Express> {
   return app;
 }
 
-createServer()
-  .then((app) => {
-    app.listen(PORT, () => {
-      logger.info({ port: PORT, env: NODE_ENV }, "server ready");
-    });
-  })
-  .catch((error: unknown) => {
-    logger.error({ err: error }, "failed to start server");
-    process.exit(1);
+async function startServer(): Promise<void> {
+  const app = await createServer();
+  const server = app.listen(PORT, () => {
+    logger.info({ port: PORT, env: NODE_ENV }, "server ready");
   });
+
+  let shuttingDown = false;
+
+  function shutdown(signal: NodeJS.Signals) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+
+    logger.info({ signal }, "server shutdown started");
+    server.close((error) => {
+      if (error) {
+        logger.error({ err: error, signal }, "server shutdown failed");
+        process.exit(1);
+      }
+
+      logger.info({ signal }, "server shutdown completed");
+      process.exit(0);
+    });
+  }
+
+  process.once("SIGTERM", () => shutdown("SIGTERM"));
+  process.once("SIGINT", () => shutdown("SIGINT"));
+}
+
+startServer().catch((error: unknown) => {
+  logger.error({ err: error }, "failed to start server");
+  process.exit(1);
+});

@@ -1,9 +1,9 @@
 # Contributing
 
 Thanks for helping improve Moj Džemat. This project is a lightweight community
-publishing app with a public website, admin-only content management, password
-reset authentication, SQLite/Prisma storage, image processing, and Fly.io
-deployment.
+publishing app with public posts and Q&A, admin-managed important dates and
+announcements, password-reset authentication, SQLite/Prisma storage, image
+processing, and Fly.io deployment.
 
 ## Before You Start
 
@@ -16,7 +16,7 @@ deployment.
 
 ## Local Setup
 
-Use Node `22.13.0+` and `<23` (`.nvmrc` is included), plus npm `10.9.0+`.
+Use Node `24.x` (`.nvmrc` is included), plus npm `11.18.0`.
 You do not need Docker, Postgres, Redis, or an external email service for the
 first local boot.
 
@@ -58,7 +58,7 @@ These are the variables that matter most for local development:
 | `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                            |
 | `EMAIL_FROM`                     | Required even in local dev. Use a provider-compatible `From` value; keep the display name ASCII if your provider rejects diacritics. |
 | `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                               |
-| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email` and other test helpers. Leave `false` outside local/test work.           |
+| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email`. Leave `false` outside local/test work.                                  |
 | `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
 | `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
 | `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                             |
@@ -174,11 +174,13 @@ Common types:
 ## Development Guidelines
 
 - Follow the existing React Router, Prisma, Tailwind, and feature-folder patterns.
-- Keep route files thin. Put domain logic in `app/features/*`, shared server
-  utilities in `app/server`, and reusable helpers in `app/lib`.
+- Keep request coordination in route files. Put reusable domain logic in
+  `app/features/*`, shared server utilities in `app/server`, and reusable
+  helpers in `app/lib`.
 - Use existing UI primitives and app conventions before adding new abstractions.
 - Validate form data with the existing Conform and Zod patterns.
-- Treat auth, password reset, sessions, image uploads, and admin routes as security-sensitive.
+- Treat auth, password reset, sessions, anonymous Q&A submissions, image
+  uploads, and admin routes as security-sensitive.
 - Keep public pages accessible, responsive, and SEO-friendly.
 - Add migrations for schema changes and keep seeds idempotent.
 - Avoid broad refactors inside feature or bug-fix PRs.
@@ -211,7 +213,8 @@ A few implementation details that help when debugging:
   and `DISABLE_RATE_LIMITING`
 - e2e fixture definitions live in `tests/e2e/fixtures/seed-data.ts`
 - e2e global setup reuses shared factories, then seeds a deterministic admin,
-  one announcement, and posts across all public post types
+  posts across all public post types, Q&A rows, one announcement, and important
+  dates
 
 Fast local verification before opening a PR:
 
@@ -261,6 +264,6 @@ Be extra careful with:
 - uploaded images and image metadata
 - logs from production or preview deployments
 - Fly.io, Resend, GitHub, analytics, and application secrets
-- public exposure of draft, archived, or unpublished content
+- public exposure of draft or otherwise unpublished content
 
 When in doubt, remove private data from screenshots, logs, and reproduction steps before sharing them.

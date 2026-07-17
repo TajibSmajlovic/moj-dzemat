@@ -22,8 +22,8 @@ const checkbox = z
    Post write schema. Used in both the create and update actions (server
    side) and in Conform's client-side onValidate so the same error
    messages light up in either place. `publishedAt` is intentionally
-   not part of the editable surface — the DB `@default(now())` records
-   the creation moment, which is all the public UI ever shows.
+   server-managed: the DB initializes it on create, and publishing a draft
+   refreshes it to the actual publication time.
  */
 export const PostFormSchema = z.object({
   title: requiredString("Naslov je obavezan.")

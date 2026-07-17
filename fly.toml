@@ -52,7 +52,7 @@ kill_timeout = '30s'
     timeout = '5s'
     grace_period = '30s'
     method = 'get'
-    path = '/resources/healthcheck'
+    path = '/resources/readiness'
     protocol = 'http'
 
 [[vm]]
