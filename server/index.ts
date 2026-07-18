@@ -5,7 +5,6 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 
-import { ROUTES } from "../app/lib/routes";
 import { DAY_SECONDS } from "../app/lib/time";
 import { env } from "../app/server/env.server";
 import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
@@ -28,8 +27,9 @@ declare module "express-serve-static-core" {
 
 const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
-const HEALTHCHECK_PATH = ROUTES.healthcheck;
-const HEALTH_PATHS = new Set<string>([ROUTES.healthcheck, ROUTES.readiness]);
+// Express owns liveness directly; readiness is a registered React Router resource route.
+const HEALTHCHECK_PATH = "/resources/healthcheck";
+const HEALTH_PATHS = new Set<string>([HEALTHCHECK_PATH, "/resources/readiness"]);
 const canonicalUrl = new URL(APP_URL);
 const canonicalHost = canonicalUrl.host.toLowerCase();
 

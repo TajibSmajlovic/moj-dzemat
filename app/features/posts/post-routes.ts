@@ -1,19 +1,21 @@
-import { ROUTES } from "#app/lib/routes";
+import { href } from "react-router";
 
 export function adminPostsPageHref(page: number): string {
-  return page <= 1 ? ROUTES.adminPosts : `${ROUTES.adminPosts}?page=${page}`;
+  const pathname = href("/admin/objave");
+
+  return page <= 1 ? pathname : `${pathname}?page=${page}`;
 }
 
 export function adminPostHref(id: string): string {
-  return `${ROUTES.adminPosts}/${id}`;
+  return href("/admin/objave/:id", { id });
 }
 
 export function adminPostPreviewHref(id: string): string {
-  return `${adminPostHref(id)}/pregled`;
+  return href("/admin/objave/:id/pregled", { id });
 }
 
 export function postHref(slug: string): string {
-  return `${ROUTES.posts}/${slug}`;
+  return href("/objave/:slug", { slug });
 }
 
 export function postsArchiveHref({
@@ -34,9 +36,11 @@ export function postsArchiveHref({
   }
 
   const query = params.toString();
-  return query ? `${ROUTES.posts}?${query}` : ROUTES.posts;
+  const pathname = href("/objave");
+
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 export function postImageHref(id: string): string {
-  return `${ROUTES.images}/${id}`;
+  return href("/slike/:id", { id });
 }

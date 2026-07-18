@@ -1,5 +1,6 @@
+import { href } from "react-router";
+
 import type { AdminQuestionTab } from "#app/features/qa/qa.server";
-import { ROUTES } from "#app/lib/routes";
 
 export function adminQaHref({
   tab,
@@ -19,7 +20,9 @@ export function adminQaHref({
   }
 
   const query = params.toString();
-  return query ? `${ROUTES.adminQa}?${query}` : ROUTES.adminQa;
+  const pathname = href("/admin/pitanja");
+
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 export function adminQaAnswerHref(
@@ -38,13 +41,17 @@ export function adminQaAnswerHref(
 
   const query = params.toString();
 
-  return query ? `${ROUTES.adminQa}/${id}?${query}` : `${ROUTES.adminQa}/${id}`;
+  const pathname = href("/admin/pitanja/:id", { id });
+
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 export function qaQuestionHref(id: string): string {
-  return `${ROUTES.qa}/${id}`;
+  return href("/pitanja-i-odgovori/:id", { id });
 }
 
 export function qaListHref({ page = 1 }: { page?: number } = {}): string {
-  return page > 1 ? `${ROUTES.qa}?page=${page}` : ROUTES.qa;
+  const pathname = href("/pitanja-i-odgovori");
+
+  return page > 1 ? `${pathname}?page=${page}` : pathname;
 }

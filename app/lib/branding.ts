@@ -1,4 +1,4 @@
-import { useRouteLoaderData } from "react-router";
+import { useRootLoaderData } from "#app/lib/root-loader-data";
 
 export const DEFAULT_SITE_NAME = "Moj Džemat";
 const DEFAULT_SITE_DESCRIPTION_PREFIX = "Zvanična stranica džemata";
@@ -68,13 +68,13 @@ export function formatSiteDescription(siteName = DEFAULT_SITE_NAME): string {
 }
 
 export function useRootSiteName(): string {
-  const data = useRouteLoaderData<{ siteName: string }>("root");
+  const data = useRootLoaderData();
 
   return data?.siteName ?? DEFAULT_SITE_NAME;
 }
 
 export function useRootSiteUrl(): string | undefined {
-  const data = useRouteLoaderData<{ siteUrl?: string }>("root");
+  const data = useRootLoaderData();
 
   return data?.siteUrl;
 }

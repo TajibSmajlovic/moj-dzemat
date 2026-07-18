@@ -1,25 +1,27 @@
+import { href } from "react-router";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { dateToYmd, getTodayYmd, ymdToUtcDate } from "#app/lib/date";
-import { ROUTES } from "#app/lib/routes";
 import {
   action as importantDatesAction,
   loader as importantDatesLoader,
 } from "#app/routes/admin.vazni-datumi";
 import { prisma } from "#app/server/db.server";
 
-import { createImportantDate, createUser } from "../factories";
+import { createImportantDate } from "../factories";
 import { expectData, payloadOf, statusOf } from "../helpers/action-result";
+import { createAdminSession, type AdminRouteContext } from "../helpers/auth";
 import { withHoneypot } from "../helpers/honeypot";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
-import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = testUrl(ROUTES.adminImportantDates);
+const ENDPOINT = testUrl(href("/admin/vazni-datumi"));
 
-const callAction = (formData: FormData, cookie: string) =>
-  runAction(importantDatesAction, { url: ENDPOINT, formData, cookie });
+const callAction = (formData: FormData, context: AdminRouteContext) =>
+  runAction(importantDatesAction, { url: ENDPOINT, formData, context });
 
-const callLoader = (cookie: string) => runLoader(importantDatesLoader, { url: ENDPOINT, cookie });
+const callLoader = (context: AdminRouteContext) =>
+  runLoader(importantDatesLoader, { url: ENDPOINT, context });
 
 // today + offsetDays as a "YYYY-MM-DD" string (UTC calendar math).
 function ymdFromToday(offsetDays: number): string {
@@ -37,11 +39,10 @@ type ConformReply = {
 };
 
 describe("admin important dates route", () => {
-  let cookie: string;
+  let context: AdminRouteContext;
 
   beforeEach(async () => {
-    const { user } = await createUser();
-    cookie = await sessionCookieFor(user.id);
+    ({ context } = await createAdminSession());
   });
 
   it("returns upcoming dates first (nearest first), then past dates (most recent first)", async () => {
@@ -50,7 +51,7 @@ describe("admin important dates route", () => {
     await createImportantDate({ title: "Minus 3", date: ymdFromToday(-3) });
     await createImportantDate({ title: "Minus 10", date: ymdFromToday(-10) });
 
-    const result = expectData(await callLoader(cookie));
+    const result = expectData(await callLoader(context));
 
     expect(result.importantDates.map((row) => row.title)).toEqual([
       "Plus 1",
@@ -68,7 +69,7 @@ describe("admin important dates route", () => {
     formData.set("description", "Klanja se u 06:00.");
     withHoneypot(formData);
 
-    const result = await callAction(formData, cookie);
+    const result = await callAction(formData, context);
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(302);
 
@@ -86,7 +87,7 @@ describe("admin important dates route", () => {
     formData.set("date", "2026-02-30");
     withHoneypot(formData);
 
-    const result = await callAction(formData, cookie);
+    const result = await callAction(formData, context);
 
     expect(statusOf(result)).toBe(400);
     const body = payloadOf<ConformReply>(result);
@@ -100,7 +101,7 @@ describe("admin important dates route", () => {
     formData.set("date", "2026-06-16");
     withHoneypot(formData);
 
-    const result = await callAction(formData, cookie);
+    const result = await callAction(formData, context);
 
     expect(statusOf(result)).toBe(400);
     const body = payloadOf<ConformReply>(result);
@@ -122,7 +123,7 @@ describe("admin important dates route", () => {
     formData.set("description", "Novi opis.");
     withHoneypot(formData);
 
-    const result = await callAction(formData, cookie);
+    const result = await callAction(formData, context);
     expect((result as Response).status).toBe(302);
 
     const updated = await prisma.importantDate.findUnique({ where: { id: existing.id } });
@@ -139,7 +140,7 @@ describe("admin important dates route", () => {
     formData.set("id", victim.id);
     withHoneypot(formData);
 
-    await callAction(formData, cookie);
+    await callAction(formData, context);
 
     expect(await prisma.importantDate.findUnique({ where: { id: victim.id } })).toBeNull();
     expect(await prisma.importantDate.findUnique({ where: { id: keeper.id } })).not.toBeNull();

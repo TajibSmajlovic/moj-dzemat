@@ -1,11 +1,12 @@
+import { href } from "react-router";
+
 import { expect, test } from "@playwright/test";
 
 import { PUBLIC_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
-import { ROUTES } from "../../app/lib/routes";
 
 test.describe("Public objave", () => {
   test("loads initial batch, appends on load more, preserves on refresh", async ({ page }) => {
-    await page.goto(ROUTES.posts);
+    await page.goto(href("/objave"));
 
     const items = page.locator('[aria-label="Lista objava"] > *');
     await expect(items).toHaveCount(PUBLIC_POSTS_PAGE_SIZE);

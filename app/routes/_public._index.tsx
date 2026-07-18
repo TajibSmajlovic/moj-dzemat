@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
 import { ArrowRight } from "lucide-react";
@@ -39,7 +39,6 @@ import {
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
 import { softFade } from "#app/lib/motion";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
@@ -48,6 +47,7 @@ import {
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
+import { absoluteUrl } from "#app/lib/url";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public._index";
@@ -56,7 +56,7 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteName = getRootSiteName(matches);
   const siteDescription = formatSiteDescription(siteName);
   const siteUrl = getRootSiteUrl(matches);
-  const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.home) : ROUTES.home;
+  const canonical = siteUrl ? absoluteUrl(siteUrl, href("/")) : href("/");
   const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
 
   return buildPublicPageMeta({
@@ -148,7 +148,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
         <div className="mt-6 flex justify-center sm:mt-8">
           <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
-            <Link to={ROUTES.posts} prefetch="intent">
+            <Link to={href("/objave")} prefetch="intent">
               Pogledaj sve objave
               <ArrowRight className="h-4 w-4" />
             </Link>

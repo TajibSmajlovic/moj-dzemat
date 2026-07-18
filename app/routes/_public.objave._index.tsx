@@ -1,4 +1,4 @@
-import { Link, redirect } from "react-router";
+import { href, Link, redirect } from "react-router";
 
 import { ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
@@ -27,7 +27,6 @@ import {
   parsePageParam,
   PUBLIC_POSTS_PAGE_SIZE,
 } from "#app/lib/pagination";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
@@ -35,6 +34,7 @@ import {
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
+import { absoluteUrl } from "#app/lib/url";
 
 import type { Route } from "./+types/_public.objave._index";
 
@@ -43,7 +43,7 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
   const siteUrl = getRootSiteUrl(matches);
   const title = formatPageTitle("Objave", siteName);
   const description = "Sve javne objave džemata na jednom mjestu.";
-  const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.posts) : ROUTES.posts;
+  const canonical = siteUrl ? absoluteUrl(siteUrl, href("/objave")) : href("/objave");
   const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
 
   return buildPublicPageMeta({
@@ -86,8 +86,8 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
   const siteUrl = useRootSiteUrl();
   const breadcrumbItems = siteUrl
     ? [
-        { name: "Početna", url: absoluteUrl(siteUrl, ROUTES.home) },
-        { name: "Objave", url: absoluteUrl(siteUrl, ROUTES.posts) },
+        { name: "Početna", url: absoluteUrl(siteUrl, href("/")) },
+        { name: "Objave", url: absoluteUrl(siteUrl, href("/objave")) },
       ]
     : null;
 
@@ -106,7 +106,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
             </p>
           </div>
 
-          <PostFilter active={activeType} basePath={ROUTES.posts} />
+          <PostFilter active={activeType} destination="archive" />
         </section>
 
         {posts.length > 0 ? (

@@ -1,4 +1,4 @@
-import { Form, Link, data, redirect, useActionData } from "react-router";
+import { Form, href, Link, data, redirect } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
@@ -12,10 +12,10 @@ import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { getCurrentUser, login } from "#app/features/auth/auth.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
-import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
@@ -89,8 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
   return redirect(target, { headers: result.headers });
 }
 
-export default function LoginPage({ loaderData }: Route.ComponentProps) {
-  const actionData = useActionData<typeof action>();
+export default function LoginPage({ actionData, loaderData }: Route.ComponentProps) {
   const [form, fields] = useForm({
     id: "login-form",
     lastResult: actionData?.result ?? null,
@@ -171,7 +170,7 @@ export default function LoginPage({ loaderData }: Route.ComponentProps) {
         <p className="text-muted-foreground text-center text-sm">
           <Link
             className="hover:text-foreground underline-offset-4 hover:underline"
-            to={ROUTES.forgotPassword}
+            to={href("/zaboravljena-lozinka")}
           >
             Zaboravili ste lozinku?
           </Link>

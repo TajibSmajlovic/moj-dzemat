@@ -1,4 +1,4 @@
-import { data, useActionData, useNavigate, useNavigation, useSearchParams } from "react-router";
+import { data, href, useNavigate, useNavigation, useSearchParams } from "react-router";
 
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Plus } from "lucide-react";
@@ -23,10 +23,9 @@ import {
   deactivateOtherAnnouncements,
   invalidateActiveAnnouncement,
 } from "#app/features/announcements/site-announcement.server";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
-import { ROUTES } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -35,8 +34,9 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.obavijesna-traka";
 
-export async function loader({ request, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context }: Route.LoaderArgs) {
+  context.get(adminUserContext);
+
   const announcements = await prisma.siteAnnouncement.findMany({
     orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
     select: {
@@ -50,8 +50,8 @@ export async function loader({ request, url }: Route.LoaderArgs) {
   return { announcements };
 }
 
-export async function action({ request, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const formData = await request.formData();
   const intent = parseIntent(formData, AnnouncementIntents);
 
@@ -178,7 +178,7 @@ async function handleUpsert(
   );
 
   return redirectWithToast(
-    ROUTES.adminAnnouncementBar,
+    href("/admin/obavijesna-traka"),
     intent === AnnouncementIntents.Create
       ? createActionToast({
           action: "create",
@@ -191,9 +191,8 @@ async function handleUpsert(
   );
 }
 
-export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProps) {
+export default function AdminAnnouncementBar({ actionData, loaderData }: Route.ComponentProps) {
   const { announcements } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -214,12 +213,12 @@ export default function AdminAnnouncementBar({ loaderData }: Route.ComponentProp
     (navigation.formData?.get("intent") === AnnouncementIntents.Create ||
       navigation.formData?.get("intent") === AnnouncementIntents.Update);
 
-  const closeSheet = () => void navigate(ROUTES.adminAnnouncementBar);
-  const openNew = () => void navigate(`${ROUTES.adminAnnouncementBar}?new=1`);
+  const closeSheet = () => void navigate(href("/admin/obavijesna-traka"));
+  const openNew = () => void navigate(`${href("/admin/obavijesna-traka")}?new=1`);
   const openEdit = (id: string) => {
     const params = new URLSearchParams({ edit: id });
 
-    void navigate(`${ROUTES.adminAnnouncementBar}?${params.toString()}`);
+    void navigate(`${href("/admin/obavijesna-traka")}?${params.toString()}`);
   };
 
   return (

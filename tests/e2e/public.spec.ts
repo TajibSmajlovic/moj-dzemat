@@ -1,7 +1,8 @@
+import { href } from "react-router";
+
 import { expect, test } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
-import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-data";
 
 function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {
@@ -13,7 +14,7 @@ function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {
 
 test.describe("public", () => {
   test("home renders seeded posts and the announcement bar", async ({ page }) => {
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
 
     await expect(page).toHaveTitle("Moj Džemat - Donje Mostre");
     await expect(
@@ -32,7 +33,7 @@ test.describe("public", () => {
   });
 
   test("desktop navigation exposes primary links and secondary actions", async ({ page }) => {
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
 
     const banner = page.getByRole("banner");
     await expect(
@@ -51,21 +52,21 @@ test.describe("public", () => {
     const firstHutba = seededPostOfType("hutba");
     const firstSmrtovnica = seededPostOfType("smrtovnica");
 
-    await page.goto(`${ROUTES.home}?vrsta=hutba`);
+    await page.goto(`${href("/")}?vrsta=hutba`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 3, name: firstHutba.title })).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: firstObavijest.title })).toHaveCount(
       0,
     );
 
-    await page.goto(`${ROUTES.home}?vrsta=smrtovnica`);
+    await page.goto(`${href("/")}?vrsta=smrtovnica`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
     await expect(
       page.getByRole("heading", { level: 3, name: firstSmrtovnica.title }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 3, name: firstHutba.title })).toHaveCount(0);
 
-    await page.goto(`${ROUTES.home}?vrsta=obavijest`);
+    await page.goto(`${href("/")}?vrsta=obavijest`);
     await expect(page.getByText("Nema objava u ovoj kategoriji.")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 3, name: firstObavijest.title })).toBeVisible();
   });

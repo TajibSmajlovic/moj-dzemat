@@ -1,12 +1,12 @@
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { formatPageTitle } from "#app/lib/branding";
-import { absoluteUrl } from "#app/lib/routes";
 import {
   buildPublicPageMeta,
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
+import { absoluteUrl } from "#app/lib/url";
 
 type PostPageMetaPost = {
   slug: string;

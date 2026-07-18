@@ -1,6 +1,7 @@
+import { href } from "react-router";
+
 import { expect, test } from "@playwright/test";
 
-import { ROUTES } from "../../app/lib/routes";
 import { loginAsAdmin } from "./utils/admin";
 
 // A far-future date is always "upcoming", so the row reliably shows in the
@@ -11,7 +12,7 @@ test.describe("admin / važni datumi", () => {
   test("create + edit + delete keeps the home section in sync", async ({ page }) => {
     await loginAsAdmin(page);
 
-    await page.goto(ROUTES.adminImportantDates);
+    await page.goto(href("/admin/vazni-datumi"));
     await expect(page.getByRole("heading", { name: "Važni datumi" })).toBeVisible();
 
     // 1. Create a new date through the sheet.
@@ -25,17 +26,17 @@ test.describe("admin / važni datumi", () => {
     await sheet.getByLabel("Opis (opcionalno)").fill("E2E opis za važan datum.");
     await sheet.getByRole("button", { name: "Sačuvaj" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`${ROUTES.adminImportantDates}$`));
+    await expect(page).toHaveURL(new RegExp(`${href("/admin/vazni-datumi")}$`));
     const newRow = page.getByRole("row").filter({ hasText: title });
     await expect(newRow).toBeVisible();
 
     // The new date shows on the public home page.
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
     const homeSection = page.getByRole("region", { name: "Važni datumi" });
     await expect(homeSection.getByText(title)).toBeVisible();
 
     // 2. Edit the title; the home page reflects the new title, not the old.
-    await page.goto(ROUTES.adminImportantDates);
+    await page.goto(href("/admin/vazni-datumi"));
     await newRow.getByRole("link", { name: title }).click();
 
     const editSheet = page.getByRole("dialog").filter({ hasText: "Uredi datum" });
@@ -44,15 +45,15 @@ test.describe("admin / važni datumi", () => {
     await editSheet.getByLabel("Naslov").fill(editedTitle);
     await editSheet.getByRole("button", { name: "Spremi izmjene" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`${ROUTES.adminImportantDates}$`));
+    await expect(page).toHaveURL(new RegExp(`${href("/admin/vazni-datumi")}$`));
     await expect(page.getByRole("row").filter({ hasText: editedTitle })).toBeVisible();
 
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
     await expect(homeSection.getByText(editedTitle)).toBeVisible();
     await expect(homeSection.getByText(title, { exact: true })).toHaveCount(0);
 
     // 3. Delete the row through the confirm dialog; it disappears from home.
-    await page.goto(ROUTES.adminImportantDates);
+    await page.goto(href("/admin/vazni-datumi"));
     const editedRow = page.getByRole("row").filter({ hasText: editedTitle });
     await editedRow.getByRole("button", { name: "Obriši" }).click();
 

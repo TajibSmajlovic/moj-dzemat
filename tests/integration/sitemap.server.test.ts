@@ -1,8 +1,9 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
-import { ROUTES } from "#app/lib/routes";
 import { buildSitemapXml, loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
@@ -19,8 +20,8 @@ describe("sitemap route", () => {
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=600");
     expect(body).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(body).toContain(`<loc>${env().APP_URL}/</loc>`);
-    expect(body).toContain(`<loc>${env().APP_URL}${ROUTES.posts}</loc>`);
-    expect(body).toContain(`<loc>${env().APP_URL}${ROUTES.qa}</loc>`);
+    expect(body).toContain(`<loc>${env().APP_URL}${href("/objave")}</loc>`);
+    expect(body).toContain(`<loc>${env().APP_URL}${href("/pitanja-i-odgovori")}</loc>`);
     expect(body.match(/<url>/g)).toHaveLength(3);
     expect(body).not.toContain("<lastmod>");
   });
@@ -53,7 +54,7 @@ describe("sitemap route", () => {
       `<loc>${env().APP_URL}/</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
     );
     expect(body).toContain(
-      `<loc>${env().APP_URL}${ROUTES.posts}</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
+      `<loc>${env().APP_URL}${href("/objave")}</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
     );
   });
 
@@ -109,7 +110,7 @@ describe("sitemap route", () => {
     const body = await response.text();
 
     expect(body).toContain(
-      `<loc>${env().APP_URL}${ROUTES.qa}</loc><lastmod>${newestAnsweredAt.toISOString()}</lastmod>`,
+      `<loc>${env().APP_URL}${href("/pitanja-i-odgovori")}</loc><lastmod>${newestAnsweredAt.toISOString()}</lastmod>`,
     );
     expect(body).toContain(
       `<loc>${env().APP_URL}${qaQuestionHref(newest.id)}</loc><lastmod>${newestAnsweredAt.toISOString()}</lastmod>`,

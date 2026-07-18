@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { Eye, EyeOff, ImageIcon, Pencil, Pin, Star } from "lucide-react";
 
@@ -25,7 +25,6 @@ import type { PostTypeValue } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { formatDateShort } from "#app/lib/date";
 import type { PaginationState } from "#app/lib/pagination";
-import { ROUTES } from "#app/lib/routes";
 
 type PostRow = {
   id: string;
@@ -52,7 +51,10 @@ export function PostsAdminTable({ posts, pagination, deletingId, getPageHref }: 
       <EmptyState>
         <p className="text-muted-foreground">
           Još nema objava.{" "}
-          <Link to={ROUTES.adminPostNew} className="text-primary font-medium hover:underline">
+          <Link
+            to={href("/admin/objave/nova")}
+            className="text-primary font-medium hover:underline"
+          >
             Dodajte prvu objavu
           </Link>
           .

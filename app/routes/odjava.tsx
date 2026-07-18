@@ -1,7 +1,6 @@
-import { redirect } from "react-router";
+import { href, redirect } from "react-router";
 
 import { logout } from "#app/features/auth/auth.server";
-import { ROUTES } from "#app/lib/routes";
 
 import type { Route } from "./+types/odjava";
 
@@ -11,7 +10,8 @@ import type { Route } from "./+types/odjava";
  */
 export async function action({ request }: Route.ActionArgs) {
   const headers = await logout(request);
-  return redirect(ROUTES.home, { headers });
+
+  return redirect(href("/"), { headers });
 }
 
 export function loader() {

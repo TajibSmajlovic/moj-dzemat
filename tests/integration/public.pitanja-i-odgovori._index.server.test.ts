@@ -1,7 +1,8 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
 import { HONEYPOT_FIELD, HONEYPOT_TIMESTAMP_FIELD } from "#app/lib/honeypot";
-import { ROUTES } from "#app/lib/routes";
 import {
   action as qaIndexAction,
   loader as qaIndexLoader,
@@ -13,7 +14,7 @@ import { expectData, expectResponse, payloadOf, statusOf } from "../helpers/acti
 import { withHoneypot } from "../helpers/honeypot";
 import { callAction, callLoader, testUrl } from "../helpers/route";
 
-const ENDPOINT = testUrl(ROUTES.qa);
+const ENDPOINT = testUrl(href("/pitanja-i-odgovori"));
 
 type QaSubmitPayload = {
   result: { error?: Record<string, string[] | undefined> } | null;
@@ -106,7 +107,9 @@ describe("public Q&A index route", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(302);
-    expect((result as Response).headers.get("Location")).toBe(`${ROUTES.qa}?page=2`);
+    expect((result as Response).headers.get("Location")).toBe(
+      `${href("/pitanja-i-odgovori")}?page=2`,
+    );
   });
 
   it("returns empty results with safe pagination metadata when no questions are public", async () => {
@@ -133,7 +136,7 @@ describe("public Q&A index route", () => {
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(303);
-    expect((result as Response).headers.get("Location")).toBe(ROUTES.qaHvala);
+    expect((result as Response).headers.get("Location")).toBe(href("/pitanja-i-odgovori/hvala"));
 
     const rows = await prisma.question.findMany();
     expect(rows).toHaveLength(1);

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { absoluteUrl } from "#app/lib/routes";
 import {
   DEFAULT_SOCIAL_IMAGE,
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
@@ -16,6 +15,7 @@ import {
   getDefaultSocialImageUrl,
   jsonLdScriptContent,
 } from "#app/lib/seo";
+import { absoluteUrl } from "#app/lib/url";
 
 describe("seo helpers", () => {
   it("builds absolute URLs against the configured site URL", () => {
@@ -24,6 +24,9 @@ describe("seo helpers", () => {
     );
     expect(absoluteUrl("https://example.test/", "social-card-default.jpg")).toBe(
       "https://example.test/social-card-default.jpg",
+    );
+    expect(absoluteUrl("https://example.test/community/", "/objave")).toBe(
+      "https://example.test/community/objave",
     );
     expect(absoluteUrl(undefined, "/social-card-default.jpg")).toBe("/social-card-default.jpg");
   });

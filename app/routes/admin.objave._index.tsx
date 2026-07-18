@@ -1,10 +1,10 @@
-import { Link, redirect, useActionData, useNavigation } from "react-router";
+import { href, Link, redirect, useNavigation } from "react-router";
 
 import { Plus } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { Button } from "#app/components/ui/button";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { getAdminPostListPage } from "#app/features/posts/admin/admin-post-list.server";
 import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admin-table";
 import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
@@ -13,7 +13,6 @@ import { adminPostsPageHref } from "#app/features/posts/post-routes";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { parsePageParam } from "#app/lib/pagination";
-import { ROUTES } from "#app/lib/routes";
 import { createActionToast } from "#app/lib/toast";
 import { useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -21,8 +20,9 @@ import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave._index";
 
-export async function loader({ request, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context, url }: Route.LoaderArgs) {
+  context.get(adminUserContext);
+
   const page = parsePageParam(url.searchParams.get("page"));
   const { posts, pagination } = await getAdminPostListPage({ page });
 
@@ -33,8 +33,8 @@ export async function loader({ request, url }: Route.LoaderArgs) {
   return { posts, pagination };
 }
 
-export async function action({ request, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const formData = await request.formData();
   const intent = parseIntent(formData, PostAdminIntents);
 
@@ -140,9 +140,8 @@ async function handleToggleStatus(formData: FormData, userId: string) {
   };
 }
 
-export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
+export default function AdminPostsList({ actionData, loaderData }: Route.ComponentProps) {
   const { posts, pagination } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
 
   useActionToast(actionData);
@@ -156,7 +155,7 @@ export default function AdminPostsList({ loaderData }: Route.ComponentProps) {
         description="Objave na vrhu se prikazuju prve. Istaknuto se prikazuje u hero sekciji."
         actions={
           <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" asChild>
-            <Link to={ROUTES.adminPostNew}>
+            <Link to={href("/admin/objave/nova")}>
               <Plus className="h-5 w-5" aria-hidden="true" />
               Nova objava
             </Link>

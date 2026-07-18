@@ -1,3 +1,5 @@
+import { href } from "react-router";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -9,13 +11,13 @@ import {
   verifyPassword,
 } from "#app/features/auth/auth.server";
 import { getSession } from "#app/features/auth/session.server";
-import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 
 import { createUser } from "../factories";
+import { testUrl } from "../helpers/route";
 
-function makeRequest(url = `http://localhost${ROUTES.login}`, init: RequestInit = {}) {
-  return new Request(url, { method: "POST", ...init });
+function makeRequest(url = href("/prijava"), init: RequestInit = {}) {
+  return new Request(testUrl(url), { method: "POST", ...init });
 }
 
 /**
@@ -41,7 +43,7 @@ async function loginAndGetCookie(email: string, password: string): Promise<strin
   return newSessionCookie(result.headers);
 }
 
-function authedRequest(cookie: string, url = `http://localhost${ROUTES.adminPosts}`) {
+function authedRequest(cookie: string, url = `http://localhost${href("/admin/objave")}`) {
   return new Request(url, { headers: { Cookie: cookie } });
 }
 
@@ -120,7 +122,7 @@ describe("auth.server", () => {
       // A second login that *carries cookie A* must NOT reuse session A.
       // The old row gets destroyed and a brand new row replaces it.
       const second = await login({
-        request: makeRequest(`http://localhost${ROUTES.login}`, {
+        request: makeRequest(href("/prijava"), {
           headers: { Cookie: cookieA },
         }),
         email: user.email,
@@ -146,7 +148,7 @@ describe("auth.server", () => {
 
   describe("getCurrentUser", () => {
     it("returns null when there is no session cookie", async () => {
-      const result = await getCurrentUser(new Request(`http://localhost${ROUTES.admin}`));
+      const result = await getCurrentUser(new Request(`http://localhost${href("/admin")}`));
       expect(result).toBeNull();
     });
 
@@ -188,7 +190,7 @@ describe("auth.server", () => {
 
   describe("requireAdmin", () => {
     it("throws a redirect to /prijava with the original path captured", async () => {
-      const request = new Request(`http://localhost${ROUTES.adminPosts}?vrsta=hutba`);
+      const request = new Request(`${testUrl(href("/admin/objave"))}?vrsta=hutba`);
 
       let thrown: unknown;
       try {
@@ -201,10 +203,10 @@ describe("auth.server", () => {
       const response = thrown as Response;
       expect(response.status).toBe(302);
       const location = response.headers.get("Location") ?? "";
-      expect(location.startsWith(`${ROUTES.login}?`)).toBe(true);
+      expect(location.startsWith(`${href("/prijava")}?`)).toBe(true);
       // URLSearchParams encodes the slash as %2F and ? as %3F.
       expect(location).toContain(
-        `redirectTo=${encodeURIComponent(`${ROUTES.adminPosts}?vrsta=hutba`)}`,
+        `redirectTo=${encodeURIComponent(`${href("/admin/objave")}?vrsta=hutba`)}`,
       );
     });
 
@@ -237,7 +239,7 @@ describe("auth.server", () => {
     });
 
     it("is a no-op (still returns headers) when there is no session cookie", async () => {
-      const headers = await logout(new Request(`http://localhost${ROUTES.logout}`));
+      const headers = await logout(new Request(`http://localhost${href("/odjava")}`));
       expect(headers.get("Set-Cookie")).toMatch(/mdz_session=/);
     });
   });

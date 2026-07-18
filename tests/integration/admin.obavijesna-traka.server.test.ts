@@ -1,40 +1,41 @@
+import { href } from "react-router";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
-import { ROUTES } from "#app/lib/routes";
 import {
   action as siteAnnouncementAction,
   loader as siteAnnouncementLoader,
 } from "#app/routes/admin.obavijesna-traka";
 import { prisma } from "#app/server/db.server";
 
-import { createSiteAnnouncement, createUser } from "../factories";
+import { createSiteAnnouncement } from "../factories";
 import { expectData, payloadOf, statusOf } from "../helpers/action-result";
+import { createAdminSession, type AdminRouteContext } from "../helpers/auth";
 import { withHoneypot } from "../helpers/honeypot";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
-import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = testUrl(ROUTES.adminAnnouncementBar);
+const ENDPOINT = testUrl(href("/admin/obavijesna-traka"));
 
-const callAction = (formData: FormData, cookie: string) =>
-  runAction(siteAnnouncementAction, { url: ENDPOINT, formData, cookie });
+const callAction = (formData: FormData, context: AdminRouteContext) =>
+  runAction(siteAnnouncementAction, { url: ENDPOINT, formData, context });
 
-const callLoader = (cookie: string) => runLoader(siteAnnouncementLoader, { url: ENDPOINT, cookie });
+const callLoader = (context: AdminRouteContext) =>
+  runLoader(siteAnnouncementLoader, { url: ENDPOINT, context });
 
 type ConformReply = {
   result: { error: Record<string, string[] | undefined> };
 };
 
 describe("site announcement route", () => {
-  let cookie: string;
+  let context: AdminRouteContext;
 
   // The integration setup truncates users + sessions between tests, so
   // we (re)create our admin in beforeEach. beforeEach runs *after* the
   // setup file's afterEach, which is what we want (the reverse is true
   // for afterEach hooks, which run inner→outer).
   beforeEach(async () => {
-    const { user } = await createUser();
-    cookie = await sessionCookieFor(user.id);
+    ({ context } = await createAdminSession());
   });
 
   describe("loader", () => {
@@ -64,7 +65,7 @@ describe("site announcement route", () => {
         data: { createdAt: new Date("2026-05-02T10:00:00Z") },
       });
 
-      const result = expectData(await callLoader(cookie));
+      const result = expectData(await callLoader(context));
 
       expect(result.announcements.map((announcement) => announcement.message)).toEqual([
         "Nova aktivna",
@@ -87,7 +88,7 @@ describe("site announcement route", () => {
       // isActive omitted -> shim treats it as false
       withHoneypot(formData);
 
-      const result = await callAction(formData, cookie);
+      const result = await callAction(formData, context);
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).status).toBe(302);
 
@@ -112,7 +113,7 @@ describe("site announcement route", () => {
       formData.set("isActive", "on");
       withHoneypot(formData);
 
-      await callAction(formData, cookie);
+      await callAction(formData, context);
 
       const after = await prisma.siteAnnouncement.findMany({
         where: { id: { in: [a.id, b.id] } },
@@ -131,7 +132,7 @@ describe("site announcement route", () => {
       formData.set("message", "   ");
       withHoneypot(formData);
 
-      const result = await callAction(formData, cookie);
+      const result = await callAction(formData, context);
 
       expect(statusOf(result)).toBe(400);
       const body = payloadOf<ConformReply>(result);
@@ -148,7 +149,7 @@ describe("site announcement route", () => {
       formData.set("isActive", "on");
       withHoneypot(formData);
 
-      await callAction(formData, cookie);
+      await callAction(formData, context);
 
       await expect(getActiveAnnouncement()).resolves.toEqual({ message: "Nova aktivna poruka" });
     });
@@ -164,7 +165,7 @@ describe("site announcement route", () => {
       formData.set("id", target.id);
       withHoneypot(formData);
 
-      await callAction(formData, cookie);
+      await callAction(formData, context);
 
       const updatedA = await prisma.siteAnnouncement.findUnique({ where: { id: a.id } });
       const updatedTarget = await prisma.siteAnnouncement.findUnique({
@@ -184,7 +185,7 @@ describe("site announcement route", () => {
       formData.set("id", target.id);
       withHoneypot(formData);
 
-      await callAction(formData, cookie);
+      await callAction(formData, context);
 
       const updatedOther = await prisma.siteAnnouncement.findUnique({ where: { id: other.id } });
       const updatedTarget = await prisma.siteAnnouncement.findUnique({
@@ -208,7 +209,7 @@ describe("site announcement route", () => {
       formData.set("isActive", "on");
       withHoneypot(formData);
 
-      const result = await callAction(formData, cookie);
+      const result = await callAction(formData, context);
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).status).toBe(302);
 
@@ -232,23 +233,23 @@ describe("site announcement route", () => {
       formData.set("id", victim.id);
       withHoneypot(formData);
 
-      await callAction(formData, cookie);
+      await callAction(formData, context);
 
       expect(await prisma.siteAnnouncement.findUnique({ where: { id: victim.id } })).toBeNull();
       expect(await prisma.siteAnnouncement.findUnique({ where: { id: keeper.id } })).not.toBeNull();
     });
   });
 
-  describe("auth + honeypot", () => {
-    it("redirects to /prijava when the request has no admin session", async () => {
+  describe("auth context", () => {
+    it("fails closed when invoked outside the admin middleware chain", async () => {
       const formData = new FormData();
       formData.set("intent", "delete");
       formData.set("id", "anything");
       withHoneypot(formData);
 
-      await expect(
-        runAction(siteAnnouncementAction, { url: ENDPOINT, formData }),
-      ).rejects.toBeInstanceOf(Response);
+      await expect(runAction(siteAnnouncementAction, { url: ENDPOINT, formData })).rejects.toThrow(
+        /context/i,
+      );
     });
   });
 });

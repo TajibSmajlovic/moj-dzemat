@@ -1,3 +1,5 @@
+import { href } from "react-router";
+
 import crypto from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -6,7 +8,6 @@ import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { verifyPassword } from "#app/features/auth/auth.server";
 import { signResetToken } from "#app/features/auth/reset-token.server";
 import { getSession } from "#app/features/auth/session.server";
-import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/lib/routes";
 import {
   action as newPasswordAction,
   loader as newPasswordLoader,
@@ -44,6 +45,7 @@ function callAction(token: string, formData: FormData) {
   return runAction(newPasswordAction, {
     url: testUrl(passwordResetHref(token)),
     params: { token },
+    pattern: "/nova-lozinka/:token",
     formData,
   });
 }
@@ -52,6 +54,7 @@ function callLoader(token: string) {
   return runLoader(newPasswordLoader, {
     url: testUrl(passwordResetHref(token)),
     params: { token },
+    pattern: "/nova-lozinka/:token",
   });
 }
 
@@ -81,7 +84,7 @@ describe("new password route", () => {
     expect(result).toBeInstanceOf(Response);
     const response = result as Response;
     expect(response.status).toBe(302);
-    expect(response.headers.get("Location")).toBe(DEFAULT_LOGGED_IN_REDIRECT);
+    expect(response.headers.get("Location")).toBe(href("/admin/objave"));
 
     const passwordRow = await prisma.password.findUnique({ where: { userId: user.id } });
     expect(passwordRow).not.toBeNull();

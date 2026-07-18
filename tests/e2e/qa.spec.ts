@@ -1,7 +1,8 @@
+import { href } from "react-router";
+
 import { expect, test, type Page } from "@playwright/test";
 
 import { adminQaHref, qaQuestionHref } from "../../app/features/qa/qa-routes";
-import { ROUTES } from "../../app/lib/routes";
 import { prisma } from "../../app/server/db.server";
 import {
   QA_PAGINATION_EXTRA_COUNT,
@@ -43,23 +44,23 @@ test.describe("Q&A", () => {
   test("public visitor can submit a question and return to an empty form", async ({ page }) => {
     const question = `${PUBLIC_SUBMISSION_PREFIX} ${Date.now()}?`;
 
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
     await page
       .getByRole("banner")
       .getByRole("navigation", { name: "Glavna navigacija" })
       .getByRole("link", { name: "Pitanja i odgovori" })
       .click();
 
-    await expect(page).toHaveURL(exactPath(ROUTES.qa));
+    await expect(page).toHaveURL(exactPath(href("/pitanja-i-odgovori")));
     await page.getByLabel("Vaše pitanje").fill(question);
     await page.getByRole("button", { name: "Pošalji pitanje" }).click();
 
-    await expect(page).toHaveURL(exactPath(ROUTES.qaHvala));
+    await expect(page).toHaveURL(exactPath(href("/pitanja-i-odgovori/hvala")));
     await expect(page.getByRole("heading", { name: "Vaše pitanje je poslano." })).toBeVisible();
 
     await page.getByRole("link", { name: "Postavi još jedno pitanje" }).click();
 
-    await expect(page).toHaveURL(exactPath(ROUTES.qa));
+    await expect(page).toHaveURL(exactPath(href("/pitanja-i-odgovori")));
     await expect(page.getByLabel("Vaše pitanje")).toHaveValue("");
   });
 
@@ -72,7 +73,7 @@ test.describe("Q&A", () => {
     await submitPublicQuestion(page, question);
     await loginAsAdmin(page);
 
-    await page.goto(ROUTES.adminQa);
+    await page.goto(href("/admin/pitanja"));
 
     const adminNav = page.getByRole("navigation", { name: "Admin sekcije" });
     await expect(
@@ -92,12 +93,12 @@ test.describe("Q&A", () => {
     await expect(page.getByRole("row").filter({ hasText: question })).toBeVisible();
 
     await page.context().clearCookies();
-    await page.goto(ROUTES.qa);
+    await page.goto(href("/pitanja-i-odgovori"));
 
     await openAccordionQuestion(page, question);
     await expect(page.getByText(answer)).toBeVisible();
 
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
     await expect(page.locator("#qa-home-preview-heading")).toBeVisible();
     await expect(page.getByRole("button", { name: question })).toBeVisible();
   });
@@ -116,7 +117,7 @@ test.describe("Q&A", () => {
     await expect(page.getByText("Pitanje je sakriveno.")).toBeVisible();
 
     await page.context().clearCookies();
-    await page.goto(ROUTES.qa);
+    await page.goto(href("/pitanja-i-odgovori"));
     await expect(page.getByRole("button", { name: seededQuestion.question })).toHaveCount(0);
 
     const hiddenDetail = await page.goto(qaQuestionHref(questionId));
@@ -133,12 +134,12 @@ test.describe("Q&A", () => {
     await expect(page.getByText("Pitanje je vraćeno na javnu listu.")).toBeVisible();
 
     await page.context().clearCookies();
-    await page.goto(ROUTES.qa);
+    await page.goto(href("/pitanja-i-odgovori"));
     await expect(page.getByRole("button", { name: seededQuestion.question })).toBeVisible();
   });
 
   test("load-more page preserves the visible Q&A progress after refresh", async ({ page }) => {
-    await page.goto(`${ROUTES.qa}?page=2`);
+    await page.goto(`${href("/pitanja-i-odgovori")}?page=2`);
 
     const answeredQuestions = page.getByRole("region", { name: "Odgovorena pitanja" });
     await expect(answeredQuestions.locator("article")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
@@ -146,7 +147,7 @@ test.describe("Q&A", () => {
 
     await page.reload();
 
-    await expect(page).toHaveURL(exactPath(`${ROUTES.qa}?page=2`));
+    await expect(page).toHaveURL(exactPath(`${href("/pitanja-i-odgovori")}?page=2`));
     await expect(answeredQuestions.locator("article")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
   });
 
@@ -164,21 +165,21 @@ test.describe("Q&A", () => {
       .allTextContents();
     expect(jsonLdScripts.some((content) => content.includes('"@type":"FAQPage"'))).toBe(true);
 
-    const sitemap = await request.get(ROUTES.sitemapXml);
+    const sitemap = await request.get(href("/sitemap.xml"));
     expect(sitemap.ok()).toBe(true);
 
     const body = await sitemap.text();
-    expect(body).toContain(ROUTES.qa);
+    expect(body).toContain(href("/pitanja-i-odgovori"));
     expect(body).toContain(questionHref);
   });
 });
 
 async function submitPublicQuestion(page: Page, question: string) {
-  await page.goto(ROUTES.qa);
+  await page.goto(href("/pitanja-i-odgovori"));
   await page.getByLabel("Vaše pitanje").fill(question);
   await page.getByRole("button", { name: "Pošalji pitanje" }).click();
 
-  await expect(page).toHaveURL(exactPath(ROUTES.qaHvala));
+  await expect(page).toHaveURL(exactPath(href("/pitanja-i-odgovori/hvala")));
 }
 
 async function openAccordionQuestion(page: Page, question: string) {

@@ -1,3 +1,5 @@
+import { href } from "react-router";
+
 import { expect, test } from "@playwright/test";
 
 import {
@@ -6,7 +8,6 @@ import {
   postsArchiveHref,
 } from "../../app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
-import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./fixtures/seed-data";
 import { loginAsAdmin } from "./utils/admin";
 import { fillPostForm, uploadTinyPng } from "./utils/post-form";
@@ -27,7 +28,7 @@ const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
 test.describe("posts", () => {
   test("admin can navigate paginated post results", async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto(ROUTES.adminPosts);
+    await page.goto(href("/admin/objave"));
     await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(ADMIN_POSTS_URL);
@@ -59,7 +60,7 @@ test.describe("posts", () => {
 
   test("admin can toggle featured state from the list with optimistic UI", async ({ page }) => {
     await loginAsAdmin(page);
-    await page.goto(ROUTES.adminPosts);
+    await page.goto(href("/admin/objave"));
     await page.waitForLoadState("networkidle");
 
     // POSTS_TITLES[0] is the newest seeded post and lives on page 1.
@@ -184,7 +185,7 @@ test.describe("posts", () => {
     const slug = `e2e-objava-slika-${unique}`;
 
     await loginAsAdmin(page);
-    await page.goto(ROUTES.adminPostNew);
+    await page.goto(href("/admin/objave/nova"));
     await expect(page).toHaveURL(ADMIN_POST_NEW_URL);
 
     await fillPostForm(page, {
@@ -200,18 +201,18 @@ test.describe("posts", () => {
     await page.getByRole("button", { name: "Sačuvaj" }).click();
 
     await expect(page).toHaveURL(new RegExp(`${postHref(slug)}$`));
-    await expect(page.locator(`img[src^="${ROUTES.images}/"]`)).toHaveCount(1);
+    await expect(page.locator('img[src^="/slike/"]')).toHaveCount(1);
     await page.getByRole("button", { name: "Otvori sliku 1 preko cijelog ekrana" }).click();
     const lightbox = page.getByRole("dialog", { name: "Pregled slike preko cijelog ekrana" });
     await expect(lightbox).toBeVisible();
-    await expect(lightbox.locator(`img[src^="${ROUTES.images}/"]`)).toBeVisible();
+    await expect(lightbox.locator('img[src^="/slike/"]')).toBeVisible();
     await lightbox.getByRole("button", { name: "Zatvori prikaz slike" }).click();
     await expect(lightbox).toBeHidden();
     await expect(page.getByRole("link", { name: "Uredi" })).toBeVisible();
 
     await page.getByRole("link", { name: "Uredi" }).click();
     await expect(page).toHaveURL(ADMIN_POST_EDIT_URL);
-    await expect(page.locator(`img[src^="${ROUTES.images}/"]`)).toHaveCount(1);
+    await expect(page.locator('img[src^="/slike/"]')).toHaveCount(1);
 
     await page.getByRole("button", { name: "Obriši" }).click();
     const dialog = page.getByRole("alertdialog");
@@ -220,7 +221,7 @@ test.describe("posts", () => {
     await dialog.getByRole("button", { name: "Obriši sliku" }).click();
 
     await expect(page.getByText("Slika obrisana.")).toBeVisible();
-    await expect(page.locator(`img[src^="${ROUTES.images}/"]`)).toHaveCount(0);
+    await expect(page.locator('img[src^="/slike/"]')).toHaveCount(0);
   });
 
   test("admin can draft, preview, and publish post", async ({ page }) => {
@@ -229,7 +230,7 @@ test.describe("posts", () => {
     const slug = `e2e-nacrt-${unique}`;
 
     await loginAsAdmin(page);
-    await page.goto(ROUTES.adminPostNew);
+    await page.goto(href("/admin/objave/nova"));
     await expect(page).toHaveURL(ADMIN_POST_NEW_URL);
 
     await fillPostForm(page, {
@@ -246,13 +247,13 @@ test.describe("posts", () => {
     await expect(page.getByRole("main").getByText("Neobjavljeno")).toBeVisible();
     await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
 
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
     await expect(page.getByRole("heading", { level: 3, name: title })).toHaveCount(0);
 
     const draftDetail = await page.goto(postHref(slug));
     expect(draftDetail?.status()).toBe(404);
 
-    await page.goto(ROUTES.adminPosts);
+    await page.goto(href("/admin/objave"));
     await expect(page.getByRole("link", { name: title, exact: true })).toBeVisible();
 
     const statusBadge = page
@@ -323,7 +324,7 @@ test.describe("posts", () => {
     // Now retry from the create form using the slug we just claimed.
     // Conform can't catch this client-side (it has no view of the DB),
     // so the round-trip exercises post-admin.server's slug-conflict path.
-    await page.goto(ROUTES.adminPostNew);
+    await page.goto(href("/admin/objave/nova"));
     await fillPostForm(page, {
       title: `Drugi pokušaj ${unique}`,
       slug,

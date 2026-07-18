@@ -1,11 +1,10 @@
-import { data } from "react-router";
+import { data, href } from "react-router";
 
 import { ArrowRight, Clock3, ExternalLink, Inbox, Mail, RefreshCw } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
 import { formatDateTimeLong } from "#app/lib/date";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES } from "#app/lib/routes";
 
 import type { Route } from "./+types/dev.last-email";
 
@@ -54,7 +53,7 @@ export default function DevLastEmailPage({ loaderData }: Route.ComponentProps) {
 
               <div className="flex gap-3">
                 <Button asChild variant="secondary">
-                  <a href={ROUTES.devLastEmail}>
+                  <a href={href("/dev/last-email")}>
                     <RefreshCw className="size-4" />
                     Osvježi
                   </a>
@@ -141,7 +140,7 @@ function extractResetUrl(
 ): string | null {
   if (!email) return null;
 
-  const resetPath = escapeRegExp(ROUTES.newPassword);
+  const resetPath = escapeRegExp("/nova-lozinka");
   const match = new RegExp(String.raw`https?:\/\/[^\s"'<>]*${resetPath}\/[^\s"'<>]+`, "i").exec(
     `${email.text}\n${email.html}`,
   );
@@ -180,7 +179,7 @@ function EmptyState() {
         Pošalji zahtjev za reset lozinke, pa se vrati ovdje i klikni na osvježavanje.
       </p>
       <Button asChild>
-        <a href={ROUTES.forgotPassword}>
+        <a href={href("/zaboravljena-lozinka")}>
           Idi na zaboravljenu lozinku
           <ArrowRight className="size-4" />
         </a>

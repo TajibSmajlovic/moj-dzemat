@@ -1,5 +1,7 @@
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
+import { href } from "react-router";
+
 import { HOUR_SECONDS } from "#app/lib/time";
+import { absoluteUrl } from "#app/lib/url";
 import { env } from "#app/server/env.server";
 
 /**
@@ -9,15 +11,15 @@ import { env } from "#app/server/env.server";
 export function loader() {
   const body = [
     "User-agent: *",
-    `Allow: ${ROUTES.home}`,
-    `Disallow: ${ROUTES.admin}`,
-    `Disallow: ${ROUTES.admin}/`,
-    `Disallow: ${ROUTES.login}`,
-    `Disallow: ${ROUTES.logout}`,
-    `Disallow: ${ROUTES.forgotPassword}`,
-    `Disallow: ${ROUTES.newPassword}/`,
+    `Allow: ${href("/")}`,
+    `Disallow: ${href("/admin")}`,
+    "Disallow: /admin/",
+    `Disallow: ${href("/prijava")}`,
+    `Disallow: ${href("/odjava")}`,
+    `Disallow: ${href("/zaboravljena-lozinka")}`,
+    "Disallow: /nova-lozinka/",
     "",
-    `Sitemap: ${absoluteUrl(env().APP_URL, ROUTES.sitemapXml)}`,
+    `Sitemap: ${absoluteUrl(env().APP_URL, href("/sitemap.xml"))}`,
     "",
   ].join("\n");
 

@@ -1,8 +1,7 @@
-import { isRouteErrorResponse, Link } from "react-router";
+import { href, isRouteErrorResponse, Link } from "react-router";
 
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { useRootSiteName } from "#app/lib/branding";
-import { ROUTES } from "#app/lib/routes";
 
 export function RootErrorBoundary({ error }: { error: unknown }) {
   const siteName = useRootSiteName();
@@ -69,7 +68,7 @@ export function RootErrorBoundary({ error }: { error: unknown }) {
         <p className="text-muted-foreground max-w-sm leading-relaxed text-balance">{message}</p>
 
         <Link
-          to={ROUTES.home}
+          to={href("/")}
           className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring mt-2 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <svg

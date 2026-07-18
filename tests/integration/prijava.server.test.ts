@@ -1,6 +1,7 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
 import { action as loginAction, loader as loginLoader } from "#app/routes/prijava";
 
 import { createUser } from "../factories";
@@ -9,7 +10,7 @@ import { withHoneypot } from "../helpers/honeypot";
 import { callAction, callLoader, testUrl } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = testUrl(ROUTES.login);
+const ENDPOINT = testUrl(href("/prijava"));
 
 function loginForm({
   email = "admin@dzemat.ba",
@@ -46,17 +47,17 @@ describe("login route", () => {
     expect(result).toBeInstanceOf(Response);
     const response = result as Response;
     expect(response.status).toBe(302);
-    expect(response.headers.get("Location")).toBe(DEFAULT_LOGGED_IN_REDIRECT);
+    expect(response.headers.get("Location")).toBe(href("/admin/objave"));
   });
 
   it("carries a safe redirect target from the query into loader data", async () => {
     const result = await callLoader(loginLoader, {
-      url: `${ENDPOINT}?redirectTo=${encodeURIComponent(ROUTES.adminImportantDates)}`,
+      url: `${ENDPOINT}?redirectTo=${encodeURIComponent(href("/admin/vazni-datumi"))}`,
     });
 
     expect(result).not.toBeInstanceOf(Response);
     if (result instanceof Response) return;
-    expect(result.redirectTo).toBe(ROUTES.adminImportantDates);
+    expect(result.redirectTo).toBe(href("/admin/vazni-datumi"));
   });
 
   it("issues a session and redirects to a safe internal target after successful login", async () => {
@@ -67,14 +68,14 @@ describe("login route", () => {
 
     const result = await callAction(loginAction, {
       url: ENDPOINT,
-      formData: loginForm({ redirectTo: ROUTES.adminAnnouncementBar }),
+      formData: loginForm({ redirectTo: href("/admin/obavijesna-traka") }),
       headers: { "fly-client-ip": "203.0.113.201" },
     });
 
     expect(result).toBeInstanceOf(Response);
     const response = result as Response;
     expect(response.status).toBe(302);
-    expect(response.headers.get("Location")).toBe(ROUTES.adminAnnouncementBar);
+    expect(response.headers.get("Location")).toBe(href("/admin/obavijesna-traka"));
     expect(response.headers.get("Set-Cookie")).toMatch(/mdz_session=/);
   });
 
@@ -91,7 +92,7 @@ describe("login route", () => {
     });
 
     expect(result).toBeInstanceOf(Response);
-    expect((result as Response).headers.get("Location")).toBe(DEFAULT_LOGGED_IN_REDIRECT);
+    expect((result as Response).headers.get("Location")).toBe(href("/admin/objave"));
   });
 
   it("returns a generic form error for invalid credentials", async () => {

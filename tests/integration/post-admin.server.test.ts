@@ -1,15 +1,17 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
 import { createOrUpdatePostFromForm } from "#app/features/posts/admin/post-admin.server";
 import { adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
 import { MAX_VIDEOS_PER_POST, youtubeWatchUrl } from "#app/features/posts/post-video";
-import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 
 import { createPost, createUser } from "../factories";
 import { tinyPngFile } from "../helpers/png";
+import { testUrl } from "../helpers/route";
 
-const ENDPOINT = `http://localhost${ROUTES.adminPostNew}`;
+const ENDPOINT = testUrl(href("/admin/objave/nova"));
 
 function multipartRequest(formData: FormData) {
   return new Request(ENDPOINT, { method: "POST", body: formData });

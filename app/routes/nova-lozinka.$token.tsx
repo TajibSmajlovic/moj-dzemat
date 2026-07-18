@@ -1,4 +1,4 @@
-import { Form, Link, data, redirect, useActionData } from "react-router";
+import { Form, href, Link, data, redirect } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
@@ -16,11 +16,11 @@ import {
   MIN_PASSWORD_LENGTH_MESSAGE,
   PASSWORD_RESET_TOKEN_TTL_LABEL,
 } from "#app/features/auth/auth-policy";
+import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { hashPassword, startSessionFor, validateNewPassword } from "#app/features/auth/auth.server";
 import { verifyResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
-import { DEFAULT_LOGGED_IN_REDIRECT, ROUTES } from "#app/lib/routes";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
@@ -104,8 +104,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   return redirect(DEFAULT_LOGGED_IN_REDIRECT, { headers });
 }
 
-export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
-  const actionData = useActionData<typeof action>();
+export default function NewPasswordPage({ actionData, loaderData }: Route.ComponentProps) {
   const [form, fields] = useForm({
     id: "new-password-form",
     lastResult: actionData && "result" in actionData ? actionData.result : null,
@@ -145,7 +144,7 @@ export default function NewPasswordPage({ loaderData }: Route.ComponentProps) {
             Pošaljite novi zahtjev i otvorite najnoviji email koji primite.
           </p>
           <Button asChild className="w-full">
-            <Link to={ROUTES.forgotPassword}>Pošalji novi link</Link>
+            <Link to={href("/zaboravljena-lozinka")}>Pošalji novi link</Link>
           </Button>
         </div>
       </PublicAuthShell>
