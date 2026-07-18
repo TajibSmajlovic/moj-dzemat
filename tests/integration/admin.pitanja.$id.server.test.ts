@@ -10,23 +10,25 @@ import { prisma } from "#app/server/db.server";
 
 import { createQuestion } from "../factories";
 import { expectData, expectResponse, statusOf } from "../helpers/action-result";
-import { createAdminSession } from "../helpers/auth";
+import { createAdminSession, type AdminRouteContext } from "../helpers/auth";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
 
-function callLoader(id: string, cookie?: string, url = testUrl(adminQaAnswerHref(id))) {
+function callLoader(id: string, context: AdminRouteContext, url = testUrl(adminQaAnswerHref(id))) {
   return runLoader(adminQaAnswerLoader, {
     url,
     params: { id },
-    cookie,
+    pattern: "/admin/pitanja/:id",
+    context,
   });
 }
 
-function callAction(id: string, formData: FormData, cookie?: string) {
+function callAction(id: string, formData: FormData, context: AdminRouteContext) {
   return runAction(adminQaAnswerAction, {
     url: testUrl(adminQaAnswerHref(id)),
     params: { id },
+    pattern: "/admin/pitanja/:id",
     formData,
-    cookie,
+    context,
   });
 }
 
@@ -39,7 +41,7 @@ function answerForm(answer: string) {
 
 describe("admin Q&A answer route", () => {
   it("loader returns the question and preserves the source tab for back links", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
     const question = await createQuestion({
       question: "Kako da pošaljem pitanje?",
       answer: "Preko javne forme.",
@@ -49,7 +51,7 @@ describe("admin Q&A answer route", () => {
     const result = expectData(
       await callLoader(
         question.id,
-        cookie,
+        context,
         testUrl(adminQaAnswerHref(question.id, { from: "odgovorena" })),
       ),
     );
@@ -63,11 +65,11 @@ describe("admin Q&A answer route", () => {
   });
 
   it("loader throws 404 for an unknown question id", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
 
     let thrown: unknown;
     try {
-      await callLoader("missing-question", cookie);
+      await callLoader("missing-question", context);
     } catch (error) {
       thrown = error;
     }
@@ -76,12 +78,12 @@ describe("admin Q&A answer route", () => {
   });
 
   it("saves a first-time answer and makes the question public", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
     const question = await createQuestion({ question: "Kada je sabah?" });
 
     await expect(getPublicAnsweredQuestions()).resolves.toEqual([]);
 
-    const result = await callAction(question.id, answerForm("Sabah je prema vaktiji."), cookie);
+    const result = await callAction(question.id, answerForm("Sabah je prema vaktiji."), context);
 
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).status).toBe(302);
@@ -96,7 +98,7 @@ describe("admin Q&A answer route", () => {
   });
 
   it("edits an existing answer and bumps answeredAt forward", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
     const oldAnsweredAt = new Date("2026-05-02T10:00:00.000Z");
     const question = await createQuestion({
       question: "Da li se odgovor može urediti?",
@@ -107,7 +109,7 @@ describe("admin Q&A answer route", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-03T10:00:00.000Z"));
     try {
-      const result = await callAction(question.id, answerForm("Novi odgovor."), cookie);
+      const result = await callAction(question.id, answerForm("Novi odgovor."), context);
 
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).headers.get("Location")).toBe(adminQaHref({ tab: "odgovorena" }));
@@ -121,11 +123,11 @@ describe("admin Q&A answer route", () => {
   });
 
   it("rejects invalid answers", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
     const question = await createQuestion({ question: "Pitanje za validaciju?" });
 
     for (const answer of ["", "abcd", "a".repeat(5001)]) {
-      const result = await callAction(question.id, answerForm(answer), cookie);
+      const result = await callAction(question.id, answerForm(answer), context);
 
       expect(statusOf(result)).toBe(400);
     }
@@ -136,11 +138,11 @@ describe("admin Q&A answer route", () => {
   });
 
   it("action throws 404 for an unknown question id after valid input", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
 
     let thrown: unknown;
     try {
-      await callAction("missing-question", answerForm("Validan odgovor."), cookie);
+      await callAction("missing-question", answerForm("Validan odgovor."), context);
     } catch (error) {
       thrown = error;
     }

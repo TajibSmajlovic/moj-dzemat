@@ -1,4 +1,4 @@
-import { absoluteUrl } from "#app/lib/routes";
+import { absoluteUrl } from "#app/lib/url";
 
 export const THEME_COLOR = "#1a4737";
 export const ROBOTS_MAX_IMAGE_PREVIEW_LARGE = "max-image-preview:large";

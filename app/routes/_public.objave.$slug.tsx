@@ -1,4 +1,4 @@
-import { Link, useRouteLoaderData } from "react-router";
+import { href, Link } from "react-router";
 
 import { Pencil } from "lucide-react";
 
@@ -11,9 +11,9 @@ import { PostDetailArticle } from "#app/features/posts/components/post-detail-ar
 import { ShareButton } from "#app/features/posts/components/share-button";
 import { adminPostHref, postHref } from "#app/features/posts/post-routes";
 import { buildPostPageMeta } from "#app/features/posts/post-seo";
-import { formatPageTitle, getRootSiteName, useRootSiteName } from "#app/lib/branding";
+import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
+import { absoluteUrl } from "#app/lib/url";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
@@ -58,16 +58,15 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
   return buildPostPageMeta({ post, siteName, siteUrl });
 }
 
-export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
+export default function PostDetailPage({ loaderData, matches }: Route.ComponentProps) {
   const { post, siteUrl } = loaderData;
-  const siteName = useRootSiteName();
-  const layoutData = useRouteLoaderData<{ isAdminLoggedIn: boolean }>("routes/_public");
-  const isAdminLoggedIn = layoutData?.isAdminLoggedIn ?? false;
+  const siteName = getRootSiteName(matches);
+  const { isAdminLoggedIn } = matches[1].loaderData;
 
   return (
     <PageMain className="max-w-3xl py-3 sm:py-6">
       <div className="flex items-center justify-between">
-        <BackButton fallback={ROUTES.home} label="Nazad na listu" />
+        <BackButton fallback={href("/")} label="Nazad na listu" />
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdminLoggedIn ? (
@@ -93,8 +92,8 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
 
       <BreadcrumbListJsonLd
         items={[
-          { name: "Početna", url: absoluteUrl(siteUrl, ROUTES.home) },
-          { name: "Objave", url: absoluteUrl(siteUrl, ROUTES.posts) },
+          { name: "Početna", url: absoluteUrl(siteUrl, href("/")) },
+          { name: "Objave", url: absoluteUrl(siteUrl, href("/objave")) },
           { name: post.title, url: absoluteUrl(siteUrl, postHref(post.slug)) },
         ]}
       />
@@ -105,7 +104,11 @@ export default function PostDetailPage({ loaderData }: Route.ComponentProps) {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <PageMain className="max-w-3xl py-3 sm:py-6">
-      <SegmentErrorBoundary error={error} backTo={ROUTES.posts} backLabel="Pregled svih objava" />
+      <SegmentErrorBoundary
+        error={error}
+        backTo={href("/objave")}
+        backLabel="Pregled svih objava"
+      />
     </PageMain>
   );
 }

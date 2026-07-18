@@ -1,10 +1,9 @@
-import { isRouteErrorResponse, Link } from "react-router";
+import { href, isRouteErrorResponse, Link } from "react-router";
 
 import { AlertTriangle, ArrowLeft, FileQuestion } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
 import { cn } from "#app/lib/cn";
-import { ROUTES } from "#app/lib/routes";
 
 type SegmentTone = "public" | "admin";
 
@@ -27,7 +26,7 @@ type Props = {
 export function SegmentErrorBoundary({
   error,
   tone = "public",
-  backTo = ROUTES.home,
+  backTo = href("/"),
   backLabel = "Povratak na početnu",
   className,
 }: Props) {
@@ -92,7 +91,7 @@ export function SegmentErrorBoundary({
               "flex size-14 shrink-0 items-center justify-center rounded-2xl border sm:size-16",
               isNotFound
                 ? "border-primary/15 bg-primary/10 text-primary"
-                : "border-destructive/15 bg-destructive/10 text-destructive",
+                : "border-destructive/15 text-destructive",
             )}
           >
             <Icon className="size-7" />

@@ -1,11 +1,10 @@
-import { Outlet } from "react-router";
+import { href, Outlet } from "react-router";
 
 import { SiteFooter } from "#app/components/layout/site-footer";
 import { SiteHeader } from "#app/components/layout/site-header";
 import { AnnouncementBar } from "#app/features/announcements/components/announcement-bar";
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { getCurrentUser } from "#app/features/auth/auth.server";
-import { ROUTES } from "#app/lib/routes";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public";
@@ -29,7 +28,7 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
   return (
     <div className="bg-background text-foreground relative flex min-h-screen flex-col">
       <AnnouncementBar announcement={loaderData.announcement} />
-      <SiteHeader adminHref={loaderData.isAdminLoggedIn ? ROUTES.admin : ROUTES.login} />
+      <SiteHeader adminHref={loaderData.isAdminLoggedIn ? href("/admin") : href("/prijava")} />
 
       <div className="flex-1">
         <Outlet />

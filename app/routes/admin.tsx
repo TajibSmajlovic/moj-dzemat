@@ -1,4 +1,4 @@
-import { Form, Link, NavLink, Outlet } from "react-router";
+import { Form, href, Link, NavLink, Outlet } from "react-router";
 
 import {
   ArrowLeft,
@@ -13,12 +13,12 @@ import {
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { Button } from "#app/components/ui/button";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminAuthMiddleware } from "#app/features/auth/admin-auth-middleware.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { countAdminQuestions } from "#app/features/qa/qa.server";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
 
@@ -28,8 +28,10 @@ export function meta() {
   return buildNoindexMeta("Admin Panel", ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request, url }: Route.LoaderArgs) {
-  const user = await requireAdmin(request, url);
+export const middleware: Route.MiddlewareFunction[] = [adminAuthMiddleware];
+
+export async function loader({ context }: Route.LoaderArgs) {
+  const user = context.get(adminUserContext);
   const [pendingQuestionCount, activeAnnouncementCount] = await Promise.all([
     countAdminQuestions("neodgovorena"),
     prisma.siteAnnouncement.count({ where: { isActive: true } }),
@@ -52,7 +54,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
-              to={ROUTES.home}
+              to={href("/")}
               aria-label="Nazad na javnu stranicu"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -77,7 +79,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               {user.name ?? user.email}
             </span>
             <ThemeToggle />
-            <Form method="post" action={ROUTES.logout}>
+            <Form method="post" action={href("/odjava")}>
               <Button type="submit" variant="outline" size="sm" className="gap-2">
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 Odjava
@@ -92,18 +94,18 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
         >
           <div className="mx-auto flex w-full max-w-5xl gap-1 px-4">
             <div className="-ml-3 sm:-ml-4">
-              <AdminTab to={ROUTES.adminPosts} label="Objave" icon={Newspaper} />
+              <AdminTab to={href("/admin/objave")} label="Objave" icon={Newspaper} />
             </div>
             <AdminTab
-              to={ROUTES.adminQa}
+              to={href("/admin/pitanja")}
               label="Pitanja"
               icon={HelpCircle}
               badgeCount={pendingQuestionCount}
               badgeLabel={`${pendingQuestionCount} neodgovorenih pitanja`}
             />
-            <AdminTab to={ROUTES.adminImportantDates} label="Važni datumi" icon={CalendarDays} />
+            <AdminTab to={href("/admin/vazni-datumi")} label="Važni datumi" icon={CalendarDays} />
             <AdminTab
-              to={ROUTES.adminAnnouncementBar}
+              to={href("/admin/obavijesna-traka")}
               label="Obavijesna traka"
               icon={BellRing}
               activeIndicator={hasActiveAnnouncement ? "Aktivna" : null}
@@ -122,7 +124,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <SegmentErrorBoundary
       error={error}
       tone="admin"
-      backTo={ROUTES.adminPosts}
+      backTo={href("/admin/objave")}
       backLabel="Nazad na listu objava"
     />
   );

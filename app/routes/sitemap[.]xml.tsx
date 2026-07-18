@@ -1,8 +1,10 @@
+import { href } from "react-router";
+
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { getPublicAnsweredQuestionSitemap } from "#app/features/qa/qa.server";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import { MINUTE_SECONDS } from "#app/lib/time";
+import { absoluteUrl } from "#app/lib/url";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
@@ -40,9 +42,9 @@ export async function loader() {
   const qaLastmod = qaSitemap.lastAnsweredAt?.toISOString();
 
   const urls = [
-    { loc: absoluteUrl(siteUrl, ROUTES.home), lastmod: homepageLastmod },
-    { loc: absoluteUrl(siteUrl, ROUTES.posts), lastmod: postsLastmod },
-    { loc: absoluteUrl(siteUrl, ROUTES.qa), lastmod: qaLastmod },
+    { loc: absoluteUrl(siteUrl, href("/")), lastmod: homepageLastmod },
+    { loc: absoluteUrl(siteUrl, href("/objave")), lastmod: postsLastmod },
+    { loc: absoluteUrl(siteUrl, href("/pitanja-i-odgovori")), lastmod: qaLastmod },
     ...posts.map((post) => ({
       loc: absoluteUrl(siteUrl, postHref(post.slug)),
       lastmod: post.updatedAt.toISOString(),

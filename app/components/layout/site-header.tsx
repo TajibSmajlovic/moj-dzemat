@@ -7,7 +7,7 @@ import {
   type CSSProperties,
   type SVGProps,
 } from "react";
-import { Link, useLocation } from "react-router";
+import { href, Link, useLocation } from "react-router";
 
 import {
   ExternalLink,
@@ -26,7 +26,6 @@ import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import { ROUTES } from "#app/lib/routes";
 import { useRootFacebookPageUrl } from "#app/lib/social-links";
 
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>> | LucideIcon;
@@ -49,12 +48,17 @@ type ExternalNavItem = {
 type HeaderNavItem = InternalNavItem | ExternalNavItem;
 
 const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
-  { type: "internal", label: "Početna", to: ROUTES.home, Icon: Home },
-  { type: "internal", label: "Objave", to: ROUTES.posts, Icon: Newspaper },
-  { type: "internal", label: "Pitanja i odgovori", to: ROUTES.qa, Icon: HelpCircle },
+  { type: "internal", label: "Početna", to: href("/"), Icon: Home },
+  { type: "internal", label: "Objave", to: href("/objave"), Icon: Newspaper },
+  {
+    type: "internal",
+    label: "Pitanja i odgovori",
+    to: href("/pitanja-i-odgovori"),
+    Icon: HelpCircle,
+  },
 ];
 
-export function SiteHeader({ adminHref = ROUTES.login }: { adminHref?: string }) {
+export function SiteHeader({ adminHref = href("/prijava") }: { adminHref?: string }) {
   const { pathname } = useLocation();
   const siteName = useRootSiteName();
   const facebookPageUrl = useRootFacebookPageUrl();
@@ -132,7 +136,7 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
 
   return (
     <Link
-      to={ROUTES.home}
+      to={href("/")}
       aria-label={siteName}
       onClick={onClick}
       className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
@@ -486,7 +490,7 @@ function isNavItemActive(item: HeaderNavItem, pathname: string) {
 }
 
 function isActivePath(pathname: string, to: string) {
-  if (to === ROUTES.home) return pathname === ROUTES.home;
+  if (to === href("/")) return pathname === href("/");
 
   return pathname === to || pathname.startsWith(`${to}/`);
 }

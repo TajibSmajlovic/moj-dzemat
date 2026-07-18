@@ -1,11 +1,11 @@
-import { data, useActionData, useNavigation } from "react-router";
+import { data, href, useNavigation } from "react-router";
 
 import { parseWithZod } from "@conform-to/zod/v4";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { QaAnswerForm } from "#app/features/qa/admin/components/qa-answer-form";
 import { parseAdminQuestionTab } from "#app/features/qa/admin/qa-admin-tabs";
 import { saveAdminQuestionAnswer } from "#app/features/qa/admin/qa-admin.server";
@@ -14,7 +14,6 @@ import { QaAnswerSchema } from "#app/features/qa/qa-schema";
 import { getAdminQuestionById } from "#app/features/qa/qa.server";
 import { requireId } from "#app/lib/id";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { redirectWithToast } from "#app/server/toast.server";
@@ -34,8 +33,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
   return buildNoindexMeta(title, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request, params, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context, params, url }: Route.LoaderArgs) {
+  context.get(adminUserContext);
+
   const id = requireId(params.id, QUESTION_ID_OPTIONS);
   const question = await getAdminQuestionById(id);
 
@@ -50,8 +50,8 @@ export async function loader({ request, params, url }: Route.LoaderArgs) {
   };
 }
 
-export async function action({ request, params, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context, params }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const id = requireId(params.id, QUESTION_ID_OPTIONS);
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: QaAnswerSchema });
@@ -75,9 +75,8 @@ export async function action({ request, params, url }: Route.ActionArgs) {
   );
 }
 
-export default function AdminQaAnswerPage({ loaderData }: Route.ComponentProps) {
+export default function AdminQaAnswerPage({ actionData, loaderData }: Route.ComponentProps) {
   const { question, backTo } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
 
   const submitting = navigation.state === "submitting";
@@ -110,7 +109,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <SegmentErrorBoundary
       error={error}
       tone="admin"
-      backTo={ROUTES.adminQa}
+      backTo={href("/admin/pitanja")}
       backLabel="Nazad na pitanja"
     />
   );

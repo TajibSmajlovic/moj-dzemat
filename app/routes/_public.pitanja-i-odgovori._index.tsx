@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { data, Link, redirect, useActionData } from "react-router";
+import { data, href, Link, redirect } from "react-router";
 
 import { parseWithZod } from "@conform-to/zod/v4";
 import { ChevronDown, MessageCircleQuestion, ShieldCheck } from "lucide-react";
@@ -27,13 +27,13 @@ import {
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { sectionReveal, softFade } from "#app/lib/motion";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   buildPublicPageMeta,
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
+import { absoluteUrl } from "#app/lib/url";
 import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
@@ -49,7 +49,9 @@ export function meta({ matches }: Route.MetaArgs) {
   const title = formatPageTitle("Pitanja i odgovori", siteName);
   const description =
     "Pošaljite vlastito pitanje ili pogledajte odgovore na ranija pitanja džematlija.";
-  const canonical = siteUrl ? absoluteUrl(siteUrl, ROUTES.qa) : ROUTES.qa;
+  const canonical = siteUrl
+    ? absoluteUrl(siteUrl, href("/pitanja-i-odgovori"))
+    : href("/pitanja-i-odgovori");
 
   return buildPublicPageMeta({
     title,
@@ -105,11 +107,10 @@ export async function action({ request }: Route.ActionArgs) {
 
   logger.info({ ip, length: submission.value.question.length }, "qa question submitted");
 
-  return redirect(ROUTES.qaHvala, { status: 303 });
+  return redirect(href("/pitanja-i-odgovori/hvala"), { status: 303 });
 }
 
-export default function QaIndexPage({ loaderData }: Route.ComponentProps) {
-  const actionData = useActionData<typeof action>();
+export default function QaIndexPage({ actionData, loaderData }: Route.ComponentProps) {
   const { questions, pagination } = loaderData;
   const [mobileFormOpen, setMobileFormOpen] = useState(false);
 

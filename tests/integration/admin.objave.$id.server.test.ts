@@ -7,23 +7,25 @@ import { prisma } from "#app/server/db.server";
 
 import { createPost } from "../factories";
 import { expectData, expectResponse, statusOf } from "../helpers/action-result";
-import { createAdminSession } from "../helpers/auth";
+import { createAdminSession, type AdminRouteContext } from "../helpers/auth";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
 
-function callLoader(id: string, cookie?: string) {
+function callLoader(id: string, context: AdminRouteContext) {
   return runLoader(editPostLoader, {
     url: testUrl(adminPostHref(id)),
     params: { id },
-    cookie,
+    pattern: "/admin/objave/:id",
+    context,
   });
 }
 
-function callAction(id: string, formData: FormData, cookie: string) {
+function callAction(id: string, formData: FormData, context: AdminRouteContext) {
   return runAction(editPostAction, {
     url: testUrl(adminPostHref(id)),
     params: { id },
+    pattern: "/admin/objave/:id",
     formData,
-    cookie,
+    context,
   });
 }
 
@@ -38,7 +40,7 @@ function imageDeleteForm({ postId, imageId }: { postId: string; imageId: string 
 
 describe("admin post edit route", () => {
   it("loader returns the editable post fields and ordered image metadata", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({
       authorId: user.id,
       title: "Uredi me",
@@ -70,7 +72,7 @@ describe("admin post edit route", () => {
       ],
     });
 
-    const result = expectData(await callLoader(post.id, cookie));
+    const result = expectData(await callLoader(post.id, context));
 
     expect(result.post).toMatchObject({
       id: post.id,
@@ -86,11 +88,11 @@ describe("admin post edit route", () => {
   });
 
   it("loader throws 404 for an unknown post id", async () => {
-    const { cookie } = await createAdminSession();
+    const { context } = await createAdminSession();
 
     let thrown: unknown;
     try {
-      await callLoader("missing-post", cookie);
+      await callLoader("missing-post", context);
     } catch (error) {
       thrown = error;
     }
@@ -99,7 +101,7 @@ describe("admin post edit route", () => {
   });
 
   it("delete-image removes only an image that belongs to the route post", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({ authorId: user.id });
     const otherPost = await createPost({ authorId: user.id });
     const targetImage = await prisma.postImage.create({
@@ -122,7 +124,7 @@ describe("admin post edit route", () => {
     const result = await callAction(
       post.id,
       imageDeleteForm({ postId: post.id, imageId: targetImage.id }),
-      cookie,
+      context,
     );
 
     expect(result).toMatchObject({ ok: true });
@@ -131,7 +133,7 @@ describe("admin post edit route", () => {
   });
 
   it("delete-image does not delete an image from a different post", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({ authorId: user.id });
     const otherPost = await createPost({ authorId: user.id });
     const otherImage = await prisma.postImage.create({
@@ -146,7 +148,7 @@ describe("admin post edit route", () => {
     const result = await callAction(
       post.id,
       imageDeleteForm({ postId: post.id, imageId: otherImage.id }),
-      cookie,
+      context,
     );
 
     expect(result).toMatchObject({ ok: true });
@@ -154,7 +156,7 @@ describe("admin post edit route", () => {
   });
 
   it("rejects delete-image when the body post id does not match the route post id", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({ authorId: user.id });
     const otherPost = await createPost({ authorId: user.id });
     const image = await prisma.postImage.create({
@@ -171,7 +173,7 @@ describe("admin post edit route", () => {
       await callAction(
         post.id,
         imageDeleteForm({ postId: otherPost.id, imageId: image.id }),
-        cookie,
+        context,
       );
     } catch (error) {
       thrown = error;
@@ -182,7 +184,7 @@ describe("admin post edit route", () => {
   });
 
   it("rejects update when the body post id does not match the route post id", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({ authorId: user.id });
     const otherPost = await createPost({ authorId: user.id });
     const formData = new FormData();
@@ -191,7 +193,7 @@ describe("admin post edit route", () => {
 
     let thrown: unknown;
     try {
-      await callAction(post.id, formData, cookie);
+      await callAction(post.id, formData, context);
     } catch (error) {
       thrown = error;
     }
@@ -200,7 +202,7 @@ describe("admin post edit route", () => {
   });
 
   it("updates a post when the route id and body id match", async () => {
-    const { user, cookie } = await createAdminSession();
+    const { user, context } = await createAdminSession();
     const post = await createPost({ authorId: user.id, slug: "stari-slug" });
     const formData = new FormData();
     formData.set("intent", PostAdminIntents.Update);
@@ -210,7 +212,7 @@ describe("admin post edit route", () => {
     formData.set("type", "obavijest");
     formData.set("body", "Novi tekst objave.");
 
-    const result = await callAction(post.id, formData, cookie);
+    const result = await callAction(post.id, formData, context);
 
     expect(statusOf(result)).toBe(302);
     expect(await prisma.post.findUnique({ where: { id: post.id } })).toMatchObject({

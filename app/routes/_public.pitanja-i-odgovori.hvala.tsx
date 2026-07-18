@@ -1,11 +1,10 @@
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { CheckCircle2, Home, MessageCirclePlus } from "lucide-react";
 
 import { PageMain } from "#app/components/layout/page-main";
 import { Button } from "#app/components/ui/button";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
-import { ROUTES } from "#app/lib/routes";
 import { buildNoindexMeta } from "#app/lib/seo";
 
 import type { Route } from "./+types/_public.pitanja-i-odgovori.hvala";
@@ -33,13 +32,13 @@ export default function QaThankYouPage() {
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <Button asChild className="gap-2">
-            <Link to={ROUTES.qa}>
+            <Link to={href("/pitanja-i-odgovori")}>
               <MessageCirclePlus className="h-4 w-4" aria-hidden="true" />
               Postavi još jedno pitanje
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link to={ROUTES.home}>
+            <Link to={href("/")}>
               <Home className="h-4 w-4" aria-hidden="true" />
               Nazad na početnu
             </Link>

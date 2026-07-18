@@ -1,11 +1,4 @@
-import {
-  data,
-  Link,
-  useActionData,
-  useNavigate,
-  useNavigation,
-  useSearchParams,
-} from "react-router";
+import { data, href, Link, useNavigate, useNavigation, useSearchParams } from "react-router";
 
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Plus } from "lucide-react";
@@ -19,7 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "#app/components/ui/sheet";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { ImportantDateForm } from "#app/features/important-dates/admin/components/important-date-form";
 import { ImportantDateList } from "#app/features/important-dates/admin/components/important-date-list";
 import {
@@ -32,7 +25,6 @@ import { dateToYmd, ymdToUtcDate } from "#app/lib/date";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { invariant } from "#app/lib/invariant";
-import { ROUTES } from "#app/lib/routes";
 import { createActionToast, useActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
 import { logger } from "#app/server/logger.server";
@@ -40,15 +32,15 @@ import { redirectWithToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/admin.vazni-datumi";
 
-export async function loader({ request, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context }: Route.LoaderArgs) {
+  context.get(adminUserContext);
   const importantDates = await getAdminImportantDates();
 
   return { importantDates };
 }
 
-export async function action({ request, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const formData = await request.formData();
   const intent = parseIntent(formData, ImportantDateIntents);
 
@@ -116,7 +108,7 @@ async function handleUpsert(
   );
 
   return redirectWithToast(
-    ROUTES.adminImportantDates,
+    href("/admin/vazni-datumi"),
     intent === ImportantDateIntents.Create
       ? createActionToast({
           action: "create",
@@ -129,9 +121,8 @@ async function handleUpsert(
   );
 }
 
-export default function AdminImportantDates({ loaderData }: Route.ComponentProps) {
+export default function AdminImportantDates({ actionData, loaderData }: Route.ComponentProps) {
   const { importantDates } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -155,11 +146,11 @@ export default function AdminImportantDates({ loaderData }: Route.ComponentProps
     (navigation.formData?.get("intent") === ImportantDateIntents.Create ||
       navigation.formData?.get("intent") === ImportantDateIntents.Update);
 
-  const closeSheet = () => void navigate(ROUTES.adminImportantDates);
+  const closeSheet = () => void navigate(href("/admin/vazni-datumi"));
 
-  const newHref = `${ROUTES.adminImportantDates}?new=1`;
+  const newHref = `${href("/admin/vazni-datumi")}?new=1`;
   const getEditHref = (id: string) =>
-    `${ROUTES.adminImportantDates}?${new URLSearchParams({ edit: id }).toString()}`;
+    `${href("/admin/vazni-datumi")}?${new URLSearchParams({ edit: id }).toString()}`;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">

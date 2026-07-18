@@ -10,6 +10,7 @@ function loadQuestion(id: string) {
   return callLoader(qaDetailLoader, {
     url: testUrl(`/pitanja-i-odgovori/${id}`),
     params: { id },
+    pattern: "/pitanja-i-odgovori/:id",
   });
 }
 

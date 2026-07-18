@@ -1,10 +1,10 @@
-import { Link, redirect, useActionData, useNavigation } from "react-router";
+import { Link, redirect, useNavigation } from "react-router";
 
 import { HelpCircle } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { Button } from "#app/components/ui/button";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { QaAdminList } from "#app/features/qa/admin/components/qa-admin-list";
 import { parseAdminQuestionTab } from "#app/features/qa/admin/qa-admin-tabs";
 import {
@@ -23,8 +23,8 @@ import { useActionToast } from "#app/lib/toast";
 
 import type { Route } from "./+types/admin.pitanja._index";
 
-export async function loader({ request, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context, url }: Route.LoaderArgs) {
+  context.get(adminUserContext);
 
   const tab = parseAdminQuestionTab(url.searchParams.get("tab"));
   const page = parsePageParam(url.searchParams.get("page"));
@@ -39,8 +39,8 @@ export async function loader({ request, url }: Route.LoaderArgs) {
   return { tab, questions, pagination, counts };
 }
 
-export async function action({ request, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const formData = await request.formData();
   const intent = parseIntent(formData, QaAdminIntents);
   const id = requireId(formData.get("id"));
@@ -58,9 +58,8 @@ export async function action({ request, url }: Route.ActionArgs) {
   }
 }
 
-export default function AdminQaIndex({ loaderData }: Route.ComponentProps) {
+export default function AdminQaIndex({ actionData, loaderData }: Route.ComponentProps) {
   const { tab, questions, pagination, counts } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const deletingId = useSubmittingRowId<QaAdminIntent>(navigation, QaAdminIntents.Delete);
 

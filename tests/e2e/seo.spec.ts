@@ -1,7 +1,8 @@
+import { href } from "react-router";
+
 import { expect, test, type Page } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
-import { ROUTES } from "../../app/lib/routes";
 import { POSTS_TITLES } from "./fixtures/seed-data";
 
 type JsonLdObject = {
@@ -48,7 +49,7 @@ test.describe("seo", () => {
   test("homepage exposes canonical metadata, social image and structured data", async ({
     page,
   }) => {
-    await page.goto(ROUTES.home);
+    await page.goto(href("/"));
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
@@ -135,7 +136,7 @@ test.describe("seo", () => {
   });
 
   test("filtered homepage canonicalizes back to the main listing", async ({ page }) => {
-    await page.goto(`${ROUTES.home}?vrsta=hutba`);
+    await page.goto(`${href("/")}?vrsta=hutba`);
 
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
@@ -148,7 +149,7 @@ test.describe("seo", () => {
   });
 
   test("archive exposes canonical metadata without duplicate shared tags", async ({ page }) => {
-    await page.goto(ROUTES.posts);
+    await page.goto(href("/objave"));
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
@@ -179,7 +180,7 @@ test.describe("seo", () => {
   });
 
   test("filtered archive is noindexed and canonicalizes to the archive", async ({ page }) => {
-    await page.goto(`${ROUTES.posts}?vrsta=hutba`);
+    await page.goto(`${href("/objave")}?vrsta=hutba`);
 
     await expect(page.getByRole("heading", { name: "Sve hutbe" })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -269,11 +270,11 @@ test.describe("seo", () => {
   });
 
   test("robots.txt and sitemap.xml respond correctly", async ({ request }) => {
-    const robots = await request.get(ROUTES.robotsTxt);
+    const robots = await request.get(href("/robots.txt"));
     expect(robots.ok()).toBe(true);
     expect(await robots.text()).toContain("Sitemap:");
 
-    const sitemap = await request.get(ROUTES.sitemapXml);
+    const sitemap = await request.get(href("/sitemap.xml"));
     expect(sitemap.ok()).toBe(true);
     expect(await sitemap.text()).toContain(postHref("e2e-objava-1"));
   });

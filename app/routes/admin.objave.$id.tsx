@@ -1,9 +1,9 @@
-import { useActionData, useNavigation } from "react-router";
+import { href, useNavigation } from "react-router";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { AdminPanel } from "#app/components/admin/admin-panel";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { PostForm } from "#app/features/posts/admin/components/post-form";
 import {
   createOrUpdatePostFromForm,
@@ -13,7 +13,6 @@ import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
-import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -52,8 +51,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
   return buildNoindexMeta(`Uredi „${loaderData.post.title}" · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
-export async function loader({ request, params, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context, params }: Route.LoaderArgs) {
+  context.get(adminUserContext);
+
   const id = requireId(params.id);
   const post = await prisma.post.findUnique({
     where: { id },
@@ -65,8 +65,8 @@ export async function loader({ request, params, url }: Route.LoaderArgs) {
   return { post };
 }
 
-export async function action({ request, params, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context, params }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const routePostId = requireId(params.id);
 
   const formData = await parsePostFormData(request);
@@ -107,9 +107,8 @@ export async function action({ request, params, url }: Route.ActionArgs) {
   }
 }
 
-export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
+export default function AdminEditPost({ actionData, loaderData }: Route.ComponentProps) {
   const { post } = loaderData;
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = useIsSubmittingIntent(navigation, PostAdminIntents.Update);
 
@@ -117,7 +116,7 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
     <main className="mx-auto max-w-3xl px-4 py-8">
       <AdminPageHeader
         className="mb-6"
-        backTo={ROUTES.adminPosts}
+        backTo={href("/admin/objave")}
         backLabel="Nazad na listu"
         title="Uredi objavu"
         description={`Uređujete "${post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.`}
@@ -128,7 +127,7 @@ export default function AdminEditPost({ loaderData }: Route.ComponentProps) {
           post={post}
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
-          cancelTo={ROUTES.adminPosts}
+          cancelTo={href("/admin/objave")}
         />
       </AdminPanel>
     </main>
@@ -140,7 +139,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     <SegmentErrorBoundary
       error={error}
       tone="admin"
-      backTo={ROUTES.adminPosts}
+      backTo={href("/admin/objave")}
       backLabel="Nazad na listu objava"
     />
   );

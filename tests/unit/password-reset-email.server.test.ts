@@ -23,7 +23,7 @@ describe("buildPasswordResetEmail", () => {
   });
 
   it("escapes interpolated HTML values", () => {
-    const resetUrl = `https://example.test${passwordResetHref('<token>"&x=1')}`;
+    const resetUrl = 'https://example.test/nova-lozinka/<token>"&x=1';
     const email = buildPasswordResetEmail({
       resetUrl,
       siteName: 'Moj <Džemat> & "test"',
@@ -31,7 +31,7 @@ describe("buildPasswordResetEmail", () => {
 
     expect(email.html).toContain("Moj &lt;Džemat&gt; &amp; &quot;test&quot;");
     expect(email.html).toContain(
-      `href="https://example.test${passwordResetHref("&lt;token&gt;&quot;&amp;x=1")}"`,
+      'href="https://example.test/nova-lozinka/&lt;token&gt;&quot;&amp;x=1"',
     );
     expect(email.html).not.toContain("Moj <Džemat>");
     expect(email.html).not.toContain(`href="${resetUrl}"`);

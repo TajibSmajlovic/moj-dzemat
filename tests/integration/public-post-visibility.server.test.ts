@@ -1,7 +1,8 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
-import { ROUTES } from "#app/lib/routes";
 import { DAY_SECONDS } from "#app/lib/time";
 import { loader as publicHomeLoader } from "#app/routes/_public._index";
 import { loader as publicPostLoader } from "#app/routes/_public.objave.$slug";
@@ -10,20 +11,25 @@ import { loader as imageLoader } from "#app/routes/slike.$id";
 import { prisma } from "#app/server/db.server";
 
 import { createPost, createQuestion, createUser } from "../factories";
-import { callLoader } from "../helpers/route";
+import { callLoader, testUrl } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
-const callHomeLoader = (url = `http://localhost${ROUTES.home}`) =>
-  callLoader(publicHomeLoader, { url });
+const callHomeLoader = (url = testUrl(href("/"))) => callLoader(publicHomeLoader, { url });
 
 const callPostLoader = (slug: string) =>
   callLoader(publicPostLoader, {
     url: `http://localhost${postHref(slug)}`,
     params: { slug },
+    pattern: "/objave/:slug",
   });
 
 const callImageLoader = (id: string, cookie?: string) =>
-  callLoader(imageLoader, { url: `http://localhost${postImageHref(id)}`, params: { id }, cookie });
+  callLoader(imageLoader, {
+    url: `http://localhost${postImageHref(id)}`,
+    params: { id },
+    pattern: "/slike/:id",
+    cookie,
+  });
 
 describe("public post visibility", () => {
   it("shows published posts and hides drafts from the homepage", async () => {

@@ -1,11 +1,11 @@
-import { redirect } from "react-router";
+import { href, redirect } from "react-router";
 
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
+import type { CurrentUser } from "#app/features/auth/auth-context";
 import { MIN_PASSWORD_LENGTH } from "#app/features/auth/auth-policy";
 import { commitSession, destroySession, getSession } from "#app/features/auth/session.server";
-import { ROUTES } from "#app/lib/routes";
 import { prisma } from "#app/server/db.server";
 import { logger } from "#app/server/logger.server";
 
@@ -32,10 +32,10 @@ async function rotateUserSession(request: Request, userId: string): Promise<Head
 
 /**
    Authentication primitives. `moj-dzemat` only ever has admin sessions -
-   public visitors never log in, so every protected route uses
-   `requireAdmin()`. There is no public signup; admins are provisioned
-   via the seed script and activate their account through the password
-   reset flow.
+   public visitors never log in, so the protected admin branch uses
+   `requireAdmin()` in its parent middleware. There is no public signup;
+   admins are provisioned via the seed script and activate their account
+   through the password reset flow.
  */
 
 const BCRYPT_COST = 10;
@@ -102,15 +102,11 @@ async function getUserIdFromSession(request: Request): Promise<string | null> {
   return userId ?? null;
 }
 
-type CurrentUser = { id: string; email: string; name: string | null };
-
 /**
    Per-request memo for the current user lookup. Keyed by the Request
-   object so identical concurrent calls within one loader/action chain
-   (e.g. `_public.tsx` + `requireAdmin` + downstream helpers) share a
-   single DB hit. WeakMap entries are released when the request object
-   is garbage-collected, which lines up with the React Router request
-   lifecycle.
+   object so repeated callers during one React Router request share a
+   single DB hit. WeakMap entries are released when the request object is
+   garbage-collected, which lines up with the request lifecycle.
  */
 const currentUserMemo = new WeakMap<Request, Promise<CurrentUser | null>>();
 
@@ -141,10 +137,10 @@ export function getCurrentUser(request: Request): Promise<CurrentUser | null> {
 }
 
 /**
-   Guard used on every `/admin/*` loader + action. Redirects to
-   `/prijava?redirectTo=<current>` if no valid session.
+   Guard used by the `/admin` route middleware. Redirects to
+   `/prijava?redirectTo=<current>` if there is no valid session.
  */
-export async function requireAdmin(request: Request, routeUrl: URL) {
+export async function requireAdmin(request: Request, routeUrl: URL): Promise<CurrentUser> {
   const user = await getCurrentUser(request);
   if (!user) {
     const params = new URLSearchParams({
@@ -153,7 +149,7 @@ export async function requireAdmin(request: Request, routeUrl: URL) {
 
     logger.warn({ path: routeUrl.pathname, search: routeUrl.search }, "admin access denied");
 
-    throw redirect(`${ROUTES.login}?${params.toString()}`);
+    throw redirect(`${href("/prijava")}?${params.toString()}`);
   }
 
   return user;

@@ -8,7 +8,7 @@ import {
   youtubeWatchUrl,
 } from "#app/features/posts/post-video";
 import { toIsoDate } from "#app/lib/date";
-import { absoluteUrl } from "#app/lib/routes";
+import { absoluteUrl } from "#app/lib/url";
 
 type PostArticleJsonLdImage = {
   id: string;

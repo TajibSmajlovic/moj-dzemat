@@ -1,11 +1,10 @@
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
 import type { PublicQuestion } from "#app/features/qa/qa.server";
-import { ROUTES } from "#app/lib/routes";
 
 type QaHomePreviewProps = {
   questions: PublicQuestion[];
@@ -31,7 +30,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
           <p className="text-muted-foreground text-sm leading-6 sm:text-base sm:leading-7">
             Pogledajte najnovije odgovore na pitanja ili{" "}
             <Link
-              to={`${ROUTES.qa}#postavi-pitanje`}
+              to={`${href("/pitanja-i-odgovori")}#postavi-pitanje`}
               prefetch="intent"
               className="text-primary font-medium underline-offset-4 transition-colors hover:underline"
             >
@@ -49,7 +48,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
               Još nema odgovora. Pitanja se objavljuju nakon što administrator pripremi odgovor.
               Ukoliko imate pitanje, slobodno ga{" "}
               <Link
-                to={`${ROUTES.qa}#postavi-pitanje`}
+                to={`${href("/pitanja-i-odgovori")}#postavi-pitanje`}
                 prefetch="intent"
                 className="text-primary font-medium underline-offset-4 transition-colors hover:underline"
               >
@@ -64,7 +63,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
       {questions.length > 0 ? (
         <div className="mt-6 flex justify-center sm:mt-8">
           <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
-            <Link to={ROUTES.qa} prefetch="intent">
+            <Link to={href("/pitanja-i-odgovori")} prefetch="intent">
               Pogledaj sva pitanja
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>

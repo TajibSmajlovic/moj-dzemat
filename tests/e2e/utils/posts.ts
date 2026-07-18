@@ -1,18 +1,19 @@
+import { href } from "react-router";
+
 import { expect, type Page } from "@playwright/test";
 
 import { postHref } from "../../../app/features/posts/post-routes";
 import type { PostTypeValue } from "../../../app/features/posts/post-type";
-import { ROUTES } from "../../../app/lib/routes";
 import { fillPostForm } from "./post-form";
 
-export const ADMIN_POSTS_URL = new RegExp(`${ROUTES.adminPosts}$`);
-export const ADMIN_POSTS_PAGE_TWO_URL = new RegExp(String.raw`${ROUTES.adminPosts}\?page=2$`);
+export const ADMIN_POSTS_URL = new RegExp(`${href("/admin/objave")}$`);
+export const ADMIN_POSTS_PAGE_TWO_URL = new RegExp(String.raw`${href("/admin/objave")}\?page=2$`);
 export const ADMIN_POSTS_INDEX_PAGE_TWO_URL = new RegExp(
-  String.raw`${ROUTES.adminPosts}\?index&page=2$`,
+  String.raw`${href("/admin/objave")}\?index&page=2$`,
 );
-export const ADMIN_POST_NEW_URL = new RegExp(`${ROUTES.adminPostNew}$`);
-export const ADMIN_POST_EDIT_URL = new RegExp(`${ROUTES.adminPosts}/[^/]+$`);
-export const ADMIN_POST_PREVIEW_URL = new RegExp(`${ROUTES.adminPosts}/[^/]+/pregled$`);
+export const ADMIN_POST_NEW_URL = new RegExp(`${href("/admin/objave/nova")}$`);
+export const ADMIN_POST_EDIT_URL = new RegExp(`${href("/admin/objave")}/[^/]+$`);
+export const ADMIN_POST_PREVIEW_URL = new RegExp(`${href("/admin/objave")}/[^/]+/pregled$`);
 
 export async function openDeleteDialogForPost(page: Page, title: string) {
   const postRow = page.getByRole("row").filter({
@@ -31,7 +32,7 @@ export async function createPostThroughAdmin(
     type?: PostTypeValue;
   },
 ) {
-  await page.goto(ROUTES.adminPostNew);
+  await page.goto(href("/admin/objave/nova"));
   await expect(page).toHaveURL(ADMIN_POST_NEW_URL);
 
   await fillPostForm(page, {

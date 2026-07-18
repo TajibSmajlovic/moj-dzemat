@@ -110,7 +110,7 @@ export function PostCard({ post, priority }: PostCardProps) {
             >
               {formatDateLong(post.publishedAt)}
             </time>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center">
               <button
                 type="button"
                 onClick={(event) => {

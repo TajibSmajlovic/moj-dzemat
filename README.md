@@ -15,7 +15,7 @@ and image blobs normalized with `sharp`.
 
 | Concern    | Choice                                                   |
 | ---------- | -------------------------------------------------------- |
-| Framework  | React 19 + React Router v7 (SSR, file-based routes)      |
+| Framework  | React 19 + React Router v8 (SSR, file-based routes)      |
 | Server     | Express                                                  |
 | Styling    | Tailwind CSS v4 + shadcn/ui                              |
 | Validation | Conform + Zod                                            |

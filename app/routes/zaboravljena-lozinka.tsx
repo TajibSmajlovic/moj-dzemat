@@ -1,4 +1,4 @@
-import { Form, Link, data, useActionData } from "react-router";
+import { Form, href, Link, data } from "react-router";
 
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
@@ -17,8 +17,8 @@ import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email
 import { signResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
-import { ROUTES, absoluteUrl } from "#app/lib/routes";
 import { buildNoindexMeta } from "#app/lib/seo";
+import { absoluteUrl } from "#app/lib/url";
 import { prisma } from "#app/server/db.server";
 import { sendEmail } from "#app/server/email.server";
 import { env } from "#app/server/env.server";
@@ -93,8 +93,7 @@ export async function action({ request }: Route.ActionArgs) {
   return data({ result: submission.reply(), sent: true } as const);
 }
 
-export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps) {
-  const actionData = useActionData<typeof action>();
+export default function ForgotPasswordPage({ actionData, loaderData }: Route.ComponentProps) {
   const [form, fields] = useForm({
     id: "forgot-form",
     lastResult: actionData?.result ?? null,
@@ -135,7 +134,7 @@ export default function ForgotPasswordPage({ loaderData }: Route.ComponentProps)
             ponovo pošaljite zahtjev.
           </p>
           <Button asChild variant="outline" className="w-full">
-            <Link to={ROUTES.login}>
+            <Link to={href("/prijava")}>
               <ArrowLeft className="size-4" />
               Nazad na prijavu
             </Link>

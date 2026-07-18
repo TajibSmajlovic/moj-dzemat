@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { href, Link } from "react-router";
 
 import { Sparkles, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
@@ -12,20 +12,20 @@ import {
 } from "#app/features/posts/post-type";
 import { cn } from "#app/lib/cn";
 import { motionTransitions } from "#app/lib/motion";
-import { ROUTES } from "#app/lib/routes";
 
 type PostFilterProps = {
   active: PostTypeValue | "all";
-  basePath?: typeof ROUTES.home | typeof ROUTES.posts;
+  destination?: "home" | "archive";
 };
 
 type Tab = { value: PostTypeValue | "all"; label: string; Icon: LucideIcon };
 
 const ALL: Tab = { value: "all", label: "Sve", Icon: Sparkles };
 
-export function PostFilter({ active, basePath = ROUTES.home }: PostFilterProps) {
+export function PostFilter({ active, destination = "home" }: PostFilterProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [edgeFade, setEdgeFade] = useState({ left: false, right: false });
+  const basePath = destination === "archive" ? href("/objave") : href("/");
 
   const tabs: Tab[] = [
     ALL,
@@ -70,7 +70,7 @@ export function PostFilter({ active, basePath = ROUTES.home }: PostFilterProps) 
       >
         <div className="flex w-max min-w-full gap-2 sm:w-auto sm:min-w-0 sm:flex-wrap">
           {tabs.map((tab) => {
-            const href =
+            const targetHref =
               tab.value === "all" ? basePath : `${basePath}?vrsta=${encodeURIComponent(tab.value)}`;
             const isActive = active === tab.value;
             const { Icon } = tab;
@@ -83,7 +83,7 @@ export function PostFilter({ active, basePath = ROUTES.home }: PostFilterProps) 
               >
                 <Link
                   preventScrollReset
-                  to={href}
+                  to={targetHref}
                   prefetch="intent"
                   aria-current={isActive ? "page" : undefined}
                   className={cn(

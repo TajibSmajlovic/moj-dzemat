@@ -1,25 +1,27 @@
+import { href } from "react-router";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { adminPostsPageHref } from "#app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "#app/lib/pagination";
-import { ROUTES } from "#app/lib/routes";
 import {
   action as adminPostsAction,
   loader as adminPostsLoader,
 } from "#app/routes/admin.objave._index";
 import { prisma } from "#app/server/db.server";
 
-import { createPost, createUser } from "../factories";
+import { createPost } from "../factories";
 import { expectData } from "../helpers/action-result";
+import { createAdminSession, type AdminRouteContext } from "../helpers/auth";
 import { callAction as runAction, callLoader as runLoader, testUrl } from "../helpers/route";
-import { sessionCookieFor } from "../helpers/session";
 
-const ENDPOINT = testUrl(ROUTES.adminPosts);
+const ENDPOINT = testUrl(href("/admin/objave"));
 
-const callLoader = (url: string, cookie: string) => runLoader(adminPostsLoader, { url, cookie });
+const callLoader = (url: string, context: AdminRouteContext) =>
+  runLoader(adminPostsLoader, { url, context });
 
-const callAction = (formData: FormData, cookie: string) =>
-  runAction(adminPostsAction, { url: ENDPOINT, formData, cookie });
+const callAction = (formData: FormData, context: AdminRouteContext) =>
+  runAction(adminPostsAction, { url: ENDPOINT, formData, context });
 
 async function createOrderedPosts(authorId: string, count: number) {
   const base = Date.parse("2026-04-22T12:00:00Z");
@@ -43,12 +45,12 @@ async function createOrderedPosts(authorId: string, count: number) {
 
 describe("admin posts list route", () => {
   let userId: string;
-  let cookie: string;
+  let context: AdminRouteContext;
 
   beforeEach(async () => {
-    const { user } = await createUser();
+    const { user, context: adminContext } = await createAdminSession();
     userId = user.id;
-    cookie = await sessionCookieFor(user.id);
+    context = adminContext;
   });
 
   describe("loader", () => {
@@ -63,7 +65,7 @@ describe("admin posts list route", () => {
       });
       await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE);
 
-      const result = expectData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, context));
 
       expect(result.pagination).toMatchObject({
         page: 1,
@@ -87,7 +89,7 @@ describe("admin posts list route", () => {
         status: "draft",
       });
 
-      const result = expectData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, context));
 
       expect(result.posts).toHaveLength(1);
       expect(result.posts[0]).toMatchObject({ title: "Sakriven nacrt", status: "draft" });
@@ -97,7 +99,7 @@ describe("admin posts list route", () => {
       const totalItems = ADMIN_POSTS_PAGE_SIZE + 5;
       await createOrderedPosts(userId, totalItems);
 
-      const result = expectData(await callLoader(`${ENDPOINT}?page=2`, cookie));
+      const result = expectData(await callLoader(`${ENDPOINT}?page=2`, context));
 
       expect(result.pagination).toMatchObject({
         page: 2,
@@ -119,7 +121,7 @@ describe("admin posts list route", () => {
     it("treats invalid page params as page 1", async () => {
       await createOrderedPosts(userId, 3);
 
-      const result = expectData(await callLoader(`${ENDPOINT}?page=banana`, cookie));
+      const result = expectData(await callLoader(`${ENDPOINT}?page=banana`, context));
 
       expect(result.pagination.page).toBe(1);
       expect(result.posts.map((post) => post.title)).toEqual(["Objava 1", "Objava 2", "Objava 3"]);
@@ -128,7 +130,7 @@ describe("admin posts list route", () => {
     it("redirects out-of-range pages to the last valid page", async () => {
       await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 5);
 
-      const result = await callLoader(`${ENDPOINT}?page=9`, cookie);
+      const result = await callLoader(`${ENDPOINT}?page=9`, context);
 
       expect(result).toBeInstanceOf(Response);
       expect((result as Response).status).toBe(302);
@@ -136,7 +138,7 @@ describe("admin posts list route", () => {
     });
 
     it("returns empty results and safe pagination metadata when there are no posts", async () => {
-      const result = expectData(await callLoader(ENDPOINT, cookie));
+      const result = expectData(await callLoader(ENDPOINT, context));
 
       expect(result.posts).toEqual([]);
       expect(result.pagination).toMatchObject({
@@ -158,7 +160,7 @@ describe("admin posts list route", () => {
       toggleFeatured.set("intent", "toggle-featured");
       toggleFeatured.set("id", target.id);
 
-      const featuredResult = await callAction(toggleFeatured, cookie);
+      const featuredResult = await callAction(toggleFeatured, context);
       expect(featuredResult).toMatchObject({ ok: true });
       const featuredPost = await prisma.post.findUnique({ where: { id: target.id } });
       expect(featuredPost?.featured).toBe(true);
@@ -167,7 +169,7 @@ describe("admin posts list route", () => {
       togglePinned.set("intent", "toggle-pinned");
       togglePinned.set("id", target.id);
 
-      const pinnedResult = await callAction(togglePinned, cookie);
+      const pinnedResult = await callAction(togglePinned, context);
       expect(pinnedResult).toMatchObject({ ok: true });
       const pinnedPost = await prisma.post.findUnique({ where: { id: target.id } });
       expect(pinnedPost?.pinned).toBe(true);
@@ -184,7 +186,7 @@ describe("admin posts list route", () => {
       publish.set("intent", "toggle-status");
       publish.set("id", draft.id);
 
-      const publishResult = await callAction(publish, cookie);
+      const publishResult = await callAction(publish, context);
       expect(publishResult).toMatchObject({ ok: true });
       const publishedPost = await prisma.post.findUnique({ where: { id: draft.id } });
       expect(publishedPost?.status).toBe("published");
@@ -194,7 +196,7 @@ describe("admin posts list route", () => {
       unpublish.set("intent", "toggle-status");
       unpublish.set("id", draft.id);
 
-      const unpublishResult = await callAction(unpublish, cookie);
+      const unpublishResult = await callAction(unpublish, context);
       expect(unpublishResult).toMatchObject({ ok: true });
       const hiddenPost = await prisma.post.findUnique({ where: { id: draft.id } });
       expect(hiddenPost?.status).toBe("draft");
@@ -204,21 +206,21 @@ describe("admin posts list route", () => {
       const posts = await createOrderedPosts(userId, ADMIN_POSTS_PAGE_SIZE + 1);
       const target = posts.at(-1)!;
 
-      const beforeDelete = expectData(await callLoader(`${ENDPOINT}?page=2`, cookie));
+      const beforeDelete = expectData(await callLoader(`${ENDPOINT}?page=2`, context));
       expect(beforeDelete.posts.map((post) => post.id)).toEqual([target.id]);
 
       const formData = new FormData();
       formData.set("intent", "delete");
       formData.set("id", target.id);
 
-      const actionResult = await callAction(formData, cookie);
+      const actionResult = await callAction(formData, context);
       expect(actionResult).toMatchObject({ ok: true });
       expect(await prisma.post.findUnique({ where: { id: target.id } })).toBeNull();
 
-      const afterDelete = await callLoader(`${ENDPOINT}?page=2`, cookie);
+      const afterDelete = await callLoader(`${ENDPOINT}?page=2`, context);
       expect(afterDelete).toBeInstanceOf(Response);
       expect((afterDelete as Response).status).toBe(302);
-      expect((afterDelete as Response).headers.get("Location")).toBe(ROUTES.adminPosts);
+      expect((afterDelete as Response).headers.get("Location")).toBe(href("/admin/objave"));
     });
   });
 });

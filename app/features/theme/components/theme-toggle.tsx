@@ -1,5 +1,4 @@
 import { useSyncExternalStore, type CSSProperties } from "react";
-import { useRouteLoaderData } from "react-router";
 
 import { Moon, Sun } from "lucide-react";
 
@@ -14,6 +13,7 @@ import {
   type ThemePreference,
 } from "#app/features/theme/theme";
 import { cn } from "#app/lib/cn";
+import { useRootLoaderData } from "#app/lib/root-loader-data";
 
 type ThemeToggleProps = {
   className?: string;
@@ -22,7 +22,7 @@ type ThemeToggleProps = {
 };
 
 export function ThemeToggle({ className, style, tabIndex }: ThemeToggleProps) {
-  const data = useRouteLoaderData<{ themePreference?: ThemePreference }>("root");
+  const data = useRootLoaderData();
   const serverTheme = data?.themePreference ?? DEFAULT_THEME_PREFERENCE;
   const theme = useSyncExternalStore(
     subscribeToThemePreference,

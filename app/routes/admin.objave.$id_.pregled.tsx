@@ -1,11 +1,11 @@
-import { Form, Link, useNavigation } from "react-router";
+import { Form, href, Link, useNavigation } from "react-router";
 
 import { Eye, EyeOff, Pencil } from "lucide-react";
 import { motion } from "motion/react";
 
 import { BackLink } from "#app/components/ui/back-link";
 import { Button } from "#app/components/ui/button";
-import { requireAdmin } from "#app/features/auth/auth.server";
+import { adminUserContext } from "#app/features/auth/auth-context";
 import { PostStatusBadge } from "#app/features/posts/admin/components/post-status-badge";
 import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
@@ -16,7 +16,6 @@ import { requireId } from "#app/lib/id";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal } from "#app/lib/motion";
-import { ROUTES } from "#app/lib/routes";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -35,8 +34,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
   );
 }
 
-export async function loader({ request, params, url }: Route.LoaderArgs) {
-  await requireAdmin(request, url);
+export async function loader({ context, params }: Route.LoaderArgs) {
+  context.get(adminUserContext);
+
   const id = requireId(params.id);
   const post = await prisma.post.findUnique({
     where: { id },
@@ -66,8 +66,8 @@ export async function loader({ request, params, url }: Route.LoaderArgs) {
   return { post, siteUrl: env().APP_URL };
 }
 
-export async function action({ request, params, url }: Route.ActionArgs) {
-  const user = await requireAdmin(request, url);
+export async function action({ request, context, params }: Route.ActionArgs) {
+  const user = context.get(adminUserContext);
   const id = requireId(params.id);
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -95,7 +95,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
-        <BackLink to={ROUTES.adminPosts} label="Nazad na listu" />
+        <BackLink to={href("/admin/objave")} label="Nazad na listu" />
       </div>
 
       <motion.div

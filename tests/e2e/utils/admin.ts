@@ -1,6 +1,6 @@
-import { expect, type Page } from "@playwright/test";
+import { href } from "react-router";
 
-import { ROUTES } from "../../../app/lib/routes";
+import { expect, type Page } from "@playwright/test";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -24,10 +24,10 @@ export const ADMIN_EMAIL = requireEnv("E2E_ADMIN_EMAIL");
 export const ADMIN_PASSWORD = requireEnv("E2E_ADMIN_PASSWORD");
 
 export async function loginAsAdmin(page: Page) {
-  await page.goto(ROUTES.login);
+  await page.goto(href("/prijava"));
   await page.getByLabel("Email").fill(ADMIN_EMAIL);
   await page.getByLabel("Lozinka").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Prijavi se" }).click();
 
-  await expect(page).toHaveURL(new RegExp(`${ROUTES.adminPosts}$`));
+  await expect(page).toHaveURL(new RegExp(`${href("/admin/objave")}$`));
 }

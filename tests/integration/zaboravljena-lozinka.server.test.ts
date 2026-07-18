@@ -1,6 +1,7 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
-import { ROUTES } from "#app/lib/routes";
 import { action as forgotPasswordAction } from "#app/routes/zaboravljena-lozinka";
 import { getLastCapturedEmail } from "#app/server/email.server";
 
@@ -9,7 +10,7 @@ import { expectResponse, payloadOf, statusOf } from "../helpers/action-result";
 import { withHoneypot } from "../helpers/honeypot";
 import { callAction, testUrl } from "../helpers/route";
 
-const ENDPOINT = testUrl(ROUTES.forgotPassword);
+const ENDPOINT = testUrl(href("/zaboravljena-lozinka"));
 
 function forgotForm(email: string) {
   const formData = new FormData();

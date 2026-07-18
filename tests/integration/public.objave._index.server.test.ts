@@ -1,16 +1,17 @@
+import { href } from "react-router";
+
 import { describe, expect, it } from "vitest";
 
 import { postsArchiveHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { PUBLIC_POSTS_PAGE_SIZE } from "#app/lib/pagination";
-import { ROUTES } from "#app/lib/routes";
 import { loader as objaveLoader } from "#app/routes/_public.objave._index";
 
 import { createPost } from "../factories";
 import { expectData } from "../helpers/action-result";
 import { callLoader as runLoader, testUrl } from "../helpers/route";
 
-const ENDPOINT = testUrl(ROUTES.posts);
+const ENDPOINT = testUrl(href("/objave"));
 
 const callLoader = (url: string) => runLoader(objaveLoader, { url });
 
