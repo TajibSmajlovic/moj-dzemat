@@ -1,9 +1,10 @@
 import { spawnSync } from "node:child_process";
 
-function run(stepName, command, args) {
+function run(stepName, command, args, env = process.env) {
   console.log(`[build] ${stepName}`);
 
   const result = spawnSync(command, args, {
+    env,
     stdio: "inherit",
     shell: process.platform === "win32",
   });
@@ -13,7 +14,10 @@ function run(stepName, command, args) {
   }
 }
 
-run("client", "react-router", ["build"]);
+run("client", "react-router", ["build"], {
+  ...process.env,
+  ENABLE_TEST_ROUTES: "false",
+});
 
 run("server", "esbuild", [
   "server/index.ts",

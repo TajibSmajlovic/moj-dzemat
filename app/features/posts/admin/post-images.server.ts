@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "#generated/prisma/client";
 
 import { MAX_IMAGES_PER_POST, MAX_IMAGE_ALT_TEXT_LENGTH } from "#app/features/posts/post-schema";
 import { FormError } from "#app/server/form-error.server";

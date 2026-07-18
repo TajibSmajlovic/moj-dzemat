@@ -4,6 +4,7 @@ build/
 .react-router/
 dist/
 .vite/
+generated/
 
 coverage/
 playwright-report/

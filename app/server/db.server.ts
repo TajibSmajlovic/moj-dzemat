@@ -1,4 +1,7 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { Prisma, PrismaClient } from "#generated/prisma/client";
+import { resolveSqliteUrl } from "#prisma/sqlite-url";
+import path from "node:path";
 
 /**
    Shared Prisma client.
@@ -6,9 +9,9 @@ import { Prisma, PrismaClient } from "@prisma/client";
    We cache the client on `globalThis` in non-production so HMR/tsx --watch
    doesn't create a new connection pool on every reload.
 
-   The schema declares `url = env("DATABASE_URL")` so Prisma resolves
-   relative `file:./data.db` against the schema directory (`prisma/`).
-   No manual path resolution needed.
+   Prisma 7 requires an explicit driver adapter. `resolveSqliteUrl` preserves
+   the repository's historical schema-relative paths, and `unixepoch-ms`
+   keeps DateTime storage compatible with databases created by Prisma 6.
  */
 
 declare global {
@@ -16,7 +19,19 @@ declare global {
 }
 
 function createPrismaClient() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required to initialize Prisma");
+  }
+
+  const schemaDirectory = path.resolve(process.cwd(), "prisma");
+  const adapter = new PrismaBetterSqlite3(
+    { url: resolveSqliteUrl(databaseUrl, schemaDirectory) },
+    { timestampFormat: "unixepoch-ms" },
+  );
+
   return new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
