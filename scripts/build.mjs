@@ -17,6 +17,7 @@ function run(stepName, command, args, env = process.env) {
 run("client", "react-router", ["build"], {
   ...process.env,
   ENABLE_TEST_ROUTES: "false",
+  OMIT_DEV_ROUTES: "true",
 });
 
 run("server", "esbuild", [
