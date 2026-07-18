@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "#generated/prisma/client";
 
 import { ADMIN_POSTS_PAGE_SIZE, getPaginationState } from "#app/lib/pagination";
 import { prisma } from "#app/server/db.server";

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "#generated/prisma/client";
 
 import { invariant } from "#app/lib/invariant";
 import { prisma } from "#app/server/db.server";

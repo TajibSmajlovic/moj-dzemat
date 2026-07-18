@@ -14,7 +14,9 @@
     "url": "https://github.com/TajibSmajlovic/moj-dzemat/issues"
   },
   "imports": {
-    "#app/*": "./app/*"
+    "#app/*": "./app/*",
+    "#generated/*": "./generated/*",
+    "#prisma/*": "./prisma/*"
   },
   "type": "module",
   "packageManager": "npm@11.18.0",
@@ -37,14 +39,14 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --headed",
     "knip": "knip",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate dev && prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset",
+    "db:reset": "prisma migrate reset && prisma generate && prisma db seed",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:setup": "prisma migrate dev && prisma db seed",
+    "db:push": "prisma db push && prisma generate",
+    "db:setup": "prisma migrate dev && prisma generate && prisma db seed",
     "postinstall": "react-router typegen && prisma generate",
     "prepare": "husky"
   },
@@ -55,7 +57,8 @@
     "@fontsource-variable/lora": "^5.2.8",
     "@isaacs/ttlcache": "^2.1.4",
     "@mjackson/form-data-parser": "^0.9.1",
-    "@prisma/client": "^6.19.3",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@react-router/express": "8.2.0",
     "@react-router/fs-routes": "8.2.0",
     "@react-router/node": "8.2.0",
@@ -68,9 +71,11 @@
     "@tiptap/react": "^3.23.1",
     "@tiptap/starter-kit": "^3.23.1",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "compression": "^1.8.1",
+    "dotenv": "^17.4.2",
     "embla-carousel": "^8.6.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
@@ -80,7 +85,7 @@
     "lucide-react": "^1.14.0",
     "motion": "^12.38.0",
     "pino": "^10.3.1",
-    "prisma": "^6.19.3",
+    "prisma": "^7.8.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -104,7 +109,6 @@
     "@types/react-dom": "^19.2.3",
     "@types/sanitize-html": "^2.16.1",
     "@vitest/coverage-v8": "^4.1.6",
-    "dotenv": "^17.4.2",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^9.1.0",
@@ -129,7 +133,13 @@
     "vite": "^8.0.16",
     "vitest": "^4.1.6"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+  "allowScripts": {
+    "@prisma/client@7.8.0": true,
+    "@prisma/engines@7.8.0": true,
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.2": true,
+    "fsevents@2.3.3": true,
+    "prisma@7.8.0": true
   }
 }

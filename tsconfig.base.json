@@ -14,7 +14,9 @@
     "noEmit": true,
     "allowImportingTsExtensions": false,
     "paths": {
-      "#app/*": ["./app/*"]
+      "#app/*": ["./app/*"],
+      "#generated/*": ["./generated/*"],
+      "#prisma/*": ["./prisma/*"]
     }
   }
 }

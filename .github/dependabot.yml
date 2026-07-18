@@ -24,7 +24,8 @@ updates:
       prefix-development: chore
       include: scope
     ignore:
-      # Keep Prisma CLI and client on v6.x for now; ignore v7.x major bumps.
+      # Keep the Prisma stack on the current major; future major upgrades
+      # should remain deliberate migrations.
       - dependency-name: prisma
         update-types:
           - version-update:semver-major
@@ -101,7 +102,8 @@ updates:
       prisma-stack:
         patterns:
           - prisma
-          - "@prisma/client"
+          - "@prisma/*"
+          - better-sqlite3
         update-types:
           - minor
           - patch

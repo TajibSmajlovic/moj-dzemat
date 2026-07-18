@@ -2,18 +2,20 @@
 
 # ---- deps --------------------------------------------------------------
 # Separate stage so we can copy `node_modules` into subsequent stages
-# without re-running `npm ci`. Alpine for small image size; openssl is
-# needed by Prisma's linux-musl engine.
+# without re-running `npm ci`. Alpine for small image size; build tools
+# are available here if better-sqlite3 needs to compile its native binding.
 FROM node:24-alpine AS deps
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 
 COPY package.json package-lock.json ./
 
 # `--ignore-scripts` skips our own `postinstall` (react-router typegen)
-# which needs the app sources. We'll run it in the build stage below.
+# which needs the app sources. It also skips native dependency scripts, so
+# rebuild better-sqlite3 explicitly before copying node_modules onward.
 RUN npm ci --include=dev --ignore-scripts
+RUN npm rebuild better-sqlite3
 
 
 # ---- build -------------------------------------------------------------
@@ -27,15 +29,15 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    DATABASE_URL=file:./data.db
 RUN npx prisma generate
 RUN npx react-router typegen
 RUN npm run build
 
-# After the build we only need production deps. We also re-run
-# `prisma generate` so the pruned tree still carries the client.
-RUN npm prune --omit=dev
-RUN npx prisma generate
+# The generated Prisma client is bundled into the server artifacts above.
+# After the build we only need production dependencies.
+RUN npm prune --omit=dev --ignore-scripts
 
 
 # ---- runtime -----------------------------------------------------------
@@ -75,6 +77,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 COPY --from=build /app/public ./public
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/package.json ./package.json
 
 COPY litefs.yml /etc/litefs.yml

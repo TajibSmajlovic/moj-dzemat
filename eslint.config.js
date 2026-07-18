@@ -63,6 +63,7 @@ export default tseslint.config(
       "playwright-report/**",
       "test-results/**",
       "dist/**",
+      "generated/**",
       "prisma/migrations/**",
       "public/mockServiceWorker.js",
       "*.html",

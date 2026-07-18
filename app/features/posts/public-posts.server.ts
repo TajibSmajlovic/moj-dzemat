@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "#generated/prisma/client";
 
 import type { PostCardData } from "#app/features/posts/components/post-card";
 import { plainExcerpt } from "#app/features/posts/post-excerpt";

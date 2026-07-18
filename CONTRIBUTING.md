@@ -29,8 +29,8 @@ nvm use
 Then boot the app:
 
 ```bash
-npm ci
 node -e "require('node:fs').copyFileSync('.env.example', '.env')"
+npm ci
 npm run db:migrate:deploy
 npm run db:seed
 npm run dev
@@ -39,7 +39,25 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000).
 
 `npm ci` also runs the repo's `postinstall`, which generates Prisma client code
-and React Router types.
+and React Router types. Client generation does not require `DATABASE_URL`, but
+database migration, seed, and application commands do.
+
+### Development-only routes
+
+`ENABLE_TEST_ROUTES` and `OMIT_DEV_ROUTES` intentionally control different
+parts of the development-route lifecycle:
+
+- `ENABLE_TEST_ROUTES` is runtime configuration. Setting it to `true` allows
+  local and E2E access to `/dev/last-email`; otherwise its loader returns 404.
+- `OMIT_DEV_ROUTES` is an internal build-only flag. `npm run build` sets it to
+  `true` so React Router excludes `dev.last-email.tsx` from the production route
+  manifest and client/server bundles.
+
+Standalone React Router type generation leaves `OMIT_DEV_ROUTES` unset. It must
+see the route even when runtime access is disabled because TypeScript still
+checks the source file and its generated route types. Do not add
+`OMIT_DEV_ROUTES` to `.env`, deployment configuration, or secrets; use the
+repository's `npm run build` command for production builds.
 
 ## Local Environment
 
@@ -109,16 +127,16 @@ Important details:
 
 ### Database
 
-| Command                     | What it does                                                                                                         |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `npm run db:migrate`        | Runs Prisma's development migration flow. Use this when you are changing the schema locally.                         |
-| `npm run db:migrate:deploy` | Applies committed migrations without creating new ones. Best for first local setup and production-style boots.       |
-| `npm run db:seed`           | Provisions admins from `ADMIN_SEED_EMAILS`.                                                                          |
-| `npm run db:setup`          | Convenience shortcut for `prisma migrate dev && prisma db seed`.                                                     |
-| `npm run db:reset`          | Drops and recreates the local database, then reruns seed.                                                            |
-| `npm run db:studio`         | Opens Prisma Studio.                                                                                                 |
-| `npm run db:generate`       | Regenerates Prisma client code.                                                                                      |
-| `npm run db:push`           | Pushes schema changes without creating a migration. Useful for quick experiments, not for normal migration workflow. |
+| Command                     | What it does                                                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run db:migrate`        | Runs Prisma's development migration flow, then regenerates the client. Use this when changing the schema locally. |
+| `npm run db:migrate:deploy` | Applies committed migrations without creating new ones. Best for first local setup and production-style boots.    |
+| `npm run db:seed`           | Provisions admins from `ADMIN_SEED_EMAILS`.                                                                       |
+| `npm run db:setup`          | Runs the development migration flow, regenerates the client, and seeds the database.                              |
+| `npm run db:reset`          | Drops and recreates the local database, regenerates the client, then reruns seed.                                 |
+| `npm run db:studio`         | Opens Prisma Studio.                                                                                              |
+| `npm run db:generate`       | Regenerates Prisma client code.                                                                                   |
+| `npm run db:push`           | Pushes schema changes without a migration and regenerates the client. Useful for quick experiments only.          |
 
 ### Tests
 
