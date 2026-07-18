@@ -17,6 +17,7 @@ function run(stepName, command, args, env = process.env) {
 run("client", "react-router", ["build"], {
   ...process.env,
   ENABLE_TEST_ROUTES: "false",
+  // Exclude development-only routes from both production bundles and manifests.
   OMIT_DEV_ROUTES: "true",
 });
 

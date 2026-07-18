@@ -42,6 +42,23 @@ Open [http://localhost:3000](http://localhost:3000).
 and React Router types. Client generation does not require `DATABASE_URL`, but
 database migration, seed, and application commands do.
 
+### Development-only routes
+
+`ENABLE_TEST_ROUTES` and `OMIT_DEV_ROUTES` intentionally control different
+parts of the development-route lifecycle:
+
+- `ENABLE_TEST_ROUTES` is runtime configuration. Setting it to `true` allows
+  local and E2E access to `/dev/last-email`; otherwise its loader returns 404.
+- `OMIT_DEV_ROUTES` is an internal build-only flag. `npm run build` sets it to
+  `true` so React Router excludes `dev.last-email.tsx` from the production route
+  manifest and client/server bundles.
+
+Standalone React Router type generation leaves `OMIT_DEV_ROUTES` unset. It must
+see the route even when runtime access is disabled because TypeScript still
+checks the source file and its generated route types. Do not add
+`OMIT_DEV_ROUTES` to `.env`, deployment configuration, or secrets; use the
+repository's `npm run build` command for production builds.
+
 ## Local Environment
 
 The app reads runtime environment variables from
