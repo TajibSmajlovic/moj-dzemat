@@ -24,8 +24,8 @@ test.describe("kontakt", () => {
   test("admin can save contact info and it appears on the public page", async ({ page }) => {
     await loginAsAdmin(page);
 
-    await page.goto(href("/admin/kontakt"));
-    await expect(page.getByRole("heading", { name: "Kontakt" })).toBeVisible();
+    await page.goto(href("/admin/kontakt"), { waitUntil: "networkidle" });
+    await expect(page.getByRole("heading", { level: 1, name: "Kontakt" })).toBeVisible();
 
     const uniquePhone = `+38761${String(Date.now()).slice(-6)}`;
     const uniqueAbout = `E2E kontakt opis ${Date.now()}`;
@@ -37,6 +37,7 @@ test.describe("kontakt", () => {
     await page.getByLabel("Primalac").fill("Džemat E2E");
 
     await page.getByRole("button", { name: "Spremi izmjene" }).click();
+    await expect(page.getByText("Kontakt informacije su uspješno sačuvane.")).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`${href("/admin/kontakt")}$`));
 
     await page.goto(href("/kontakt"));

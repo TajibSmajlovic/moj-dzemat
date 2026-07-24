@@ -12,7 +12,7 @@ test.describe("admin / obavijesna traka", () => {
   }) => {
     await loginAsAdmin(page);
 
-    await page.goto(href("/admin/obavijesna-traka"));
+    await page.goto(href("/admin/obavijesna-traka"), { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: "Obavijesna traka" })).toBeVisible();
 
     // Sanity: the seed row from globalSetup is the lone active row.
