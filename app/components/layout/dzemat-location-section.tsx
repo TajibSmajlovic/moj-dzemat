@@ -49,14 +49,14 @@ export function DzematLocationSection({ location, siteName }: DzematLocationSect
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Button size="sm" className="flex-1 gap-2 sm:px-4" asChild>
+              <Button size="sm" className="min-h-11 flex-1 gap-2 sm:px-4" asChild>
                 <a href={location.mapsUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   Otvori u Google Maps
                 </a>
               </Button>
 
-              <Button variant="outline" size="sm" className="flex-1 gap-2 sm:px-4" asChild>
+              <Button variant="outline" size="sm" className="min-h-11 flex-1 gap-2 sm:px-4" asChild>
                 <a href={location.directionsUrl} target="_blank" rel="noreferrer">
                   <Navigation className="h-4 w-4" aria-hidden="true" />
                   Upute do džemata

@@ -16,6 +16,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "#app/components/ui/carousel";
+import { ContactHomeTeaser } from "#app/features/contact/components/contact-home-teaser";
+import { getPublicCommunityInfo } from "#app/features/contact/contact.server";
 import { ImportantDatesHomeSection } from "#app/features/important-dates/components/important-dates-home-section";
 import { getUpcomingImportantDates } from "#app/features/important-dates/important-dates.server";
 import { FeaturedHeroCard } from "#app/features/posts/components/featured-hero-card";
@@ -80,12 +82,14 @@ export async function loader({ url }: Route.LoaderArgs) {
   const postsPromise = getPublicPostCards({ activeType, take: HOME_POST_LIMIT });
   const qaPreviewPromise = getPublicAnsweredQuestions({ take: QA_HOME_PREVIEW_LIMIT });
   const importantDatesPromise = getUpcomingImportantDates();
+  const communityInfoPromise = getPublicCommunityInfo();
 
-  const [featured, posts, qaPreview, importantDates] = await Promise.all([
+  const [featured, posts, qaPreview, importantDates, communityInfo] = await Promise.all([
     featuredPromise,
     postsPromise,
     qaPreviewPromise,
     importantDatesPromise,
+    communityInfoPromise,
   ]);
 
   return {
@@ -93,6 +97,7 @@ export async function loader({ url }: Route.LoaderArgs) {
     posts,
     qaPreview,
     importantDates,
+    communityInfo,
     activeType,
     location: getDzematLocation({
       address: environment.DZEMAT_ADDRESS,
@@ -102,7 +107,8 @@ export async function loader({ url }: Route.LoaderArgs) {
 }
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { posts, featured, qaPreview, importantDates, activeType, location } = loaderData;
+  const { posts, featured, qaPreview, importantDates, communityInfo, activeType, location } =
+    loaderData;
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
   const facebookPageUrl = useRootFacebookPageUrl();
@@ -158,6 +164,8 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
         <QaHomePreview questions={qaPreview} />
 
         <ImportantDatesHomeSection dates={importantDates} />
+
+        <ContactHomeTeaser info={communityInfo} />
 
         {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
       </PageMain>

@@ -10,7 +10,7 @@ import { loader as sitemapLoader } from "#app/routes/sitemap[.]xml";
 import { loader as imageLoader } from "#app/routes/slike.$id";
 import { prisma } from "#app/server/db.server";
 
-import { createPost, createQuestion, createUser } from "../factories";
+import { createCommunityInfo, createPost, createQuestion, createUser } from "../factories";
 import { callLoader, testUrl } from "../helpers/route";
 import { sessionCookieFor } from "../helpers/session";
 
@@ -84,6 +84,26 @@ describe("public post visibility", () => {
       "Javno pitanje 4?",
       "Javno pitanje 5?",
     ]);
+  });
+
+  it("redacts hidden community info from the homepage loader", async () => {
+    await createCommunityInfo({
+      showAbout: false,
+      showContact: false,
+      showImam: false,
+      showBoard: false,
+      showBank: false,
+    });
+
+    const result = await callHomeLoader();
+
+    expect(result.communityInfo).toMatchObject({
+      aboutText: null,
+      contactEmail: null,
+      imamEmail: null,
+      boardNote: null,
+      bankAccount: null,
+    });
   });
 
   it("orders public posts by published date after pinned status", async () => {

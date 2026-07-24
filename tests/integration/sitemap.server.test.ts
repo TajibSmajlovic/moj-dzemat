@@ -8,7 +8,7 @@ import { buildSitemapXml, loader as sitemapLoader } from "#app/routes/sitemap[.]
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
 
-import { createPost, createQuestion, createUser } from "../factories";
+import { createCommunityInfo, createPost, createQuestion, createUser } from "../factories";
 
 describe("sitemap route", () => {
   it("returns valid XML with static public pages when there are no posts or questions", async () => {
@@ -22,7 +22,8 @@ describe("sitemap route", () => {
     expect(body).toContain(`<loc>${env().APP_URL}/</loc>`);
     expect(body).toContain(`<loc>${env().APP_URL}${href("/objave")}</loc>`);
     expect(body).toContain(`<loc>${env().APP_URL}${href("/pitanja-i-odgovori")}</loc>`);
-    expect(body.match(/<url>/g)).toHaveLength(3);
+    expect(body).toContain(`<loc>${env().APP_URL}${href("/kontakt")}</loc>`);
+    expect(body.match(/<url>/g)).toHaveLength(4);
     expect(body).not.toContain("<lastmod>");
   });
 
@@ -55,6 +56,25 @@ describe("sitemap route", () => {
     );
     expect(body).toContain(
       `<loc>${env().APP_URL}${href("/objave")}</loc><lastmod>${updatedNewest.updatedAt.toISOString()}</lastmod>`,
+    );
+  });
+
+  it("uses contact updates for the contact page and homepage lastmod", async () => {
+    const info = await createCommunityInfo();
+    const updatedAt = new Date("2026-05-04T10:00:00.000Z");
+    await prisma.communityInfo.update({
+      where: { id: info.id },
+      data: { updatedAt },
+    });
+
+    const response = await sitemapLoader();
+    const body = await response.text();
+
+    expect(body).toContain(
+      `<loc>${env().APP_URL}/</loc><lastmod>${updatedAt.toISOString()}</lastmod>`,
+    );
+    expect(body).toContain(
+      `<loc>${env().APP_URL}${href("/kontakt")}</loc><lastmod>${updatedAt.toISOString()}</lastmod>`,
     );
   });
 

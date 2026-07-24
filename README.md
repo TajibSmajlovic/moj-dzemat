@@ -3,9 +3,10 @@
 `Moj Džemat` is a lightweight community publishing app for Bosnian-Herzegovinian
 džemats. It has two main surfaces:
 
-- a public website for posts, answered questions, and upcoming community dates
+- a public website for posts, answered questions, upcoming community dates,
+  and džemat contact details
 - an admin area for publishing posts, answering questions, managing important
-  dates, and controlling the site-wide announcement banner
+  dates, contact info, and controlling the site-wide announcement banner
 
 The app is intentionally small operationally: React Router SSR on Express,
 Prisma + SQLite, admin-only authentication, Resend-backed email in production,
@@ -36,7 +37,7 @@ and pull request expectations live in [CONTRIBUTING.md](CONTRIBUTING.md).
 ```text
 app/
   components/          reusable UI primitives, layout chrome, forms, icons, and generic admin pieces
-  features/            vertical slices for posts, Q&A, important dates, announcements, auth, and theme
+  features/            vertical slices for posts, Q&A, important dates, contact, announcements, auth, and theme
   lib/                 small shared app helpers used across multiple slices
   routes/              file-based routes for public pages, auth, admin, sitemap, and dev helpers
   server/              server infrastructure: Prisma, env, email, logging, security, image pipeline
@@ -56,13 +57,13 @@ not know about a domain live in `app/server`, and generic UI remains in
 
 Useful route groups:
 
-| Area      | Routes                                                                                                                                                      |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public    | `/`, `/objave`, `/objave/:slug`, `/pitanja-i-odgovori`, `/pitanja-i-odgovori/:id`, `/robots.txt`, `/sitemap.xml`                                            |
-| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                                                                      |
-| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/pitanja`, `/admin/vazni-datumi`, `/admin/obavijesna-traka` |
-| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                                                            |
-| Resources | `/slike/:id`, `/resources/healthcheck`, `/resources/readiness`                                                                                              |
+| Area      | Routes                                                                                                                                                                        |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public    | `/`, `/objave`, `/objave/:slug`, `/pitanja-i-odgovori`, `/pitanja-i-odgovori/:id`, `/kontakt`, `/robots.txt`, `/sitemap.xml`                                                  |
+| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                                                                                        |
+| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/pitanja`, `/admin/vazni-datumi`, `/admin/kontakt`, `/admin/obavijesna-traka` |
+| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                                                                              |
+| Resources | `/slike/:id`, `/resources/healthcheck`, `/resources/readiness`                                                                                                                |
 
 ## Deployment
 

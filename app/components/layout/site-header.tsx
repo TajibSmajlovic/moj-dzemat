@@ -10,7 +10,7 @@ import {
 import { href, Link, useLocation } from "react-router";
 
 import {
-  ExternalLink,
+  ContactRound,
   HelpCircle,
   Home,
   LockKeyhole,
@@ -42,7 +42,6 @@ type ExternalNavItem = {
   label: string;
   href: string;
   Icon: NavIcon;
-  showExternalIcon?: boolean;
 };
 
 type HeaderNavItem = InternalNavItem | ExternalNavItem;
@@ -50,6 +49,7 @@ type HeaderNavItem = InternalNavItem | ExternalNavItem;
 const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
   { type: "internal", label: "Početna", to: href("/"), Icon: Home },
   { type: "internal", label: "Objave", to: href("/objave"), Icon: Newspaper },
+  { type: "internal", label: "Kontakt", to: href("/kontakt"), Icon: ContactRound },
   {
     type: "internal",
     label: "Pitanja i odgovori",
@@ -101,6 +101,7 @@ function SiteHeaderContent({
 
         <div className="flex shrink-0 items-center gap-2">
           <DesktopNavigation items={navItems} pathname={pathname} />
+          <DesktopExternalLinks items={navItems} />
           <ThemeToggle />
           <DesktopAdminAccess href={adminHref} />
           <MobileMenuToggle controls={mobileMenuId} open={menuOpen} onToggle={toggleMenu} />
@@ -207,16 +208,42 @@ function MobileMenuToggle({
 }
 
 function DesktopNavigation({ items, pathname }: { items: HeaderNavItem[]; pathname: string }) {
+  const primaryItems = items.filter((item): item is InternalNavItem => item.type === "internal");
+
   return (
     <nav
       aria-label="Glavna navigacija"
       className="border-border/70 bg-card/75 hidden shrink-0 items-center gap-1 rounded-full border p-1 shadow-sm xl:flex"
     >
-      {items.map((item) => (
+      {primaryItems.map((item) => (
         <DesktopNavItem key={navItemKey(item)} item={item} pathname={pathname} />
       ))}
     </nav>
   );
+}
+
+function DesktopExternalLinks({ items }: { items: HeaderNavItem[] }) {
+  const externalItems = items.filter((item): item is ExternalNavItem => item.type === "external");
+
+  return externalItems.map((item) => (
+    <Button
+      asChild
+      key={item.href}
+      size="icon"
+      variant="outline"
+      className="border-border bg-background hover:bg-accent hidden rounded-full xl:inline-flex"
+    >
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noreferrer"
+        title={item.label}
+        aria-label={item.label}
+      >
+        <item.Icon className="h-4 w-4" aria-hidden="true" />
+      </a>
+    </Button>
+  ));
 }
 
 function DesktopAdminAccess({ href }: { href: string }) {
@@ -234,7 +261,7 @@ function DesktopAdminAccess({ href }: { href: string }) {
   );
 }
 
-function DesktopNavItem({ item, pathname }: { item: HeaderNavItem; pathname: string }) {
+function DesktopNavItem({ item, pathname }: { item: InternalNavItem; pathname: string }) {
   const active = isNavItemActive(item, pathname);
   const className = cn(
     "focus-visible:ring-ring inline-flex h-9 items-center justify-center gap-2 rounded-full px-3.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
@@ -243,27 +270,10 @@ function DesktopNavItem({ item, pathname }: { item: HeaderNavItem; pathname: str
       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
   );
 
-  const content = (
-    <>
-      <item.Icon className="h-4 w-4" aria-hidden="true" />
-      {item.label}
-      {item.type === "external" && item.showExternalIcon ? (
-        <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden="true" />
-      ) : null}
-    </>
-  );
-
-  if (item.type === "external") {
-    return (
-      <a href={item.href} target="_blank" rel="noreferrer" className={className}>
-        {content}
-      </a>
-    );
-  }
-
   return (
     <Link to={item.to} aria-current={active ? "page" : undefined} className={className}>
-      {content}
+      <item.Icon className="h-4 w-4" aria-hidden="true" />
+      {item.label}
     </Link>
   );
 }
@@ -470,7 +480,6 @@ function buildNavItems({ facebookPageUrl }: { facebookPageUrl: string | null }):
       label: "Facebook",
       href: facebookPageUrl,
       Icon: FacebookIcon,
-      showExternalIcon: true,
     });
   }
 

@@ -43,6 +43,7 @@ test.describe("public", () => {
     ).toHaveAttribute("aria-current", "page");
     await expect(banner.getByRole("link", { name: "Objave" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Pitanja i odgovori" })).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Kontakt" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Facebook" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
   });

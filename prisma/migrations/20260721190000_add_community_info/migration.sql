@@ -1,0 +1,25 @@
+-- CreateTable
+CREATE TABLE "CommunityInfo" (
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "showAbout" BOOLEAN NOT NULL DEFAULT true,
+    "showContact" BOOLEAN NOT NULL DEFAULT true,
+    "showImam" BOOLEAN NOT NULL DEFAULT true,
+    "showBoard" BOOLEAN NOT NULL DEFAULT true,
+    "showBank" BOOLEAN NOT NULL DEFAULT true,
+    "showLocation" BOOLEAN NOT NULL DEFAULT true,
+    "aboutText" TEXT,
+    "imamName" TEXT,
+    "imamPhone" TEXT,
+    "imamEmail" TEXT,
+    "contactPhone" TEXT,
+    "contactEmail" TEXT,
+    "officeHours" TEXT,
+    "bankAccount" TEXT,
+    "bankBeneficiary" TEXT,
+    "bankName" TEXT,
+    "bankSwift" TEXT,
+    "bankNote" TEXT,
+    "boardNote" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
