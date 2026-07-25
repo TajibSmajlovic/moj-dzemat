@@ -1,5 +1,6 @@
 import { href } from "react-router";
 
+import { COMMUNITY_INFO_ID } from "#app/features/contact/contact.server";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { getPublicAnsweredQuestionSitemap } from "#app/features/qa/qa.server";
@@ -10,15 +11,16 @@ import { env } from "#app/server/env.server";
 
 const MAX_ENTRIES = 10_000;
 const SITEMAP_CACHE_SECONDS = 10 * MINUTE_SECONDS;
-const STATIC_ENTRY_COUNT = 3;
+const STATIC_ENTRY_COUNT = 4;
 // Keep answered Q&A pages from being crowded out by a large post archive.
 const RESERVED_QA_DYNAMIC_ENTRIES = 1000;
 
 /**
    Dynamic sitemap. Small enough to fit in a single file so we don't
-   bother with a sitemap index. Home, post archive, and Q&A list come first,
-   then posts by `updatedAt` and visible answered questions by `answeredAt`.
-   Public post images are attached with the Google image sitemap extension.
+   bother with a sitemap index. Home, post archive, Q&A list, and contact
+   come first, then posts by `updatedAt` and visible answered questions by
+   `answeredAt`. Public post images are attached with the Google image
+   sitemap extension.
  */
 export async function loader() {
   const siteUrl = env().APP_URL;
@@ -27,24 +29,38 @@ export async function loader() {
   const qaSitemap = await getPublicAnsweredQuestionSitemap({ take: questionEntryLimit });
   const postEntryLimit = Math.max(dynamicEntryLimit - qaSitemap.questions.length, 0);
 
-  const posts = await prisma.post.findMany({
-    where: { status: "published" },
-    orderBy: { updatedAt: "desc" },
-    take: postEntryLimit,
-    select: {
-      slug: true,
-      updatedAt: true,
-      images: { orderBy: { position: "asc" }, select: { id: true } },
-    },
-  });
-  const homepageLastmod = newestDate(posts[0]?.updatedAt, qaSitemap.lastAnsweredAt)?.toISOString();
+  const [posts, communityInfo] = await Promise.all([
+    prisma.post.findMany({
+      where: { status: "published" },
+      orderBy: { updatedAt: "desc" },
+      take: postEntryLimit,
+      select: {
+        slug: true,
+        updatedAt: true,
+        images: { orderBy: { position: "asc" }, select: { id: true } },
+      },
+    }),
+    prisma.communityInfo.findUnique({
+      where: { id: COMMUNITY_INFO_ID },
+      select: { updatedAt: true },
+    }),
+  ]);
+  const communityInfoUpdatedAt =
+    communityInfo && communityInfo.updatedAt.getTime() > 0 ? communityInfo.updatedAt : null;
+  const homepageLastmod = newestDate(
+    posts[0]?.updatedAt,
+    qaSitemap.lastAnsweredAt,
+    communityInfoUpdatedAt,
+  )?.toISOString();
   const postsLastmod = posts[0]?.updatedAt.toISOString();
   const qaLastmod = qaSitemap.lastAnsweredAt?.toISOString();
+  const kontaktLastmod = communityInfoUpdatedAt?.toISOString();
 
   const urls = [
     { loc: absoluteUrl(siteUrl, href("/")), lastmod: homepageLastmod },
     { loc: absoluteUrl(siteUrl, href("/objave")), lastmod: postsLastmod },
     { loc: absoluteUrl(siteUrl, href("/pitanja-i-odgovori")), lastmod: qaLastmod },
+    { loc: absoluteUrl(siteUrl, href("/kontakt")), lastmod: kontaktLastmod },
     ...posts.map((post) => ({
       loc: absoluteUrl(siteUrl, postHref(post.slug)),
       lastmod: post.updatedAt.toISOString(),

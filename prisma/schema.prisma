@@ -185,3 +185,38 @@ model ImportantDate {
 
   @@index([date])
 }
+
+// Singleton contact / about page for the džemat. Always at most one row
+// (`id = "default"`). Address and map stay on env branding; this model
+// holds the editable community details (phone, bank details, imam, hours, etc.).
+model CommunityInfo {
+  id String @id @default("default")
+
+  showAbout    Boolean @default(true)
+  showContact  Boolean @default(true)
+  showImam     Boolean @default(true)
+  showBoard    Boolean @default(true)
+  showBank     Boolean @default(true)
+  showLocation Boolean @default(true)
+
+  aboutText String?
+
+  imamName  String?
+  imamPhone String?
+  imamEmail String?
+
+  contactPhone String?
+  contactEmail String?
+  officeHours  String?
+
+  bankAccount     String?
+  bankBeneficiary String?
+  bankName        String?
+  bankSwift       String?
+  bankNote        String?
+
+  boardNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

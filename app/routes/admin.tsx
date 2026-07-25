@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import { Form, href, Link, NavLink, Outlet } from "react-router";
 
 import {
   ArrowLeft,
   BellRing,
   CalendarDays,
+  ContactRound,
   HelpCircle,
   LogOut,
   Newspaper,
@@ -88,34 +90,53 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
 
-        <nav
-          aria-label="Admin sekcije"
-          className="border-border/60 overflow-x-auto overflow-y-hidden border-t"
-        >
-          <div className="mx-auto flex w-full max-w-5xl gap-1 px-4">
-            <div className="-ml-3 sm:-ml-4">
-              <AdminTab to={href("/admin/objave")} label="Objave" icon={Newspaper} />
-            </div>
-            <AdminTab
-              to={href("/admin/pitanja")}
-              label="Pitanja"
-              icon={HelpCircle}
-              badgeCount={pendingQuestionCount}
-              badgeLabel={`${pendingQuestionCount} neodgovorenih pitanja`}
-            />
-            <AdminTab to={href("/admin/vazni-datumi")} label="Važni datumi" icon={CalendarDays} />
-            <AdminTab
-              to={href("/admin/obavijesna-traka")}
-              label="Obavijesna traka"
-              icon={BellRing}
-              activeIndicator={hasActiveAnnouncement ? "Aktivna" : null}
-            />
-          </div>
-        </nav>
+        <AdminNavigation
+          pendingQuestionCount={pendingQuestionCount}
+          hasActiveAnnouncement={hasActiveAnnouncement}
+        />
       </header>
 
       <Outlet />
     </div>
+  );
+}
+
+function AdminNavigation({
+  hasActiveAnnouncement,
+  pendingQuestionCount,
+}: {
+  hasActiveAnnouncement: boolean;
+  pendingQuestionCount: number;
+}) {
+  const navRef = useRef<HTMLElement>(null);
+
+  return (
+    <nav
+      ref={navRef}
+      aria-label="Admin sekcije"
+      className="border-border/60 overflow-x-auto overflow-y-hidden border-t"
+    >
+      <div className="mx-auto flex w-full max-w-5xl gap-1 px-4">
+        <div className="-ml-3 sm:-ml-4">
+          <AdminTab to={href("/admin/objave")} label="Objave" icon={Newspaper} />
+        </div>
+        <AdminTab
+          to={href("/admin/pitanja")}
+          label="Pitanja"
+          icon={HelpCircle}
+          badgeCount={pendingQuestionCount}
+          badgeLabel={`${pendingQuestionCount} neodgovorenih pitanja`}
+        />
+        <AdminTab to={href("/admin/vazni-datumi")} label="Važni datumi" icon={CalendarDays} />
+        <AdminTab to={href("/admin/kontakt")} label="Kontakt" icon={ContactRound} />
+        <AdminTab
+          to={href("/admin/obavijesna-traka")}
+          label="Obavijesna traka"
+          icon={BellRing}
+          activeIndicator={hasActiveAnnouncement ? "Aktivna" : null}
+        />
+      </div>
+    </nav>
   );
 }
 

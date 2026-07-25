@@ -53,7 +53,10 @@ beforeAll(() => {
 });
 
 afterEach(async () => {
-  const { prisma } = await import("#app/server/db.server");
+  const [{ invalidateCommunityInfo }, { prisma }] = await Promise.all([
+    import("#app/features/contact/contact.server"),
+    import("#app/server/db.server"),
+  ]);
   // Order matters: children first so FK cascades don't surprise us.
   await prisma.postImage.deleteMany();
   await prisma.postVideo.deleteMany();
@@ -64,6 +67,9 @@ afterEach(async () => {
   await prisma.siteAnnouncement.deleteMany();
   await prisma.question.deleteMany();
   await prisma.importantDate.deleteMany();
+  await prisma.communityInfo.deleteMany();
+
+  invalidateCommunityInfo();
 });
 
 afterAll(async () => {
