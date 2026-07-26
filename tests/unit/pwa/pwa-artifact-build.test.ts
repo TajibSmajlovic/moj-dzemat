@@ -35,6 +35,15 @@ function options(
     offlineOutputPath: path.join(directory, "offline.html"),
     serviceWorkerOutputPath: path.join(directory, "sw.js"),
     workerTsconfigPath: path.resolve(projectRoot, "tsconfig.worker.json"),
+    logoPath: path.resolve(projectRoot, "public/logo.svg"),
+    loraLatinFontPath: path.resolve(
+      projectRoot,
+      "node_modules/@fontsource-variable/lora/files/lora-latin-wght-normal.woff2",
+    ),
+    loraLatinExtendedFontPath: path.resolve(
+      projectRoot,
+      "node_modules/@fontsource-variable/lora/files/lora-latin-ext-wght-normal.woff2",
+    ),
   };
 }
 
@@ -71,7 +80,7 @@ describe("PWA artifact build", () => {
     fs.writeFileSync(repeatedTemplate, sourceTemplate);
     fs.writeFileSync(
       changedTemplate,
-      sourceTemplate.replace("Način rada bez interneta", "Rad bez interneta"),
+      sourceTemplate.replace('aria-label="Status veze"', 'aria-label="Status internetske veze"'),
     );
 
     const first = await buildPwaArtifacts(options(firstDirectory, firstTemplate));
@@ -90,6 +99,9 @@ describe("PWA artifact build", () => {
     expect(changedWorker).not.toBe(firstWorker);
     expect(firstWorker).toContain(first.offlineShellRevision);
     expect(changedWorker).toContain(changed.offlineShellRevision);
+    expect(firstShell.toString("utf8")).toContain("data:font/woff2;base64,");
+    expect(firstShell.toString("utf8")).toContain("<svg");
+    expect(firstShell.toString("utf8")).not.toContain("__MOJ_DZEMAT_");
   });
 
   it("builds a cleanup-only recovery worker for the stable worker URL", async () => {
