@@ -48,7 +48,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData?.post) {
     return buildNoindexMeta("Objava · Admin", ROBOTS_NOINDEX_NOFOLLOW);
   }
-  return buildNoindexMeta(`Uredi „${loaderData.post.title}" · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
+  return buildNoindexMeta(`Uredi '${loaderData.post.title}' · Admin`, ROBOTS_NOINDEX_NOFOLLOW);
 }
 
 export async function loader({ context, params }: Route.LoaderArgs) {
@@ -119,7 +119,7 @@ export default function AdminEditPost({ actionData, loaderData }: Route.Componen
         backTo={href("/admin/objave")}
         backLabel="Nazad na listu"
         title="Uredi objavu"
-        description={`Uređujete "${post.title}". Sačuvajte izmjene, pregledajte ili objavite kada je spremno.`}
+        description={`Uređujete '${post.title}'. Sačuvajte izmjene, pregledajte objavu ili je objavite kada bude spremna.`}
       />
 
       <AdminPanel>

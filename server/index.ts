@@ -5,6 +5,8 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 
+import { pwaAssetHeaders } from "../app/features/pwa/pwa-assets.server";
+import { PWA_OFFLINE_SHELL_PATH, PWA_SERVICE_WORKER_PATH } from "../app/features/pwa/pwa-config";
 import { DAY_SECONDS } from "../app/lib/time";
 import { env } from "../app/server/env.server";
 import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
@@ -185,6 +187,14 @@ async function createServer(): Promise<express.Express> {
     app.get("/logo.svg", rateLimitStaticFiles, (_req, res) => {
       res.setHeader("Cache-Control", `public, max-age=${7 * DAY_SECONDS}`);
       res.sendFile("logo.svg", { root: "build/client" });
+    });
+    app.get(PWA_SERVICE_WORKER_PATH, rateLimitStaticFiles, (_req, res) => {
+      res.set(pwaAssetHeaders("service-worker"));
+      res.sendFile("sw.js", { root: "build/client" });
+    });
+    app.get(PWA_OFFLINE_SHELL_PATH, rateLimitStaticFiles, (_req, res) => {
+      res.set(pwaAssetHeaders("offline-shell"));
+      res.sendFile("offline.html", { root: "build/client" });
     });
     app.use(rateLimitStaticFiles, express.static("build/client", { maxAge: "1h" }));
 

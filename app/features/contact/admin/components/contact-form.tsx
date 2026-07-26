@@ -168,7 +168,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
       <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
         <SectionHeader
           title="O džematu"
-          description="Kratak uvod koji posjetitelji vide na stranici Kontakta."
+          description="Kratak uvod koji posjetioci vide na stranici 'Kontakt'."
           visibilityField={fields.showAbout}
         />
 
@@ -184,7 +184,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
       <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
         <SectionHeader
           title="Kontakt"
-          description="Telefon, email i prijemno vrijeme za opći kontakt s džematom."
+          description="Telefon, e-mail i prijemno vrijeme za opći kontakt s džematom."
           visibilityField={fields.showContact}
         />
 
@@ -200,7 +200,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
             }}
           />
           <Field
-            label="Email"
+            label="E-mail"
             errors={fields.contactEmail.errors}
             inputProps={{
               ...getInputProps(fields.contactEmail, { type: "email" }),
@@ -213,11 +213,11 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
 
         <TextareaField
           label="Radno / prijemno vrijeme"
-          hint="Kratko — npr. radnim danima 9-14h, ili nakon namaza."
+          hint="Kratko — npr. radnim danima od 9 do 14 sati ili nakon namaza."
           field={fields.officeHours}
           maxLength={OFFICE_HOURS_MAX}
           rows={3}
-          placeholder="Radnim danima 9:00-14:00"
+          placeholder="Radnim danima od 9 do 14 sati"
         />
       </section>
 
@@ -234,7 +234,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
           inputProps={{
             ...getInputProps(fields.imamName, { type: "text" }),
             maxLength: NAME_MAX,
-            placeholder: "npr. Hfz. Ime Prezime",
+            placeholder: "npr. hfz. Ime Prezime",
             autoComplete: "name",
           }}
         />
@@ -250,7 +250,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
             }}
           />
           <Field
-            label="Email imama"
+            label="E-mail imama"
             errors={fields.imamEmail.errors}
             inputProps={{
               ...getInputProps(fields.imamEmail, { type: "email" }),
@@ -269,7 +269,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
         />
 
         <TextareaField
-          label="Džematski odbor / mutevelija (opcionalno)"
+          label="Džematski odbor / mutevelija (nije obavezno)"
           hint="Navedite samo javne informacije, npr. ime predsjednika odbora ili mutevelije."
           field={fields.boardNote}
           maxLength={BOARD_NOTE_MAX}
@@ -281,7 +281,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
       <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
         <SectionHeader
           title="Žiro račun"
-          description="Podaci za članarinu, sadaqa i druge uplate džematu."
+          description="Podaci za članarinu, sadaku i druge uplate džematu."
           visibilityField={fields.showBank}
         />
 
@@ -310,7 +310,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
-            label="Banka (opcionalno)"
+            label="Banka (nije obavezno)"
             errors={fields.bankName.errors}
             inputProps={{
               ...getInputProps(fields.bankName, { type: "text" }),
@@ -319,7 +319,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
             }}
           />
           <Field
-            label="SWIFT / BIC (opcionalno)"
+            label="SWIFT / BIC (nije obavezno)"
             hint="Koristi se uglavnom za međunarodne uplate."
             errors={fields.bankSwift.errors}
             inputProps={{
@@ -338,21 +338,21 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
           field={fields.bankNote}
           maxLength={BANK_NOTE_MAX}
           rows={3}
-          placeholder="npr. U svrhu uplate navedite: članarina / sadaqa"
+          placeholder="npr. U svrhu uplate navedite: članarina / sadaka"
         />
       </section>
 
       <section className="border-border bg-card rounded-2xl border p-5 shadow-xs sm:p-6">
         <SectionHeader
           title="Lokacija"
-          description="Adresa i mapa podešavaju se kroz okruženje, a ovdje možete isključiti njihov javni prikaz."
+          description="Adresa i mapa podešavaju se u postavkama okruženja, a ovdje možete isključiti njihov javni prikaz."
           visibilityField={fields.showLocation}
         />
       </section>
 
       <FormActions sticky className="justify-between">
         <p className="text-muted-foreground hidden text-sm sm:block">
-          Promjene postaju javne tek nakon spremanja.
+          Promjene postaju javne tek kada ih sačuvate.
         </p>
         <Button
           type="submit"

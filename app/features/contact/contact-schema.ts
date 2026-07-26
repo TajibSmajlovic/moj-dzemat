@@ -144,16 +144,16 @@ export const CommunityInfoFormSchema = z
       "Unesite ispravan telefon imama.",
     ),
     imamEmail: optionalEmail(
-      `Email imama može imati najviše ${EMAIL_MAX} znakova.`,
-      "Unesite ispravnu email adresu imama.",
+      `E-mail imama može imati najviše ${EMAIL_MAX} znakova.`,
+      "Unesite ispravnu e-mail adresu imama.",
     ),
     contactPhone: optionalPhone(
       `Kontakt telefon može imati najviše ${PHONE_MAX} znakova.`,
       "Unesite ispravan kontakt telefon.",
     ),
     contactEmail: optionalEmail(
-      `Kontakt email može imati najviše ${EMAIL_MAX} znakova.`,
-      "Unesite ispravnu kontakt email adresu.",
+      `Kontakt e-mail adresa može imati najviše ${EMAIL_MAX} znakova.`,
+      "Unesite ispravnu kontaktnu e-mail adresu.",
     ),
     officeHours: optionalText(
       OFFICE_HOURS_MAX,

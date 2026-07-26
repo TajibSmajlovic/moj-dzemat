@@ -26,7 +26,7 @@ export async function fillPostForm(page: Page, options: FillPostFormOptions) {
     await page.getByRole("textbox", { name: "Naslov" }).fill(options.title);
   }
   if (options.slug !== undefined) {
-    await page.getByLabel("URL slug").fill(options.slug);
+    await page.getByLabel("Dio URL-a").fill(options.slug);
   }
   if (options.type !== undefined) {
     await page.getByLabel("Vrsta").selectOption(options.type);

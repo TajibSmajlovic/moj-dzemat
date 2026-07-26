@@ -34,12 +34,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     },
   });
 
-  invariantResponse(image, "Not found", { status: 404 });
+  invariantResponse(image, "Slika nije pronađena.", { status: 404 });
 
   const isPublished = image.post.status === "published";
   const currentUser = isPublished ? null : await getCurrentUser(request);
 
-  invariantResponse(isPublished || currentUser, "Not found", { status: 404 });
+  invariantResponse(isPublished || currentUser, "Slika nije pronađena.", { status: 404 });
 
   const body = toResponseBody(image.data);
   const contentType = image.contentType?.startsWith("image/") ? image.contentType : "image/webp";

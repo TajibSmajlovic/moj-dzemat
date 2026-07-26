@@ -8,6 +8,10 @@ džemats. It has two main surfaces:
 - an admin area for publishing posts, answering questions, managing important
   dates, contact info, and controlling the site-wide announcement banner
 
+The public site is installable as a Progressive Web App. It can retain
+text-only snapshots of the 20 most recently viewed published posts for offline
+reading; images and videos remain online-only.
+
 The app is intentionally small operationally: React Router SSR on Express,
 Prisma + SQLite, admin-only authentication, Resend-backed email in production,
 and image blobs normalized with `sharp`.
@@ -89,6 +93,9 @@ configuration:
 
 Leave `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and
 `DISABLE_RATE_LIMITING` unset or `false` in production.
+
+The focused PWA production checklist and cleanup-worker procedure live in
+[docs/pwa-recovery.md](docs/pwa-recovery.md).
 
 ## Community And Security
 

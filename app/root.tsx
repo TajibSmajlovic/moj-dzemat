@@ -8,6 +8,8 @@ import { MotionConfig } from "motion/react";
 
 import { RootErrorBoundary } from "#app/components/layout/root-error-boundary";
 import { Toaster, useToast } from "#app/components/ui/sonner";
+import { PWA_MANIFEST_PATH, PWA_THEME_COLOR } from "#app/features/pwa/pwa-config";
+import { ServiceWorkerRegistration } from "#app/features/pwa/register-service-worker";
 import {
   DEFAULT_THEME_PREFERENCE,
   THEME_COOKIE_NAME,
@@ -22,6 +24,7 @@ import type { Route } from "./+types/root";
 import "./styles/tailwind.css";
 
 export const links: Route.LinksFunction = () => [
+  { rel: "manifest", href: PWA_MANIFEST_PATH },
   { rel: "icon", href: "/favicon-32x32.png?v=1", type: "image/png", sizes: "32x32" },
   { rel: "icon", href: "/logo.png?v=1", type: "image/png", sizes: "512x512" },
   { rel: "icon", href: "/logo.svg?v=7", type: "image/svg+xml" },
@@ -93,12 +96,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" content={PWA_THEME_COLOR} />
         <ThemeInitScript />
         <Meta />
         <Links />
       </head>
       <body className="bg-background text-foreground">
         {children}
+        <ServiceWorkerRegistration />
         <Toaster />
         <ScrollRestoration />
         <Scripts />

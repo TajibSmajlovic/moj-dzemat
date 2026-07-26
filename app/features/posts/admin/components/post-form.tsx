@@ -120,7 +120,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
         />
 
         <Field
-          label="URL slug"
+          label="Dio URL-a"
           hint="Pojavljuje se u adresi stranice, npr. /objave/hutba-petak."
           errors={fields.slug.errors}
           inputProps={{
@@ -274,7 +274,7 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
       <header className="flex items-center justify-between">
         <h3 className="font-display text-sm font-semibold">Slike</h3>
         <span className="text-muted-foreground text-xs">
-          {post ? post.images.length : 0}/{MAX_IMAGES_PER_POST} · opcionalno
+          {post ? post.images.length : 0}/{MAX_IMAGES_PER_POST} · nije obavezno
         </span>
       </header>
 
@@ -307,9 +307,9 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
           {pending.length > 0 ? (
             <div className="space-y-3 pt-1">
               <div className="bg-muted/50 border-border flex items-center justify-between rounded-xl border border-dashed px-3 py-2">
-                <p className="text-foreground text-sm font-medium">Pregled prije uploada</p>
+                <p className="text-foreground text-sm font-medium">Pregled prije slanja</p>
                 <span className="text-muted-foreground text-xs">
-                  {pending.length}/{remainingSlots} za upload
+                  {pending.length}/{remainingSlots} za slanje
                 </span>
               </div>
 
@@ -384,7 +384,7 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
           Video (YouTube)
         </h3>
         <span className="text-muted-foreground text-xs">
-          {filledCount}/{MAX_VIDEOS_PER_POST} · opcionalno
+          {filledCount}/{MAX_VIDEOS_PER_POST} · nije obavezno
         </span>
       </header>
 
@@ -544,7 +544,7 @@ function ExistingImage({ postId, image }: ExistingImageProps) {
           <ConfirmAction
             onConfirm={requestDelete}
             title="Obrisati sliku?"
-            description="Slika će biti trajno uklonjena iz ove objave. Ako se predomislite, moraćete je ponovo dodati."
+            description="Slika će biti trajno uklonjena iz ove objave. Ako se predomislite, morat ćete je ponovo dodati."
             confirmLabel="Obriši sliku"
           >
             <Button

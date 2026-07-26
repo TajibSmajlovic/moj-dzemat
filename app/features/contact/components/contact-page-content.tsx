@@ -85,7 +85,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
                 id="contact-details-heading"
                 eyebrow="Brzi kontakt"
                 title="Kontaktirajte nas"
-                description="Pozovite nas, pošaljite email ili provjerite prijemno vrijeme."
+                description="Pozovite nas, pošaljite e-mail ili provjerite prijemno vrijeme."
               />
 
               <address className="border-border/60 mt-5 min-w-0 divide-y overflow-hidden rounded-xl border not-italic">
@@ -100,7 +100,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
                 {info.contactEmail ? (
                   <ContactRow
                     icon={Mail}
-                    label="Email"
+                    label="E-mail"
                     value={info.contactEmail}
                     href={`mailto:${info.contactEmail}`}
                   />
@@ -268,7 +268,7 @@ function BankDetails({ info }: { info: CommunityInfoRecord }) {
             Podaci za uplatu
           </h2>
           <p className="text-muted-foreground mt-2 text-sm leading-6 text-pretty">
-            Podaci za članarinu, sadaqa i druge uplate džematu.
+            Podaci za članarinu, sadaku i druge uplate džematu.
           </p>
         </div>
 

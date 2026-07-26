@@ -88,7 +88,12 @@ export default tseslint.config(
         // live in different projects (client DOM lib vs. Node lib). A single
         // `projectService` can't span them without project references, which
         // we intentionally dropped (see plan).
-        project: ["./tsconfig.json", "./tsconfig.server.json", "./tsconfig.node.json"],
+        project: [
+          "./tsconfig.json",
+          "./tsconfig.server.json",
+          "./tsconfig.node.json",
+          "./tsconfig.worker.json",
+        ],
         tsconfigRootDir: __dirname,
       },
     },

@@ -62,7 +62,7 @@ export function PostFilter({ active, destination = "home" }: PostFilterProps) {
   }, [updateEdgeFade]);
 
   return (
-    <nav aria-label="Filter objava" className="relative -mx-4 sm:mx-0">
+    <nav aria-label="Filtriranje objava" className="relative -mx-4 sm:mx-0">
       <div
         ref={scrollRef}
         onScroll={updateEdgeFade}

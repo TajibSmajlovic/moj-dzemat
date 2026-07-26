@@ -26,7 +26,7 @@ export function HoneypotInputs({ token }: HoneypotInputsProps) {
       }}
     >
       <label>
-        Website
+        Web-stranica
         <input
           type="text"
           name={HONEYPOT_FIELD}

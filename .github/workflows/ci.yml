@@ -81,6 +81,38 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: playwright-report
-          path: playwright-report
+          name: playwright-e2e-artifacts
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  pwa:
+    name: Playwright PWA production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: cp .env.example .env
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:pwa
+        env:
+          CI: "true"
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-pwa-artifacts
+          path: |
+            playwright-pwa-report
+            test-results/pwa
           retention-days: 7

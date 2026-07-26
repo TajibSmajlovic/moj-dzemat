@@ -19,8 +19,8 @@ type EmailFieldOptions = {
 };
 
 export function emailField(options: EmailFieldOptions = {}) {
-  return requiredString(options.requiredMessage ?? "Email je obavezan.").email(
-    options.invalidMessage ?? "Unesite ispravnu email adresu.",
+  return requiredString(options.requiredMessage ?? "E-mail je obavezan.").email(
+    options.invalidMessage ?? "Unesite ispravnu e-mail adresu.",
   );
 }
 

@@ -26,6 +26,8 @@ WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl
 
+ARG PWA_WORKER_MODE=normal
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -33,7 +35,7 @@ ENV NODE_ENV=production \
     DATABASE_URL=file:./data.db
 RUN npx prisma generate
 RUN npx react-router typegen
-RUN npm run build
+RUN npm run build -- --worker-mode=${PWA_WORKER_MODE}
 
 # The generated Prisma client is bundled into the server artifacts above.
 # After the build we only need production dependencies.

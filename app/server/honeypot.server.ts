@@ -45,22 +45,25 @@ export function assertHoneypot(formData: FormData): void {
   const hp = formData.get(HONEYPOT_FIELD);
   const ts = formData.get(HONEYPOT_TIMESTAMP_FIELD);
 
-  invariantResponse(typeof hp === "string" && hp === "", "Invalid submission");
-  invariantResponse(typeof ts === "string", "Invalid submission");
+  invariantResponse(typeof hp === "string" && hp === "", "Neispravno slanje obrasca.");
+  invariantResponse(typeof ts === "string", "Neispravno slanje obrasca.");
 
   const [timestampStr, signature] = ts.split(".");
-  invariantResponse(timestampStr && signature, "Invalid submission");
+  invariantResponse(timestampStr && signature, "Neispravno slanje obrasca.");
 
   const expected = sign(timestampStr);
   // constant-time compare
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
-  invariantResponse(a.length === b.length && crypto.timingSafeEqual(a, b), "Invalid submission");
+  invariantResponse(
+    a.length === b.length && crypto.timingSafeEqual(a, b),
+    "Neispravno slanje obrasca.",
+  );
 
   const age = Date.now() - Number(timestampStr);
   const shouldSkipMinAge = env().HONEYPOT_SKIP_MIN_AGE;
   invariantResponse(
     Number.isFinite(age) && (shouldSkipMinAge || age >= MIN_AGE_MS) && age <= MAX_AGE_MS,
-    "Invalid submission",
+    "Neispravno slanje obrasca.",
   );
 }

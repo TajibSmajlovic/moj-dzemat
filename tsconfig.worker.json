@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "app/features/pwa/pwa-config.ts",
+    "app/features/pwa/recovery-cleanup.ts",
+    "app/features/pwa/recovery-worker.ts",
+    "app/features/pwa/service-worker.ts",
+    "app/features/pwa/worker-routing.ts"
+  ],
+  "compilerOptions": {
+    "lib": ["ES2022", "WebWorker"],
+    "types": []
+  }
+}

@@ -67,7 +67,7 @@ test.describe("seo", () => {
       "content",
       "630",
     );
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#1a4737");
+    await expect(page.locator('meta[name="theme-color"][content="#1a4737"]')).toHaveCount(1);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       "content",
       "max-image-preview:large",

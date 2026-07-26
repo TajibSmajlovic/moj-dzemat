@@ -45,7 +45,7 @@ export function AnnouncementForm({ announcement, lastResult, submitting, onCance
           inputProps={{
             ...getInputProps(fields.message, { type: "text" }),
             maxLength: 500,
-            placeholder: "Kratka poruka za posjetitelje…",
+            placeholder: "Kratka poruka za posjetioce…",
           }}
         />
 
@@ -61,7 +61,8 @@ export function AnnouncementForm({ announcement, lastResult, submitting, onCance
             </Label>
           </div>
           <p className="text-muted-foreground text-xs">
-            Samo jedna poruka može biti aktivna. Aktiviranje ove automatski deaktivira sve ostale.
+            Samo jedna poruka može biti aktivna. Aktiviranjem ove poruke automatski se deaktiviraju
+            sve ostale.
           </p>
         </div>
       </div>

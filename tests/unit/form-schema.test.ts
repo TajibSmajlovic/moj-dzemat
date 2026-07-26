@@ -41,13 +41,13 @@ describe("emailField", () => {
     const missing = schema.safeParse(undefined);
     expect(missing.success).toBe(false);
     if (!missing.success) {
-      expect(missing.error.issues[0]?.message).toBe("Email je obavezan.");
+      expect(missing.error.issues[0]?.message).toBe("E-mail je obavezan.");
     }
 
     const invalid = schema.safeParse("not-an-email");
     expect(invalid.success).toBe(false);
     if (!invalid.success) {
-      expect(invalid.error.issues[0]?.message).toBe("Unesite ispravnu email adresu.");
+      expect(invalid.error.issues[0]?.message).toBe("Unesite ispravnu e-mail adresu.");
     }
   });
 

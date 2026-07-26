@@ -29,14 +29,14 @@ export const PostFormSchema = z.object({
   title: requiredString("Naslov je obavezan.")
     .min(3, "Naslov mora imati najmanje 3 znaka.")
     .max(200, "Naslov može imati najviše 200 znakova."),
-  slug: requiredString("Slug je obavezan.")
-    .min(3, "Slug mora imati najmanje 3 znaka.")
-    .max(80, "Slug može imati najviše 80 znakova.")
+  slug: requiredString("Dio URL-a je obavezan.")
+    .min(3, "Dio URL-a mora imati najmanje 3 znaka.")
+    .max(80, "Dio URL-a može imati najviše 80 znakova.")
     .regex(SLUG_RE, "Koristite samo mala slova, brojeve i crtice."),
   type: z.enum(POST_TYPES, { message: "Odaberite vrstu objave." }),
   body: requiredString("Tekst je obavezan.")
     .min(1, "Tekst je obavezan.")
-    .max(50_000, "Tekst je predug (max 50000 znakova)."),
+    .max(50_000, "Tekst može imati najviše 50.000 znakova."),
   publish: checkbox,
   featured: checkbox,
   pinned: checkbox,

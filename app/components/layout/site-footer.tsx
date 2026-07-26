@@ -108,7 +108,7 @@ function ContributionSection() {
             </span>
 
             <p className="text-muted-foreground mt-2 text-sm leading-6 text-pretty">
-              Ako želiš pomoći u razvoju, prijaviti grešku ili predložiti novu funkcionalnost, sve
+              Ako želite pomoći u razvoju, prijaviti grešku ili predložiti novu funkcionalnost, sve
               tehničke upute, način pokretanja projekta i pravila za doprinos nalaze se na GitHubu.
             </p>
           </div>
@@ -124,7 +124,7 @@ function ContributionSection() {
 
         <div className="border-border/70 mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-muted-foreground text-xs font-medium">
-            Za pitanja ili dogovor možeš kontaktirati:
+            Za pitanja ili dogovor možete se javiti:
           </p>
 
           <div className="flex flex-wrap gap-1">

@@ -101,7 +101,7 @@ export function RichEditor({
     if (!editor) return;
 
     const previousUrl = (editor.getAttributes("link") as { href?: string }).href ?? "";
-    const url = globalThis.prompt("URL adresa:", previousUrl);
+    const url = globalThis.prompt("Adresa linka:", previousUrl);
 
     if (url === null) return; // cancelled
     if (url === "") {
@@ -203,7 +203,7 @@ function Toolbar({ editor, onSetLink }: ToolbarProps) {
           onPress={() => editor.chain().focus().toggleBulletList().run()}
         />
         <ToolbarButton
-          label="Numerirana lista"
+          label="Numerisana lista"
           icon={ListOrdered}
           active={editor.isActive("orderedList")}
           onPress={() => editor.chain().focus().toggleOrderedList().run()}

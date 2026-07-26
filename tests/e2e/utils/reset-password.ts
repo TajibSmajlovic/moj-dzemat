@@ -22,12 +22,12 @@ type ResetOptions = {
 
 export async function resetPasswordViaDevInbox(page: Page, { email, newPassword }: ResetOptions) {
   await page.goto(href("/zaboravljena-lozinka"));
-  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("E-mail").fill(email);
   await page.getByRole("button", { name: "Pošalji link" }).click();
 
   // The success screen is identical regardless of whether the email
   // exists (the route is intentionally constant-time-ish at the UI).
-  await expect(page.getByRole("heading", { name: "Provjerite email" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Provjerite e-mail" })).toBeVisible();
 
   await page.goto(href("/dev/last-email"));
   await expect
@@ -45,7 +45,7 @@ export async function resetPasswordViaDevInbox(page: Page, { email, newPassword 
 
   await page.getByLabel("Nova lozinka").fill(newPassword);
   await page.getByLabel("Potvrdite lozinku").fill(newPassword);
-  await page.getByRole("button", { name: "Spremi i prijavi se" }).click();
+  await page.getByRole("button", { name: "Sačuvaj i prijavi se" }).click();
 
   await expect(page).toHaveURL(new RegExp(`${href("/admin/objave")}$`));
 }

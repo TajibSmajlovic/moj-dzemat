@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="bs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="__MOJ_DZEMAT_PWA_THEME_COLOR__" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'none'; media-src 'none'; font-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Bez interneta · Moj džemat</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --page: __MOJ_DZEMAT_PWA_BACKGROUND_COLOR__;
+        --surface: #ffffff;
+        --surface-subtle: #f4f0ea;
+        --text: #282522;
+        --muted: #69635d;
+        --border: #ded7cf;
+        --accent: __MOJ_DZEMAT_PWA_THEME_COLOR__;
+        --accent-hover: #135c47;
+        --accent-text: #ffffff;
+        --notice: #fff7dc;
+        --notice-border: #d7a822;
+        --shadow: 0 14px 40px rgba(40, 37, 34, 0.08);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #181715;
+          --surface: #22211f;
+          --surface-subtle: #2d2a27;
+          --text: #f5f1eb;
+          --muted: #bcb4aa;
+          --border: #46413c;
+          --accent: #54b493;
+          --accent-hover: #73c6a8;
+          --accent-text: #10291f;
+          --notice: #332d18;
+          --notice-border: #9f7f25;
+          --shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--page);
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background:
+          radial-gradient(
+            circle at top,
+            color-mix(in srgb, var(--accent) 10%, transparent),
+            transparent 32rem
+          ),
+          var(--page);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--accent) 65%, white);
+        outline-offset: 3px;
+      }
+
+      .offline-header {
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface) 92%, transparent);
+      }
+
+      .offline-header-inner,
+      .offline-main {
+        width: min(100% - 2rem, 48rem);
+        margin-inline: auto;
+      }
+
+      .offline-header-inner {
+        display: flex;
+        min-height: 4rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .offline-brand {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .offline-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .offline-status-badge::before {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        background: var(--notice-border);
+        content: "";
+      }
+
+      .offline-main {
+        padding-block: clamp(1.25rem, 4vw, 3rem);
+      }
+
+      .offline-stack {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .offline-panel {
+        overflow-wrap: anywhere;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: var(--surface);
+        padding: clamp(1.25rem, 4vw, 2rem);
+        box-shadow: var(--shadow);
+      }
+
+      .offline-eyebrow {
+        margin: 0 0 0.35rem;
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .offline-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.75rem, 6vw, 2.6rem);
+        line-height: 1.15;
+      }
+
+      .offline-description,
+      .offline-empty {
+        max-width: 40rem;
+        margin: 0.8rem 0 0;
+        color: var(--muted);
+      }
+
+      .offline-button {
+        display: inline-flex;
+        min-height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1.25rem;
+        border: 1px solid transparent;
+        border-radius: 0.65rem;
+        padding: 0.65rem 1rem;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      .offline-button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      .offline-button-primary {
+        background: var(--accent);
+        color: var(--accent-text);
+        text-decoration: none;
+      }
+
+      .offline-button-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .offline-button-secondary {
+        border-color: var(--border);
+        background: var(--surface-subtle);
+        color: var(--text);
+      }
+
+      .offline-route-notice,
+      .offline-notice,
+      .offline-media-notice {
+        margin: 0;
+        border: 1px solid var(--notice-border);
+        border-radius: 0.75rem;
+        background: var(--notice);
+        padding: 0.8rem 1rem;
+      }
+
+      .offline-notice,
+      .offline-media-notice {
+        margin-top: 1.25rem;
+      }
+
+      .offline-section-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.4rem;
+      }
+
+      .offline-post-list {
+        display: grid;
+        gap: 0.7rem;
+        margin: 1rem 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .offline-post-item {
+        min-width: 0;
+      }
+
+      .offline-post-link {
+        display: grid;
+        gap: 0.15rem;
+        min-height: 3.25rem;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 0.8rem 0.9rem;
+        background: var(--surface-subtle);
+        text-decoration: none;
+      }
+
+      .offline-post-link:hover {
+        border-color: var(--accent);
+      }
+
+      .offline-post-title {
+        font-weight: 750;
+      }
+
+      .offline-post-meta,
+      .offline-action-status {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .offline-action-status {
+        min-height: 1.4em;
+        margin: 0.55rem 0 0;
+      }
+
+      .offline-back-link {
+        justify-self: start;
+        min-height: 2.75rem;
+        padding-block: 0.55rem;
+        color: var(--accent);
+        font-weight: 700;
+        text-underline-offset: 0.2rem;
+      }
+
+      .offline-metadata {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+        gap: 0.75rem;
+        margin: 1.2rem 0 0;
+      }
+
+      .offline-metadata-item {
+        min-width: 0;
+      }
+
+      .offline-metadata-label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 750;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .offline-metadata-value {
+        margin: 0.15rem 0 0;
+      }
+
+      .offline-prose {
+        margin-top: 1.5rem;
+        overflow-wrap: anywhere;
+      }
+
+      .offline-prose > :first-child {
+        margin-top: 0;
+      }
+
+      .offline-prose > :last-child {
+        margin-bottom: 0;
+      }
+
+      .offline-prose h2,
+      .offline-prose h3 {
+        margin: 1.6em 0 0.55em;
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.25;
+      }
+
+      .offline-prose a {
+        color: var(--accent);
+        font-weight: 650;
+        text-underline-offset: 0.2rem;
+      }
+
+      .offline-prose blockquote {
+        margin-inline: 0;
+        border-left: 0.25rem solid var(--accent);
+        padding-left: 1rem;
+        color: var(--muted);
+      }
+
+      .offline-prose pre {
+        max-width: 100%;
+        overflow-x: auto;
+        border-radius: 0.65rem;
+        background: var(--surface-subtle);
+        padding: 0.9rem;
+      }
+
+      @media (max-width: 30rem) {
+        .offline-header-inner,
+        .offline-main {
+          width: min(100% - 1rem, 48rem);
+        }
+
+        .offline-panel {
+          border-radius: 0.8rem;
+        }
+
+        .offline-button {
+          width: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .offline-button,
+        .offline-post-link {
+          transition:
+            background-color 150ms ease,
+            border-color 150ms ease,
+            opacity 150ms ease;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="offline-header">
+      <div class="offline-header-inner">
+        <a class="offline-brand" href="/">Moj džemat</a>
+        <span class="offline-status-badge">Bez interneta</span>
+      </div>
+    </header>
+
+    <main id="offline-app" class="offline-main" aria-live="polite" aria-busy="true">
+      <section class="offline-panel">
+        <p class="offline-eyebrow">Način rada bez interneta</p>
+        <h1 class="offline-title">Trenutno niste povezani na internet</h1>
+        <p class="offline-description">
+          Sačuvane objave trenutno nije moguće učitati. Provjerite vezu i pokušajte ponovo.
+        </p>
+        <a class="offline-button offline-button-primary" href="">Pokušaj ponovo</a>
+      </section>
+    </main>
+
+    <script>
+      __MOJ_DZEMAT_OFFLINE_SHELL_SCRIPT__;
+    </script>
+  </body>
+</html>

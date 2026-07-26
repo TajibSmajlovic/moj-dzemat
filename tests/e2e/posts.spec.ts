@@ -145,7 +145,7 @@ test.describe("posts", () => {
     await loginAsAdmin(page);
     await createPostThroughAdmin(page, { title, slug });
 
-    await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
+    await expect(page.getByText("Objava je uspješno dodana.")).toBeVisible();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: "Uredi" })).toBeVisible();
   });
@@ -165,7 +165,7 @@ test.describe("posts", () => {
       body: "Ova hutba treba biti javno dostupna samo kroz odgovarajući filter.",
     });
 
-    await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
+    await expect(page.getByText("Objava je uspješno dodana.")).toBeVisible();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
 
     await page.context().clearCookies();
@@ -243,7 +243,7 @@ test.describe("posts", () => {
     await page.getByRole("button", { name: "Sačuvaj" }).click();
 
     await expect(page).toHaveURL(ADMIN_POST_PREVIEW_URL);
-    await expect(page.getByText("Objava je uspješno kreirana.")).toBeVisible();
+    await expect(page.getByText("Objava je uspješno dodana.")).toBeVisible();
     await expect(page.getByRole("main").getByText("Neobjavljeno")).toBeVisible();
     await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
 

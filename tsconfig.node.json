@@ -6,6 +6,7 @@
     "vitest.unit.config.ts",
     "vitest.integration.config.ts",
     "playwright.config.ts",
+    "playwright.pwa.config.ts",
     "eslint.config.js",
     "react-router.config.ts",
     "prisma.config.ts"

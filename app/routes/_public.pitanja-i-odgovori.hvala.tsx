@@ -26,7 +26,7 @@ export default function QaThankYouPage() {
             Vaše pitanje je poslano.
           </h1>
           <p className="text-muted-foreground text-sm leading-6 sm:text-base">
-            Administrator će ga pregledati i objaviti odgovor čim bude moguće.
+            Admin će pregledati pitanje i objaviti odgovor čim bude u mogućnosti.
           </p>
         </div>
 

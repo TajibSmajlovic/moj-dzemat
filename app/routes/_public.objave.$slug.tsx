@@ -11,6 +11,7 @@ import { PostDetailArticle } from "#app/features/posts/components/post-detail-ar
 import { ShareButton } from "#app/features/posts/components/share-button";
 import { adminPostHref, postHref } from "#app/features/posts/post-routes";
 import { buildPostPageMeta } from "#app/features/posts/post-seo";
+import { PostSnapshotCapture } from "#app/features/pwa/post-snapshot-capture";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
 import { absoluteUrl } from "#app/lib/url";
@@ -65,6 +66,8 @@ export default function PostDetailPage({ loaderData, matches }: Route.ComponentP
 
   return (
     <PageMain className="max-w-3xl py-3 sm:py-6">
+      <PostSnapshotCapture post={post} />
+
       <div className="flex items-center justify-between">
         <BackButton fallback={href("/")} label="Nazad na listu" />
 

@@ -2,6 +2,6 @@
 
 # Slower gates that make sense to block a push but would be annoying on
 # every commit. Knip catches dead exports; vitest runs the full unit +
-# integration suite (Playwright e2e is gated on CI and/or the user).
+# integration suite (Playwright e2e tests are gated on CI and/or the user).
 npm run knip
 npm run test:run

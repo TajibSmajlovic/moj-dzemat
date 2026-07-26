@@ -33,7 +33,7 @@ export async function processImage(
   const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
   if (buffer.byteLength === 0) {
     logger.warn({ contentType }, "image processing rejected empty payload");
-    throw new Response("Empty image", { status: 400 });
+    throw new Response("Slika je prazna.", { status: 400 });
   }
 
   if (buffer.byteLength > MAX_IMAGE_RAW_BYTES) {
@@ -42,7 +42,7 @@ export async function processImage(
       "image processing rejected oversized payload",
     );
 
-    throw new Response("Image too large (max 15 MB)", { status: 413 });
+    throw new Response("Slika je prevelika (najviše 15 MB).", { status: 413 });
   }
 
   const mime = resolveImageMime(contentType, buffer);
@@ -51,7 +51,7 @@ export async function processImage(
       { contentType, sniffedMime: sniffImageMime(buffer), byteSize: buffer.byteLength },
       "image processing rejected unsupported type",
     );
-    throw new Response("Unsupported image type", { status: 415 });
+    throw new Response("Vrsta slike nije podržana.", { status: 415 });
   }
 
   try {

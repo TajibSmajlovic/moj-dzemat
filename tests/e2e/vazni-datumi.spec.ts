@@ -23,7 +23,7 @@ test.describe("admin / važni datumi", () => {
     await expect(sheet).toBeVisible();
     await sheet.getByLabel("Naslov").fill(title);
     await sheet.getByLabel("Datum").fill(FUTURE_DATE);
-    await sheet.getByLabel("Opis (opcionalno)").fill("E2E opis za važan datum.");
+    await sheet.getByLabel("Opis (nije obavezno)").fill("E2E opis za važan datum.");
     await sheet.getByRole("button", { name: "Sačuvaj" }).click();
 
     await expect(page).toHaveURL(new RegExp(`${href("/admin/vazni-datumi")}$`));

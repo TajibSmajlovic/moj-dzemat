@@ -77,7 +77,7 @@ export async function action({ request }: Route.ActionArgs) {
     return data(
       {
         result: submission.reply({
-          formErrors: ["Pogrešan email ili lozinka."],
+          formErrors: ["Pogrešna e-mail adresa ili lozinka."],
         }),
         formError: null,
       },
@@ -107,12 +107,12 @@ export default function LoginPage({ actionData, loaderData }: Route.ComponentPro
       title="Prijava za uredništvo"
       description="Upravljajte objavama i sadržajem džematske stranice."
       panelTitle="Prijavite se"
-      panelDescription="Unesite administratorski email i lozinku."
+      panelDescription="Unesite e-mail adresu i lozinku za admin nalog."
       details={[
         {
           icon: <FileText className="size-4" />,
           title: "Objave i obavijesti",
-          description: "Administracija je namijenjena urednicima stranice.",
+          description: "Admin panel je namijenjen urednicima stranice.",
         },
         {
           icon: <ShieldCheck className="size-4" />,
@@ -137,7 +137,7 @@ export default function LoginPage({ actionData, loaderData }: Route.ComponentPro
         <HoneypotInputs token={loaderData.honeypot} />
 
         <Field
-          label="Email"
+          label="E-mail"
           errors={fields.email.errors}
           inputProps={{
             ...getInputProps(fields.email, { type: "email" }),
