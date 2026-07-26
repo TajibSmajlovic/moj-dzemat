@@ -12,7 +12,7 @@ import {
    schema) because localisation is a presentation-layer concern - the DB
    only knows the canonical enum identifier.
  */
-export const POST_TYPES = ["obavijest", "hutba", "sergija", "smrtovnica", "price"] as const;
+export const POST_TYPES = ["obavijest", "hutba", "sergija", "price", "smrtovnica"] as const;
 
 export type PostTypeValue = (typeof POST_TYPES)[number];
 
