@@ -4,6 +4,7 @@ const PORT = process.env.INTERNAL_PORT ?? "3000";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: "**/pwa/**",
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 2 : 0,

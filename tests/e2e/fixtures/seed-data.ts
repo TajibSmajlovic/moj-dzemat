@@ -115,7 +115,7 @@ export const SEEDED_IMPORTANT_DATES = [
     key: "past",
     title: "E2E prošli važan datum",
     date: ymdFromToday(-30),
-    description: "Prošli E2E datum koji se prikazuje samo u administraciji.",
+    description: "Prošli E2E datum koji se prikazuje samo u admin panelu.",
   },
 ] as const satisfies readonly [SeededImportantDate, SeededImportantDate];
 

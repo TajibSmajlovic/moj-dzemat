@@ -76,7 +76,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     const message =
       problem.kind === "too-short"
         ? MIN_PASSWORD_LENGTH_MESSAGE
-        : "Lozinka je zabilježena u javnim curenjima podataka. Odaberite drugu.";
+        : "Ova lozinka se pojavljuje u javno objavljenim bazama ukradenih podataka. Odaberite drugu.";
 
     return data(
       {
@@ -122,7 +122,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
         title="Link nije važeći"
         description="Ovaj link je istekao, već iskorišten ili više ne odgovara trenutnom stanju naloga."
         panelTitle="Zatražite novi link"
-        panelDescription="Novi link za postavljanje lozinke možete poslati na isti administratorski email."
+        panelDescription="Novi link za postavljanje lozinke možete poslati na istu e-mail adresu povezanu s admin nalogom."
         details={[
           {
             icon: <Clock3 className="size-4" />,
@@ -141,7 +141,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
             <AlertTriangle className="size-6" />
           </div>
           <p className="text-muted-foreground text-sm leading-6">
-            Pošaljite novi zahtjev i otvorite najnoviji email koji primite.
+            Pošaljite novi zahtjev i otvorite najnoviji e-mail koji primite.
           </p>
           <Button asChild className="w-full">
             <Link to={href("/zaboravljena-lozinka")}>Pošalji novi link</Link>
@@ -156,7 +156,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
       announcement={loaderData.announcement}
       eyebrow="Admin pristup"
       title="Postavite novu lozinku"
-      description="Odaberite novu lozinku za administratorski nalog. Nakon uspješnog spremanja odmah ćemo vas prijaviti."
+      description="Odaberite novu lozinku za admin nalog. Kada je sačuvate, odmah ćemo vas prijaviti."
       panelTitle="Nova lozinka"
       panelDescription={`Koristite najmanje ${MIN_PASSWORD_LENGTH} znakova. Provjerit ćemo i da lozinka nije poznata iz javnih curenja podataka.`}
       details={[
@@ -168,7 +168,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
         {
           icon: <CheckCircle2 className="size-4" />,
           title: "Automatska prijava",
-          description: "Nakon spremanja lozinke nastavljate direktno u admin panel.",
+          description: "Nakon što sačuvate lozinku, bit ćete preusmjereni u admin panel.",
         },
       ]}
     >
@@ -201,7 +201,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
         />
 
         <Button type="submit" className="w-full">
-          Spremi i prijavi se
+          Sačuvaj i prijavi se
         </Button>
       </Form>
     </PublicAuthShell>

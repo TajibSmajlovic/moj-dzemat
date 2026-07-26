@@ -56,11 +56,11 @@ export function parseIntent<T extends IntentMap>(
 ): IntentOf<T> {
   const raw = formData.get(field);
   if (isIntent(raw, intents)) return raw;
-  throw new Response("Unsupported intent", { status: 400 });
+  throw new Response("Nepodržana radnja.", { status: 400 });
 }
 
 export function assertUnreachable(value: never): never {
-  throw new Response(`Unsupported intent: ${String(value)}`, { status: 400 });
+  throw new Response(`Nepodržana radnja: ${String(value)}`, { status: 400 });
 }
 
 export function IntentInput<T extends string>({

@@ -48,7 +48,7 @@ export function meta({ matches }: Route.MetaArgs) {
   const siteUrl = getRootSiteUrl(matches);
   const title = formatPageTitle("Pitanja i odgovori", siteName);
   const description =
-    "Pošaljite vlastito pitanje ili pogledajte odgovore na ranija pitanja džematlija.";
+    "Pošaljite svoje pitanje ili pogledajte odgovore na ranija pitanja džematlija.";
   const canonical = siteUrl
     ? absoluteUrl(siteUrl, href("/pitanja-i-odgovori"))
     : href("/pitanja-i-odgovori");
@@ -141,7 +141,7 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
                   Pitanja i odgovori
                 </h1>
                 <p className="text-muted-foreground max-w-2xl text-sm leading-6 sm:text-base sm:leading-7">
-                  Pošaljite vlastito pitanje ili pogledajte odgovore na ranija pitanja džematlija.
+                  Pošaljite svoje pitanje ili pogledajte odgovore na ranija pitanja džematlija.
                 </p>
               </div>
 
@@ -153,7 +153,7 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
                   <div>
                     <h2 className="text-foreground text-sm font-semibold">Jedno pitanje</h2>
                     <p className="text-muted-foreground mt-1 text-sm leading-6">
-                      Forma prima samo tekst pitanja, bez imena, emaila ili drugih podataka.
+                      Forma prima samo tekst pitanja, bez imena, e-maila ili drugih podataka.
                     </p>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
                   <div>
                     <h2 className="text-foreground text-sm font-semibold">Pregled prije objave</h2>
                     <p className="text-muted-foreground mt-1 text-sm leading-6">
-                      Odgovor postaje javan tek kada ga administrator pregleda i objavi.
+                      Odgovor postaje javan tek kada ga admin pregleda i objavi.
                     </p>
                   </div>
                 </div>
@@ -254,13 +254,13 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
                 aria-hidden="true"
               />
               <p className="text-muted-foreground text-sm leading-5">
-                Forma prima samo tekst pitanja, bez imena, emaila ili drugih podataka.
+                Forma prima samo tekst pitanja, bez imena, e-maila ili drugih podataka.
               </p>
             </div>
             <div className="flex gap-3">
               <ShieldCheck className="text-secondary mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <p className="text-muted-foreground text-sm leading-5">
-                Odgovor postaje javan tek kada ga administrator pregleda i objavi.
+                Odgovor postaje javan tek kada ga admin pregleda i objavi.
               </p>
             </div>
           </div>

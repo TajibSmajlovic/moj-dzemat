@@ -32,7 +32,7 @@ test.describe("kontakt", () => {
 
     await page.getByLabel("Tekst o džematu").fill(uniqueAbout);
     await page.getByLabel("Telefon", { exact: true }).fill(uniquePhone);
-    await page.getByLabel("Email", { exact: true }).fill("kontakt-e2e@example.com");
+    await page.getByLabel("E-mail", { exact: true }).fill("kontakt-e2e@example.com");
     await page.getByLabel("IBAN / broj računa").fill("BA391290079401028494");
     await page.getByLabel("Primalac").fill("Džemat E2E");
 

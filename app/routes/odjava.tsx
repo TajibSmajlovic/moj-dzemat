@@ -15,7 +15,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function loader() {
-  throw new Response("Method Not Allowed", {
+  throw new Response("Metoda nije dozvoljena.", {
     status: 405,
     headers: { Allow: "POST" },
   });

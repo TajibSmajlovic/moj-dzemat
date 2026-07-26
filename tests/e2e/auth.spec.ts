@@ -40,7 +40,7 @@ test.describe("auth", () => {
 
   test("login form shows a generic form-level error on wrong credentials", async ({ page }) => {
     await page.goto(href("/prijava"));
-    await page.getByLabel("Email").fill(ADMIN_EMAIL);
+    await page.getByLabel("E-mail").fill(ADMIN_EMAIL);
     await page.getByLabel("Lozinka").fill("definitelyWrong42!");
     await page.getByRole("button", { name: "Prijavi se" }).click();
 
@@ -48,7 +48,7 @@ test.describe("auth", () => {
     // the page renders inside an Alert (role="alert"). The message is
     // intentionally generic so we don't leak whether the email exists.
     await expect(page).toHaveURL(new RegExp(`${href("/prijava")}$`));
-    await expect(page.getByRole("alert")).toContainText("Pogrešan email ili lozinka.");
+    await expect(page.getByRole("alert")).toContainText("Pogrešna e-mail adresa ili lozinka.");
   });
 
   test("forgot-password flow emits a reset email captured by /dev/last-email", async ({ page }) => {

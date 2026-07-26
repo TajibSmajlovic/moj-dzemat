@@ -70,7 +70,7 @@ export default function AdminKontaktPage({ actionData, loaderData }: Route.Compo
     <main className="mx-auto max-w-5xl px-4 py-8">
       <AdminPageHeader
         title="Kontakt"
-        description="Uredite javne podatke o džematu, kontakt, imama i podatke za uplatu. Adresa i mapa se i dalje podešavaju preko okruženja."
+        description="Uredite javne podatke o džematu, kontakt, imama i podatke za uplatu. Adresa i mapa i dalje se podešavaju u postavkama okruženja."
       />
 
       <ContactForm

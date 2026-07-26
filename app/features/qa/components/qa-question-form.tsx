@@ -75,7 +75,7 @@ export function QaQuestionForm({
           />
 
           <p id={questionHintId} className="text-muted-foreground text-xs leading-5">
-            Pitanja prolaze pregled administratora prije objave.
+            Pitanja prolaze pregled admina prije objave.
           </p>
 
           {questionErrorId ? (

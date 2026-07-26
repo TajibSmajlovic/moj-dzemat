@@ -28,7 +28,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   const formData = await parsePostFormData(request);
   const intent = formData.get("intent");
-  invariantResponse(intent === PostAdminIntents.Create, "Unsupported intent");
+  invariantResponse(intent === PostAdminIntents.Create, "Nepodržana radnja.");
 
   return createOrUpdatePostFromForm({
     formData,
@@ -50,9 +50,9 @@ export default function AdminNewPost({ actionData }: Route.ComponentProps) {
         title="Nova objava"
         description={
           <>
-            Popunite polja i po želji dodajte slike ili YouTube linkove. Ukoliko želite da objavite
-            odmah, označite opciju "Objavi odmah". Nakon spremanja, moći ćete pregledati objavu i
-            napraviti dodatne izmjene po potrebi.
+            Popunite polja i po želji dodajte slike ili YouTube linkove. Ako je želite odmah
+            objaviti, označite opciju „Objavi odmah“. Nakon što je sačuvate, moći ćete pregledati
+            objavu i po potrebi napraviti dodatne izmjene.
           </>
         }
       />

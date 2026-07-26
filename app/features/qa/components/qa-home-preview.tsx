@@ -36,7 +36,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
             >
               postavite
             </Link>{" "}
-            vlastito pitanje.
+            svoje pitanje.
           </p>
         </div>
 
@@ -45,8 +45,8 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
         ) : (
           <div className="border-border/60 bg-card rounded-lg border p-5 shadow-xs">
             <p className="text-muted-foreground text-sm leading-6">
-              Još nema odgovora. Pitanja se objavljuju nakon što administrator pripremi odgovor.
-              Ukoliko imate pitanje, slobodno ga{" "}
+              Još nema odgovora. Pitanja se objavljuju nakon što admin pripremi odgovor. Ako imate
+              pitanje, slobodno ga{" "}
               <Link
                 to={`${href("/pitanja-i-odgovori")}#postavi-pitanje`}
                 prefetch="intent"

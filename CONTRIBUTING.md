@@ -117,13 +117,14 @@ Important details:
 
 ### App
 
-| Command         | What it does                                               |
-| --------------- | ---------------------------------------------------------- |
-| `npm run dev`   | Starts the local SSR dev server from `server/index.ts`.    |
-| `npm run build` | Builds the production client and server bundles.           |
-| `npm run start` | Starts the production build from `build/server-entry.mjs`. |
-| `npm run check` | Runs typecheck, ESLint, and Prettier checks.               |
-| `npm run knip`  | Checks for unused files, exports, and dependencies.        |
+| Command             | What it does                                                |
+| ------------------- | ----------------------------------------------------------- |
+| `npm run dev`       | Starts the local SSR dev server from `server/index.ts`.     |
+| `npm run build`     | Builds the production client and server bundles.            |
+| `npm run start`     | Starts the production build from `build/server-entry.mjs`.  |
+| `npm run check`     | Runs typecheck, ESLint, and Prettier checks.                |
+| `npm run knip`      | Checks for unused files, exports, and dependencies.         |
+| `npm run pwa:icons` | Regenerates the committed PWA icons from `public/logo.png`. |
 
 ### Database
 
@@ -148,6 +149,7 @@ Important details:
 | `npm run test:cov`                        | Runs Vitest with coverage.                       |
 | `npm run test:e2e`                        | Runs Playwright end-to-end tests.                |
 | `npm run test:e2e:ui`                     | Runs Playwright in headed mode.                  |
+| `npm run test:pwa`                        | Runs the isolated production PWA browser suite.  |
 
 Before your first e2e run, install the Playwright browser once:
 
@@ -160,6 +162,11 @@ On Linux CI or bare Linux machines you may need:
 ```bash
 npx playwright install --with-deps chromium
 ```
+
+`npm run test:pwa` builds the production application, applies migrations to a
+temporary SQLite database, seeds deterministic published posts, and runs the
+focused Chromium suite against `npm start`. It uses production-safe runtime
+flags and removes its temporary local state when the command finishes.
 
 ## Branches
 
@@ -215,7 +222,9 @@ Choose tests based on the risk of the change:
 
 Keep new tests under `tests/unit`, `tests/integration`, or `tests/e2e` unless
 there is a strong reason to colocate a tiny file-specific unit test next to
-source code. Current tests live in `tests/`.
+source code. Group related unit and integration tests in a shallow domain
+subfolder such as `tests/unit/pwa` or `tests/integration/pwa`; keep one-off
+shared tests at the existing directory root.
 
 A few implementation details that help when debugging:
 
@@ -229,6 +238,8 @@ A few implementation details that help when debugging:
 - Playwright starts the app itself and points it at `prisma/e2e.db`
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
   and `DISABLE_RATE_LIMITING`
+- the isolated production PWA e2e suite lives in `tests/e2e/pwa` and runs via
+  `npm run test:pwa`
 - e2e fixture definitions live in `tests/e2e/fixtures/seed-data.ts`
 - e2e global setup reuses shared factories, then seeds a deterministic admin,
   posts across all public post types, Q&A rows, one announcement, and important
@@ -244,6 +255,8 @@ npm run build
 ```
 
 Run `npm run test:e2e` for UI, routing, auth, editor, upload, or admin workflow changes.
+Run `npm run test:pwa` for changes to the manifest, service worker, offline
+shell, post snapshots, PWA build pipeline, or production PWA asset serving.
 
 ## Pull Requests
 

@@ -68,7 +68,7 @@ test.describe("Q&A", () => {
     page,
   }) => {
     const question = `${ADMIN_ANSWER_PREFIX} ${Date.now()}?`;
-    const answer = "Ovo je E2E odgovor koji treba biti prikazan javno nakon spremanja.";
+    const answer = "Ovo je E2E odgovor koji treba biti prikazan javno nakon čuvanja.";
 
     await submitPublicQuestion(page, question);
     await loginAsAdmin(page);
@@ -89,7 +89,7 @@ test.describe("Q&A", () => {
     await page.getByRole("button", { name: "Spremi odgovor" }).click();
 
     await expect(page).toHaveURL(exactPath(adminQaHref({ tab: "odgovorena" })));
-    await expect(page.getByText("Pitanje je odgovoreno i objavljeno.")).toBeVisible();
+    await expect(page.getByText("Odgovor je sačuvan i objavljen.")).toBeVisible();
     await expect(page.getByRole("row").filter({ hasText: question })).toBeVisible();
 
     await page.context().clearCookies();

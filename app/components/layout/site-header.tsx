@@ -254,7 +254,7 @@ function DesktopAdminAccess({ href }: { href: string }) {
       size="icon"
       className="border-border bg-background hover:bg-accent hidden rounded-full xl:inline-flex"
     >
-      <Link to={href} aria-label="Administracija" title="Administracija" prefetch="intent">
+      <Link to={href} aria-label="Admin" title="Admin" prefetch="intent">
         <LockKeyhole className="h-4 w-4" aria-hidden="true" />
       </Link>
     </Button>
@@ -365,7 +365,7 @@ function MobileAdminAccess({
         tabIndex={open ? undefined : -1}
       >
         <LockKeyhole className="text-primary h-4 w-4" aria-hidden="true" />
-        Administracija
+        Admin
       </Link>
     </div>
   );

@@ -1,7 +1,22 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["app/routes/**/*.{ts,tsx}", "tests/**/*.test.{ts,tsx}", "tests/e2e/*.spec.ts"],
-  "project": ["app/**/*.{ts,tsx}", "server/**/*.ts", "tests/**/*.{ts,tsx}", "prisma/**/*.ts"],
+  "entry": [
+    "app/features/pwa/offline-shell-entry.client.ts",
+    "app/features/pwa/recovery-worker.ts",
+    "app/features/pwa/service-worker.ts",
+    "app/routes/**/*.{ts,tsx}",
+    "scripts/build-pwa-artifacts.ts",
+    "scripts/seed-pwa-tests.ts",
+    "tests/**/*.test.{ts,tsx}",
+    "tests/e2e/**/*.spec.ts"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "server/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.{ts,tsx}",
+    "prisma/**/*.ts"
+  ],
   "ignoreDependencies": [
     "@prisma/client",
     "@tailwindcss/typography",

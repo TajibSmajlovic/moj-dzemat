@@ -200,7 +200,7 @@ export async function createOrUpdatePostFromForm({
     intent === "create"
       ? createActionToast({
           action: "create",
-          description: "Objava je uspješno kreirana.",
+          description: "Objava je uspješno dodana.",
         })
       : createActionToast({
           action: "update",

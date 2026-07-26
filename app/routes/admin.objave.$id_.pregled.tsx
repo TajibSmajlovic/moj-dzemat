@@ -72,7 +72,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  invariantResponse(intent === PostAdminIntents.ToggleStatus, "Unsupported intent");
+  invariantResponse(intent === PostAdminIntents.ToggleStatus, "Nepodržana radnja.");
 
   const next = await togglePostStatus(id, user.id);
 

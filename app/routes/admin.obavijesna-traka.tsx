@@ -182,7 +182,7 @@ async function handleUpsert(
     intent === AnnouncementIntents.Create
       ? createActionToast({
           action: "create",
-          description: "Poruka na obavijesnoj traci je uspješno kreirana.",
+          description: "Poruka na obavijesnoj traci je uspješno dodana.",
         })
       : createActionToast({
           action: "update",

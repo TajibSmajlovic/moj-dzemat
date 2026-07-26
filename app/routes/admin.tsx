@@ -27,7 +27,7 @@ import { prisma } from "#app/server/db.server";
 import type { Route } from "./+types/admin";
 
 export function meta() {
-  return buildNoindexMeta("Admin Panel", ROBOTS_NOINDEX_NOFOLLOW);
+  return buildNoindexMeta("Admin panel", ROBOTS_NOINDEX_NOFOLLOW);
 }
 
 export const middleware: Route.MiddlewareFunction[] = [adminAuthMiddleware];
@@ -67,7 +67,7 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
 
               <div>
                 <h1 className="font-display text-foreground text-lg leading-tight font-bold">
-                  Admin Panel
+                  Admin panel
                 </h1>
                 <p className="text-muted-foreground hidden max-w-[18rem] text-xs text-balance sm:block sm:max-w-none">
                   Upravljanje za {siteName}

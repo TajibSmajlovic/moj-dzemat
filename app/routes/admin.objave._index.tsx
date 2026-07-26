@@ -55,7 +55,7 @@ export async function action({ request, context }: Route.ActionArgs) {
     case PostAdminIntents.Update:
     case PostAdminIntents.DeleteImage: {
       // These intents belong to the create/edit routes, not the list.
-      throw new Response("Unsupported intent", { status: 400 });
+      throw new Response("Nepodržana radnja.", { status: 400 });
     }
     default: {
       assertUnreachable(intent);
@@ -152,7 +152,7 @@ export default function AdminPostsList({ actionData, loaderData }: Route.Compone
     <main className="mx-auto max-w-5xl px-4 py-8">
       <AdminPageHeader
         title="Objave"
-        description="Objave na vrhu se prikazuju prve. Istaknuto se prikazuje u hero sekciji."
+        description="Objave na vrhu prikazuju se prve. Istaknute objave prikazuju se u glavnom dijelu početne stranice."
         actions={
           <Button type="button" size="lg" className="gap-2 rounded-xl shadow-lg" asChild>
             <Link to={href("/admin/objave/nova")}>

@@ -108,10 +108,10 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
       <PublicAuthShell
         announcement={loaderData.announcement}
         eyebrow="Siguran pristup"
-        title="Provjerite email"
-        description="Ako email postoji u sistemu, poslali smo link za postavljanje nove lozinke."
-        panelTitle="Zahtjev je zaprimljen"
-        panelDescription="Iz sigurnosnih razloga prikazujemo istu poruku bez obzira na to da li je email pronađen."
+        title="Provjerite e-mail"
+        description="Ako navedena e-mail adresa postoji u sistemu, poslali smo link za postavljanje nove lozinke."
+        panelTitle="Zahtjev je primljen"
+        panelDescription="Iz sigurnosnih razloga prikazujemo istu poruku bez obzira na to da li je e-mail adresa pronađena."
         details={[
           {
             icon: <Clock3 className="size-4" />,
@@ -121,7 +121,7 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
           {
             icon: <ShieldCheck className="size-4" />,
             title: "Postojeća lozinka ostaje aktivna",
-            description: "Promjena se desi tek kada otvorite link i postavite novu lozinku.",
+            description: "Lozinka će biti promijenjena tek kada otvorite link i postavite novu.",
           },
         ]}
       >
@@ -130,8 +130,8 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
             <MailCheck className="size-6" />
           </div>
           <p className="text-muted-foreground text-sm leading-6">
-            Provjerite inbox. Ako poruka ne stigne za nekoliko minuta, pogledajte spam folder ili
-            ponovo pošaljite zahtjev.
+            Provjerite ulaznu poštu. Ako poruka ne stigne za nekoliko minuta, pogledajte neželjenu
+            poštu ili ponovo pošaljite zahtjev.
           </p>
           <Button asChild variant="outline" className="w-full">
             <Link to={href("/prijava")}>
@@ -149,9 +149,9 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
       announcement={loaderData.announcement}
       eyebrow="Admin pristup"
       title="Zaboravljena lozinka"
-      description="Upišite email povezan s administratorskim nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
+      description="Upišite e-mail adresu povezanu s admin nalogom. Poslat ćemo sigurni link za postavljanje nove lozinke."
       panelTitle="Pošalji link"
-      panelDescription={`Link za novu lozinku stiže na email i vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}.`}
+      panelDescription={`Link za novu lozinku stiže e-mailom i vrijedi ${PASSWORD_RESET_TOKEN_TTL_LABEL}.`}
       details={[
         {
           icon: <Clock3 className="size-4" />,
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
         {
           icon: <ShieldCheck className="size-4" />,
           title: "Bez otkrivanja naloga",
-          description: "Poruka nakon slanja ostaje ista i ne otkriva da li email postoji.",
+          description: "Poruka nakon slanja ostaje ista i ne otkriva da li e-mail adresa postoji.",
         },
       ]}
     >
@@ -175,7 +175,7 @@ export default function ForgotPasswordPage({ actionData, loaderData }: Route.Com
         <HoneypotInputs token={loaderData.honeypot} />
 
         <Field
-          label="Email"
+          label="E-mail"
           errors={fields.email.errors}
           inputProps={{
             ...getInputProps(fields.email, { type: "email" }),

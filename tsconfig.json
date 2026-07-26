@@ -12,6 +12,8 @@
     ".react-router/build",
     "app/**/*.server.ts",
     "app/**/*.server.tsx",
+    "app/features/pwa/recovery-worker.ts",
+    "app/features/pwa/service-worker.ts",
     "tests/e2e/**/*"
   ],
   "compilerOptions": {

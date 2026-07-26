@@ -70,7 +70,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
     adminQaHref({ tab: "odgovorena" }),
     createActionToast({
       action: wasAnswered ? "update" : "create",
-      description: wasAnswered ? "Odgovor je ažuriran." : "Pitanje je odgovoreno i objavljeno.",
+      description: wasAnswered ? "Odgovor je ažuriran." : "Odgovor je sačuvan i objavljen.",
     }),
   );
 }
@@ -89,7 +89,7 @@ export default function AdminQaAnswerPage({ actionData, loaderData }: Route.Comp
         backTo={backTo}
         backLabel="Nazad na pitanja"
         title={answered ? "Uredi odgovor" : "Odgovori na pitanje"}
-        description="Odgovor postaje javan tek kada se sačuva."
+        description="Odgovor postaje javan tek kada ga sačuvate."
       />
 
       <AdminPanel>

@@ -40,18 +40,18 @@ describe("intent helpers", () => {
   it("throws a 400 response for missing or unknown intents", async () => {
     await expectIntentResponse(
       () => parseIntent(new FormData(), TestIntents),
-      "Unsupported intent",
+      "Nepodržana radnja.",
     );
 
     const formData = new FormData();
     formData.set("intent", "archive");
-    await expectIntentResponse(() => parseIntent(formData, TestIntents), "Unsupported intent");
+    await expectIntentResponse(() => parseIntent(formData, TestIntents), "Nepodržana radnja.");
   });
 
   it("throws a 400 response for unreachable switch branches", async () => {
     await expectIntentResponse(
       () => assertUnreachable("archive" as never),
-      "Unsupported intent: archive",
+      "Nepodržana radnja: archive",
     );
   });
 

@@ -266,8 +266,8 @@ function PostRowActions({ post, mobile = false }: { post: PostRow; mobile?: bool
         title="Obrisati objavu?"
         description={
           <>
-            Objava <strong className="text-foreground">"{post.title}"</strong> biće trajno uklonjena
-            iz javne stranice i administracije. Ovu radnju nije moguće vratiti.
+            Objava <strong className="text-foreground">"{post.title}"</strong> bit će trajno
+            uklonjena s javne stranice i iz admin panela. Ovu radnju nije moguće vratiti.
           </>
         }
         confirmLabel="Obriši objavu"

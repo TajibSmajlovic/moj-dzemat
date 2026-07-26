@@ -78,7 +78,7 @@ export function ImportantDateForm({ importantDate, lastResult, submitting, onCan
         />
 
         <div className="space-y-1.5">
-          <Label htmlFor={fields.description.id}>Opis (opcionalno)</Label>
+          <Label htmlFor={fields.description.id}>Opis (nije obavezno)</Label>
           <Textarea
             {...getTextareaProps(fields.description)}
             maxLength={DESCRIPTION_MAX}

@@ -39,7 +39,7 @@ export function buildPasswordResetEmail({
       "",
       resetUrl,
       "",
-      "Ako niste tražili promjenu lozinke, slobodno zanemarite ovaj email.",
+      "Ako niste tražili promjenu lozinke, slobodno zanemarite ovaj e-mail.",
       "",
       siteName,
     ].join("\n"),
@@ -65,7 +65,7 @@ export function buildPasswordResetEmail({
                   ${escapedSiteName}
                 </div>
                 <div style="margin-top:6px;font-size:12px;line-height:18px;color:#60746b;">
-                  Siguran pristup administraciji
+                  Siguran pristup admin panelu
                 </div>
               </td>
             </tr>
@@ -81,14 +81,14 @@ export function buildPasswordResetEmail({
                         Postavite novu lozinku
                       </h1>
                       <p style="margin:12px 0 0;color:#f3eadc;font-size:15px;line-height:24px;">
-                        Primili smo zahtjev za promjenu lozinke za administratorski pristup.
+                        Primili smo zahtjev za promjenu lozinke za admin pristup.
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding:32px;">
                       <p style="margin:0;color:#17362b;font-size:16px;line-height:26px;">
-                        Da nastavite, otvorite sigurni link ispod. Link vrijedi <strong>${PASSWORD_RESET_TOKEN_TTL_LABEL}</strong>.
+                        Da biste nastavili, otvorite sigurni link ispod. Link vrijedi <strong>${PASSWORD_RESET_TOKEN_TTL_LABEL}</strong>.
                       </p>
 
                       <table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px 0;">
@@ -103,12 +103,12 @@ export function buildPasswordResetEmail({
 
                       <div style="border-left:4px solid #b9943f;background:#f7f1e7;border-radius:8px;padding:14px 16px;">
                         <p style="margin:0;color:#3f5a50;font-size:14px;line-height:22px;">
-                          Ako niste tražili promjenu lozinke, zanemarite ovaj email. Vaša postojeća lozinka ostaje ista.
+                          Ako niste tražili promjenu lozinke, zanemarite ovaj e-mail. Vaša postojeća lozinka ostaje ista.
                         </p>
                       </div>
 
                       <p style="margin:24px 0 8px;color:#60746b;font-size:13px;line-height:20px;">
-                        Ako dugme ne radi, kopirajte ovaj link u browser:
+                        Ako dugme ne radi, kopirajte ovaj link u internetski preglednik:
                       </p>
                       <p style="margin:0;word-break:break-all;color:#107945;font-size:13px;line-height:20px;">
                         <a href="${escapedResetUrl}" style="color:#107945;text-decoration:underline;">${escapedResetUrl}</a>

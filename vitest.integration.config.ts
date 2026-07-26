@@ -12,6 +12,6 @@ export default defineConfig({
     pool: "forks",
     maxWorkers: 1,
     fileParallelism: false,
-    setupFiles: ["./tests/setup-integration.ts"],
+    setupFiles: ["./tests/integration/setup.ts"],
   },
 });

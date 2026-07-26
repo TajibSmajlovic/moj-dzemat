@@ -112,7 +112,7 @@ async function handleUpsert(
     intent === ImportantDateIntents.Create
       ? createActionToast({
           action: "create",
-          description: "Važan datum je uspješno kreiran.",
+          description: "Važan datum je uspješno dodan.",
         })
       : createActionToast({
           action: "update",
@@ -156,7 +156,7 @@ export default function AdminImportantDates({ actionData, loaderData }: Route.Co
     <main className="mx-auto max-w-5xl px-4 py-8">
       <AdminPageHeader
         title="Važni datumi"
-        description="Upravljajte nadolazećim važnim datumima koji se prikazuju na početnoj stranici."
+        description="Upravljajte predstojećim važnim datumima koji se prikazuju na početnoj stranici."
         actions={
           <Button asChild size="lg" className="gap-2 rounded-xl shadow-lg">
             <Link to={newHref}>

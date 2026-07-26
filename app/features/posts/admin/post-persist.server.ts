@@ -63,7 +63,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
     });
 
     if (clashing) {
-      throw new FormError("Slug je već zauzet. Odaberite drugi.", {
+      throw new FormError("Ovaj dio URL-a je već zauzet. Odaberite drugi.", {
         fieldErrors: { slug: ["Slug je već zauzet. Odaberite drugi."] },
       });
     }
