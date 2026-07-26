@@ -7,6 +7,9 @@ import { pathToFileURL } from "node:url";
 import {
   buildOfflineShellDocument,
   OFFLINE_SHELL_BACKGROUND_COLOR_MARKER,
+  OFFLINE_SHELL_LOGO_MARKER,
+  OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER,
+  OFFLINE_SHELL_LORA_LATIN_FONT_MARKER,
   OFFLINE_SHELL_SCRIPT_MARKER,
   OFFLINE_SHELL_THEME_COLOR_MARKER,
 } from "#app/features/pwa/offline-shell-document";
@@ -23,6 +26,9 @@ export type BuildPwaArtifactOptions = {
   offlineOutputPath: string;
   serviceWorkerOutputPath: string;
   workerTsconfigPath: string;
+  logoPath: string;
+  loraLatinFontPath: string;
+  loraLatinExtendedFontPath: string;
 };
 
 export function getOfflineShellRevision(contents: Uint8Array): string {
@@ -60,16 +66,27 @@ export async function buildPwaArtifacts(
     throw new Error("The offline shell JavaScript bundle was not generated.");
   }
 
-  const template = await readFile(options.offlineTemplatePath, "utf8");
+  const [template, logoSvg, loraLatinFont, loraLatinExtendedFont] = await Promise.all([
+    readFile(options.offlineTemplatePath, "utf8"),
+    readFile(options.logoPath, "utf8"),
+    readFile(options.loraLatinFontPath),
+    readFile(options.loraLatinExtendedFontPath),
+  ]);
   const document = buildOfflineShellDocument(template, javascriptOutput.text, {
     themeColor: PWA_THEME_COLOR,
     backgroundColor: PWA_BACKGROUND_COLOR,
+    logoSvg,
+    loraLatinFontBase64: loraLatinFont.toString("base64"),
+    loraLatinExtendedFontBase64: loraLatinExtendedFont.toString("base64"),
   });
 
   for (const marker of [
     OFFLINE_SHELL_SCRIPT_MARKER,
     OFFLINE_SHELL_THEME_COLOR_MARKER,
     OFFLINE_SHELL_BACKGROUND_COLOR_MARKER,
+    OFFLINE_SHELL_LOGO_MARKER,
+    OFFLINE_SHELL_LORA_LATIN_FONT_MARKER,
+    OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER,
   ]) {
     if (document.includes(marker)) {
       throw new Error(`The generated offline shell still contains the ${marker} marker.`);
@@ -111,6 +128,15 @@ function defaultOptions(workerMode: PwaWorkerMode): BuildPwaArtifactOptions {
     offlineOutputPath: path.resolve(projectRoot, "build/client/offline.html"),
     serviceWorkerOutputPath: path.resolve(projectRoot, "build/client/sw.js"),
     workerTsconfigPath: path.resolve(projectRoot, "tsconfig.worker.json"),
+    logoPath: path.resolve(projectRoot, "public/logo.svg"),
+    loraLatinFontPath: path.resolve(
+      projectRoot,
+      "node_modules/@fontsource-variable/lora/files/lora-latin-wght-normal.woff2",
+    ),
+    loraLatinExtendedFontPath: path.resolve(
+      projectRoot,
+      "node_modules/@fontsource-variable/lora/files/lora-latin-ext-wght-normal.woff2",
+    ),
   };
 }
 

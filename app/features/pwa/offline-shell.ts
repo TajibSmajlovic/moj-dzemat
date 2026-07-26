@@ -1,4 +1,5 @@
 import { POST_TYPE_LABEL } from "#app/features/posts/post-type";
+import { formatDateTimeLong } from "#app/lib/date";
 
 import {
   PostSnapshotArraySchema,
@@ -90,44 +91,55 @@ function renderSavedPost(
   snapshot: PostSnapshot,
   retry: () => void,
 ): HTMLElement {
-  const container = createElement(document, "div", "offline-stack");
-  const backLink = createElement(document, "a", "offline-back-link", "Nazad na sačuvane objave");
+  const container = createElement(document, "div", "offline-article-shell");
+  const backLink = createElement(document, "a", "offline-back-link", "Sačuvane objave");
   backLink.href = "/";
-  const article = createElement(document, "article", "offline-panel offline-article");
-  const eyebrow = createElement(document, "p", "offline-eyebrow", "Sačuvana kopija");
-  const title = createElement(document, "h1", "offline-title", snapshot.title);
-  const metadata = createElement(document, "dl", "offline-metadata");
 
-  metadata.append(
-    createMetadataItem(document, "Vrsta", POST_TYPE_LABEL[snapshot.type]),
-    createMetadataItem(document, "Objavljeno", formatTimestamp(snapshot.publishedAt)),
-    createMetadataItem(
+  const copyStatus = createElement(document, "section", "offline-copy-status");
+  copyStatus.setAttribute("aria-label", "Status sačuvane objave");
+  const copyDetails = createElement(document, "div", "offline-copy-details");
+  copyDetails.append(
+    createElement(document, "strong", "offline-copy-label", "Sačuvana verzija"),
+    createElement(
       document,
-      "Sačuvano ili obnovljeno",
-      formatTimestamp(snapshot.snapshotRefreshedAt),
+      "span",
+      "offline-copy-date",
+      `Sačuvano na uređaju ${formatTimestamp(snapshot.snapshotRefreshedAt)}`,
     ),
   );
+  copyStatus.append(copyDetails, createRetryButton(document, retry, "outline"));
 
-  const notice = createElement(
+  const article = createElement(document, "article", "offline-article");
+  const title = createElement(document, "h1", "offline-article-title", snapshot.title);
+  const metadata = createElement(document, "div", "offline-article-meta");
+  const typeBadge = createPostTypeBadge(document, snapshot);
+  const publishedDate = createElement(
     document,
-    "p",
-    "offline-notice",
-    "Prikazana je kopija sačuvana na ovom uređaju. Sadržaj na mreži je možda u međuvremenu promijenjen.",
+    "time",
+    "offline-published-date",
+    `Objavljeno ${formatTimestamp(snapshot.publishedAt)}`,
   );
+  publishedDate.dateTime = snapshot.publishedAt;
+  metadata.append(typeBadge, publishedDate);
+  article.append(title, metadata);
+
+  const mediaGuidance = getMediaGuidance(snapshot);
+  if (mediaGuidance) {
+    const mediaPlaceholder = createElement(document, "section", "offline-media-placeholder");
+    mediaPlaceholder.setAttribute("aria-label", "Medijski sadržaj nije dostupan");
+    mediaPlaceholder.append(
+      createElement(document, "p", "offline-media-title", mediaGuidance.title),
+      createElement(document, "p", "offline-media-description", mediaGuidance.description),
+    );
+    article.append(mediaPlaceholder);
+  }
+
   const body = createElement(document, "div", "offline-prose");
   // The public post writer sanitizes body HTML before persistence, and the
   // complete strict snapshot schema is validated immediately before rendering.
   body.innerHTML = snapshot.bodyHtml;
-
-  article.append(eyebrow, title, metadata, notice);
-
-  const mediaNotice = getMediaNotice(snapshot);
-  if (mediaNotice) {
-    article.append(createElement(document, "p", "offline-media-notice", mediaNotice));
-  }
-
-  article.append(body, createRetryButton(document, retry));
-  container.append(backLink, article);
+  article.append(body);
+  container.append(backLink, copyStatus, article);
 
   return container;
 }
@@ -147,35 +159,36 @@ function renderSavedPostList(
   const container = createElement(document, "div", "offline-stack");
 
   if (requestedRouteUnavailable) {
-    container.append(
+    const routeNotice = createElement(
+      document,
+      "p",
+      "offline-route-notice",
+      "Tražena stranica nije sačuvana za čitanje bez interneta. Prikazujemo objave dostupne na ovom uređaju.",
+    );
+    routeNotice.setAttribute("role", "status");
+    container.append(routeNotice);
+  }
+
+  container.append(renderConnectionStatus(document, retry));
+
+  const savedSection = createElement(document, "section", "offline-saved-section");
+  const heading = createElement(document, "div", "offline-section-heading");
+  heading.append(createElement(document, "h1", "offline-section-title", "Sačuvane objave"));
+  if (snapshots.length > 0) {
+    heading.append(
       createElement(
         document,
         "p",
-        "offline-route-notice",
-        "Tražena stranica nije sačuvana za čitanje bez interneta.",
+        "offline-section-count",
+        `Sačuvano na ovom uređaju: ${String(snapshots.length)}`,
       ),
     );
   }
-
-  const introduction = createElement(document, "section", "offline-panel");
-  introduction.append(
-    createElement(document, "p", "offline-eyebrow", "Način rada bez interneta"),
-    createElement(document, "h1", "offline-title", "Trenutno niste povezani na internet"),
-    createElement(
-      document,
-      "p",
-      "offline-description",
-      "Možete čitati objave koje ste ranije otvorili na ovom uređaju ili pokušati ponovo uspostaviti vezu.",
-    ),
-    createRetryButton(document, retry),
-  );
-  container.append(introduction);
-
-  const savedSection = createElement(document, "section", "offline-panel");
-  savedSection.append(createElement(document, "h2", "offline-section-title", "Sačuvane objave"));
+  savedSection.append(heading);
 
   if (snapshots.length === 0) {
-    savedSection.append(
+    const emptyState = createElement(document, "div", "offline-empty-state");
+    emptyState.append(
       createElement(
         document,
         "p",
@@ -183,6 +196,7 @@ function renderSavedPostList(
         "Još nema sačuvanih objava. Otvorite objavu dok ste povezani kako biste je kasnije mogli čitati bez interneta.",
       ),
     );
+    savedSection.append(emptyState);
   } else {
     const list = createElement(document, "ul", "offline-post-list");
 
@@ -190,30 +204,14 @@ function renderSavedPostList(
       list.append(renderSavedPostListItem(document, snapshot));
     }
 
-    const actionStatus = createElement(document, "p", "offline-action-status");
-    actionStatus.setAttribute("role", "status");
-    const clearButton = createElement(
-      document,
-      "button",
-      "offline-button offline-button-secondary",
-      "Obriši sačuvane objave",
+    savedSection.append(
+      list,
+      renderClearActions(document, {
+        clearSnapshots,
+        rerender,
+        snapshots,
+      }),
     );
-    clearButton.type = "button";
-    clearButton.dataset.offlineAction = "clear";
-    clearButton.addEventListener("click", () => {
-      clearButton.disabled = true;
-      actionStatus.textContent = "Brisanje sačuvanih objava…";
-
-      void clearSnapshots()
-        .then(() => rerender([]))
-        .catch(() => {
-          clearButton.disabled = false;
-          actionStatus.textContent =
-            "Sačuvane objave trenutno nije moguće obrisati. Pokušajte ponovo.";
-        });
-    });
-
-    savedSection.append(list, clearButton, actionStatus);
   }
 
   container.append(savedSection);
@@ -221,47 +219,155 @@ function renderSavedPostList(
   return container;
 }
 
+function renderConnectionStatus(document: Document, retry: () => void): HTMLElement {
+  const connection = createElement(document, "section", "offline-connection");
+  connection.setAttribute("aria-label", "Status veze");
+  const copy = createElement(document, "div", "offline-connection-copy");
+  copy.append(
+    createElement(document, "p", "offline-connection-title", "Trenutno niste povezani na internet"),
+    createElement(
+      document,
+      "p",
+      "offline-connection-description",
+      "Prikazujemo sadržaj koji je ranije sačuvan na ovom uređaju.",
+    ),
+  );
+  connection.append(copy, createRetryButton(document, retry, "primary"));
+
+  return connection;
+}
+
 function renderSavedPostListItem(document: Document, snapshot: PostSnapshot): HTMLLIElement {
   const item = createElement(document, "li", "offline-post-item");
   const link = createElement(document, "a", "offline-post-link");
   link.href = `/objave/${snapshot.slug}`;
-  link.append(
-    createElement(document, "span", "offline-post-title", snapshot.title),
-    createElement(
-      document,
-      "span",
-      "offline-post-meta",
-      `${POST_TYPE_LABEL[snapshot.type]} · Sačuvano ${formatTimestamp(snapshot.snapshotRefreshedAt)}`,
-    ),
+
+  const title = createElement(document, "h2", "offline-post-title", snapshot.title);
+  const footer = createElement(document, "div", "offline-post-footer");
+  const savedDate = createElement(
+    document,
+    "time",
+    "offline-post-meta",
+    `Sačuvano ${formatTimestamp(snapshot.snapshotRefreshedAt)}`,
   );
+  savedDate.dateTime = snapshot.snapshotRefreshedAt;
+  footer.append(savedDate, createElement(document, "span", "offline-post-cta", "Pročitaj →"));
+  link.append(createPostTypeBadge(document, snapshot, "offline-post-badge"), title, footer);
   item.append(link);
 
   return item;
 }
 
+function renderClearActions(
+  document: Document,
+  {
+    clearSnapshots,
+    rerender,
+    snapshots,
+  }: {
+    clearSnapshots: () => Promise<void>;
+    rerender: (snapshots: PostSnapshot[]) => void;
+    snapshots: PostSnapshot[];
+  },
+): HTMLElement {
+  const area = createElement(document, "div", "offline-clear-area");
+  const status = createElement(document, "p", "offline-action-status");
+  status.setAttribute("role", "status");
+
+  const showDefaultAction = () => {
+    const clearButton = createElement(
+      document,
+      "button",
+      "offline-button offline-button-ghost-danger",
+      "Obriši sve",
+    );
+    clearButton.type = "button";
+    clearButton.dataset.offlineAction = "clear";
+    clearButton.addEventListener("click", showConfirmation);
+    area.replaceChildren(clearButton, status);
+  };
+
+  const showConfirmation = () => {
+    const confirmation = createElement(document, "div", "offline-clear-confirmation");
+    const prompt = createElement(
+      document,
+      "p",
+      "offline-clear-prompt",
+      `Obrisati ${formatSnapshotDeletionCount(snapshots.length)} sa ovog uređaja?`,
+    );
+    const cancelButton = createElement(
+      document,
+      "button",
+      "offline-button offline-button-outline",
+      "Odustani",
+    );
+    cancelButton.type = "button";
+    cancelButton.dataset.offlineAction = "clear-cancel";
+    cancelButton.addEventListener("click", showDefaultAction);
+
+    const confirmButton = createElement(
+      document,
+      "button",
+      "offline-button offline-button-danger",
+      "Potvrdi brisanje",
+    );
+    confirmButton.type = "button";
+    confirmButton.dataset.offlineAction = "clear-confirm";
+    confirmButton.addEventListener("click", () => {
+      confirmButton.disabled = true;
+      cancelButton.disabled = true;
+      status.textContent = "Brisanje sačuvanih objava…";
+      confirmation.append(status);
+
+      void clearSnapshots()
+        .then(() => rerender([]))
+        .catch(() => {
+          status.textContent = "Sačuvane objave trenutno nije moguće obrisati. Pokušajte ponovo.";
+          showDefaultAction();
+        });
+    });
+
+    confirmation.append(prompt, cancelButton, confirmButton);
+    area.replaceChildren(confirmation);
+  };
+
+  showDefaultAction();
+
+  return area;
+}
+
 function renderStorageFallback(root: HTMLElement, document: Document, retry: () => void): void {
   document.title = "Bez interneta · Moj džemat";
-  const panel = createElement(document, "section", "offline-panel");
-  panel.append(
-    createElement(document, "p", "offline-eyebrow", "Način rada bez interneta"),
-    createElement(document, "h1", "offline-title", "Trenutno niste povezani na internet"),
+  const container = createElement(document, "div", "offline-stack");
+  container.append(renderConnectionStatus(document, retry));
+
+  const savedSection = createElement(document, "section", "offline-saved-section");
+  const heading = createElement(document, "div", "offline-section-heading");
+  heading.append(createElement(document, "h1", "offline-section-title", "Sačuvane objave"));
+  const emptyState = createElement(document, "div", "offline-empty-state");
+  emptyState.append(
     createElement(
       document,
       "p",
-      "offline-description",
+      "offline-empty",
       "Sačuvane objave trenutno nije moguće učitati na ovom uređaju. Pokušajte ponovo kada provjerite vezu.",
     ),
-    createRetryButton(document, retry),
   );
-  root.replaceChildren(panel);
+  savedSection.append(heading, emptyState);
+  container.append(savedSection);
+  root.replaceChildren(container);
 }
 
-function createRetryButton(document: Document, retry: () => void): HTMLButtonElement {
+function createRetryButton(
+  document: Document,
+  retry: () => void,
+  variant: "primary" | "outline",
+): HTMLButtonElement {
   const button = createElement(
     document,
     "button",
-    "offline-button offline-button-primary",
-    "Pokušaj ponovo",
+    `offline-button offline-button-${variant}`,
+    variant === "outline" ? "Provjeri vezu" : "Pokušaj ponovo",
   );
   button.type = "button";
   button.dataset.offlineAction = "retry";
@@ -270,14 +376,15 @@ function createRetryButton(document: Document, retry: () => void): HTMLButtonEle
   return button;
 }
 
-function createMetadataItem(document: Document, label: string, value: string): HTMLDivElement {
-  const item = createElement(document, "div", "offline-metadata-item");
-  item.append(
-    createElement(document, "dt", "offline-metadata-label", label),
-    createElement(document, "dd", "offline-metadata-value", value),
-  );
+function createPostTypeBadge(
+  document: Document,
+  snapshot: PostSnapshot,
+  className = "offline-article-badge",
+): HTMLSpanElement {
+  const badge = createElement(document, "span", className, POST_TYPE_LABEL[snapshot.type]);
+  badge.dataset.postType = snapshot.type;
 
-  return item;
+  return badge;
 }
 
 function createElement<K extends keyof HTMLElementTagNameMap>(
@@ -304,23 +411,44 @@ function getRequestedPostSlug(pathname: string): string | undefined {
   }
 }
 
-function getMediaNotice(snapshot: PostSnapshot): string | undefined {
+function getMediaGuidance(
+  snapshot: PostSnapshot,
+): { title: string; description: string } | undefined {
   if (snapshot.hasImageMedia && snapshot.hasVideoMedia) {
-    return "Slike i video iz ove objave dostupni su samo kada ste povezani na internet.";
+    return {
+      title: "Slike i video nisu dostupni bez interneta",
+      description: "Medijski sadržaj ove objave možete pogledati kada ponovo uspostavite vezu.",
+    };
   }
   if (snapshot.hasImageMedia) {
-    return "Slike iz ove objave dostupne su samo kada ste povezani na internet.";
+    return {
+      title: "Slike nisu dostupne bez interneta",
+      description: "Slike iz ove objave možete pogledati kada ponovo uspostavite vezu.",
+    };
   }
   if (snapshot.hasVideoMedia) {
-    return "Video iz ove objave dostupan je samo kada ste povezani na internet.";
+    return {
+      title: "Video nije dostupan bez interneta",
+      description: "Video iz ove objave možete pogledati kada ponovo uspostavite vezu.",
+    };
   }
 
   return undefined;
 }
 
 function formatTimestamp(timestamp: string): string {
-  return new Intl.DateTimeFormat("bs-BA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(timestamp));
+  return formatDateTimeLong(timestamp);
+}
+
+function formatSnapshotDeletionCount(count: number): string {
+  if (count === 1) return "ovu sačuvanu objavu";
+
+  const finalTwoDigits = count % 100;
+  const finalDigit = count % 10;
+  const noun =
+    finalDigit >= 2 && finalDigit <= 4 && (finalTwoDigits < 12 || finalTwoDigits > 14)
+      ? "sačuvane objave"
+      : "sačuvanih objava";
+
+  return `${String(count)} ${noun}`;
 }

@@ -118,7 +118,10 @@ describe("offline shell", () => {
     expect(root().querySelector("h1")?.textContent).toBe("Javna objava");
     expect(root().querySelector(".offline-prose strong")?.textContent).toBe("sadržaj");
     expect(root().textContent).toContain("Slike i video");
-    expect(root().textContent).toContain("Sačuvana kopija");
+    expect(root().textContent).toContain("Sačuvana verzija");
+    expect(root().textContent).toContain("Sačuvano na uređaju 26. jul 2026. u 10:00");
+    expect(root().textContent).toContain("Objavljeno 20. jul 2026. u 12:00");
+    expect(root().textContent).not.toContain("M07");
     expect(root().querySelector<HTMLAnchorElement>(".offline-back-link")?.pathname).toBe("/");
     expect(document.title).toBe("Javna objava · Bez interneta");
   });
@@ -162,6 +165,7 @@ describe("offline shell", () => {
 
     await renderShell({ records: [saved], clear });
     root().querySelector<HTMLButtonElement>('[data-offline-action="clear"]')?.click();
+    root().querySelector<HTMLButtonElement>('[data-offline-action="clear-confirm"]')?.click();
 
     await vi.waitFor(() => {
       expect(clear).toHaveBeenCalledOnce();
@@ -177,10 +181,26 @@ describe("offline shell", () => {
 
     await renderShell({ records: [saved], clear });
     root().querySelector<HTMLButtonElement>('[data-offline-action="clear"]')?.click();
+    root().querySelector<HTMLButtonElement>('[data-offline-action="clear-confirm"]')?.click();
 
     await vi.waitFor(() => {
       expect(root().textContent).toContain("trenutno nije moguće obrisati");
       expect(root().textContent).toContain("Javna objava");
     });
+  });
+
+  it("allows cancelling snapshot deletion without touching storage", async () => {
+    const clear = vi.fn<() => Promise<void>>().mockResolvedValue();
+    const saved = snapshot("post-1", "javna-objava", "Javna objava", FIRST_VIEW);
+
+    await renderShell({ records: [saved], clear });
+    root().querySelector<HTMLButtonElement>('[data-offline-action="clear"]')?.click();
+    expect(root().textContent).toContain("Obrisati ovu sačuvanu objavu");
+
+    root().querySelector<HTMLButtonElement>('[data-offline-action="clear-cancel"]')?.click();
+
+    expect(clear).not.toHaveBeenCalled();
+    expect(root().querySelector('[data-offline-action="clear-confirm"]')).toBeNull();
+    expect(root().querySelector('[data-offline-action="clear"]')).not.toBeNull();
   });
 });

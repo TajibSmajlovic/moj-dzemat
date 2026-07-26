@@ -118,8 +118,10 @@ test.describe("production PWA", () => {
 
     try {
       await page.goto(postPath(savedPost));
-      await expect(page.getByText("Sačuvana kopija")).toBeVisible();
+      await expect(page.getByText("Sačuvana verzija")).toBeVisible();
       await expect(page.getByRole("heading", { level: 1, name: savedPost.title })).toBeVisible();
+      await expect(page.getByText(/Objavljeno 20\. jul 2026\. u \d{2}:\d{2}/)).toBeVisible();
+      await expect(page.getByText("M07")).toHaveCount(0);
 
       await page.goto("/kontakt");
       await expect(
@@ -127,7 +129,8 @@ test.describe("production PWA", () => {
       ).toBeVisible();
 
       await page.goto("/");
-      await page.getByRole("button", { name: "Obriši sačuvane objave" }).click();
+      await page.getByRole("button", { name: "Obriši sve" }).click();
+      await page.getByRole("button", { name: "Potvrdi brisanje" }).click();
       await expect(page.getByText("Još nema sačuvanih objava.")).toBeVisible();
       await expect.poll(() => readSnapshots(page)).toEqual([]);
 
