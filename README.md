@@ -104,7 +104,3 @@ The focused PWA production checklist and cleanup-worker procedure live in
 - [.github/SECURITY.md](.github/SECURITY.md) — how to report vulnerabilities privately
 - Use the issue templates under [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)
   for bugs, features, and other work
-
-## License
-
-MIT
