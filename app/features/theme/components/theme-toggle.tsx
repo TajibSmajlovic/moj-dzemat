@@ -17,11 +17,12 @@ import { useRootLoaderData } from "#app/lib/root-loader-data";
 
 type ThemeToggleProps = {
   className?: string;
+  iconClassName?: string;
   style?: CSSProperties;
   tabIndex?: number;
 };
 
-export function ThemeToggle({ className, style, tabIndex }: ThemeToggleProps) {
+export function ThemeToggle({ className, iconClassName, style, tabIndex }: ThemeToggleProps) {
   const data = useRootLoaderData();
   const serverTheme = data?.themePreference ?? DEFAULT_THEME_PREFERENCE;
   const theme = useSyncExternalStore(
@@ -57,6 +58,7 @@ export function ThemeToggle({ className, style, tabIndex }: ThemeToggleProps) {
           theme === "dark"
             ? "scale-75 -rotate-90 opacity-0"
             : "text-primary scale-100 rotate-0 opacity-100",
+          iconClassName,
         )}
         aria-hidden="true"
       />
@@ -66,6 +68,7 @@ export function ThemeToggle({ className, style, tabIndex }: ThemeToggleProps) {
           theme === "dark"
             ? "text-secondary scale-100 rotate-0 opacity-100"
             : "scale-75 rotate-90 opacity-0",
+          iconClassName,
         )}
         aria-hidden="true"
       />

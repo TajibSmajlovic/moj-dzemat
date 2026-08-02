@@ -83,7 +83,7 @@ async function handleUpsert(
     return data({ result: submission.reply() }, { status: 400 });
   }
 
-  const { title, date, description } = submission.value;
+  const { title, date, description, recursYearly } = submission.value;
   const dateValue = ymdToUtcDate(date);
   invariant(dateValue, "Schema guarantees a valid YMD date");
 
@@ -92,18 +92,18 @@ async function handleUpsert(
     const id = requireId(formData.get("id"));
     await prisma.importantDate.update({
       where: { id },
-      data: { title, date: dateValue, description },
+      data: { title, date: dateValue, description, recursYearly },
     });
     importantDateId = id;
   } else {
     const created = await prisma.importantDate.create({
-      data: { title, date: dateValue, description },
+      data: { title, date: dateValue, description, recursYearly },
     });
     importantDateId = created.id;
   }
 
   logger.info(
-    { importantDateId, userId, intent, date: dateToYmd(dateValue) },
+    { importantDateId, userId, intent, date: dateToYmd(dateValue), recursYearly },
     "important date saved",
   );
 

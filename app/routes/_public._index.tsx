@@ -48,7 +48,7 @@ import {
   formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import { useRootFacebookPageUrl } from "#app/lib/social-links";
+import { useRootSocialProfileUrls } from "#app/lib/social-links";
 import { absoluteUrl } from "#app/lib/url";
 import { env } from "#app/server/env.server";
 
@@ -111,15 +111,15 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
     loaderData;
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
-  const facebookPageUrl = useRootFacebookPageUrl();
+  const socialProfileUrls = useRootSocialProfileUrls();
   const latestTitle = formatLatestPostsTitle(activeType);
 
   return (
     <>
       {siteUrl ? (
         <HomeStructuredData
-          facebookPageUrl={facebookPageUrl}
           location={location}
+          socialProfileUrls={socialProfileUrls}
           siteName={siteName}
           siteUrl={siteUrl}
         />

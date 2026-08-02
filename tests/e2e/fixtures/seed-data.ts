@@ -1,4 +1,5 @@
 import type { PostTypeValue } from "../../../app/features/posts/post-type";
+import { getTodayYmd } from "../../../app/lib/date";
 
 export const ADMIN_EMAIL = "admin@dzemat.ba";
 export const ADMIN_PASSWORD = "#tajnaLozinkaZaE2ETestove2024";
@@ -91,31 +92,27 @@ export type SeededImportantDate = {
   title: string;
   date: string; // "YYYY-MM-DD"
   description: string | null;
+  recursYearly: boolean;
 };
 
-/** today + offsetDays as a "YYYY-MM-DD" string (UTC calendar math). */
-const pad = (n: number) => String(n).padStart(2, "0");
-function ymdFromToday(offsetDays: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + offsetDays);
+const E2E_CURRENT_YEAR = Number(getTodayYmd().slice(0, 4));
 
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
-}
-
-// "Upcoming" depends on the run date, so generate dates relative to now:
-// one future (shows on the home page) and one past (admin only).
+// December 31 is always in the current public window. The recurring source
+// starts in the current year so this remains valid even when run on that day.
 export const SEEDED_IMPORTANT_DATES = [
   {
     key: "future",
     title: "E2E važan nadolazeći datum",
-    date: ymdFromToday(30),
+    date: `${E2E_CURRENT_YEAR}-12-31`,
     description: "Nadolazeći E2E datum koji se prikazuje na početnoj stranici.",
+    recursYearly: true,
   },
   {
     key: "past",
     title: "E2E prošli važan datum",
-    date: ymdFromToday(-30),
+    date: `${E2E_CURRENT_YEAR - 1}-12-31`,
     description: "Prošli E2E datum koji se prikazuje samo u admin panelu.",
+    recursYearly: false,
   },
 ] as const satisfies readonly [SeededImportantDate, SeededImportantDate];
 

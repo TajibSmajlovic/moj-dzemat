@@ -44,7 +44,12 @@ test.describe("public", () => {
     await expect(banner.getByRole("link", { name: "Objave" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Pitanja i odgovori" })).toBeVisible();
     await expect(banner.getByRole("link", { name: "Kontakt" })).toBeVisible();
-    await expect(banner.getByRole("link", { name: "Facebook" })).toBeVisible();
+    const socialNavigation = banner.getByRole("navigation", { name: "Društvene mreže" });
+    await expect(socialNavigation.getByRole("link", { name: "Facebook" })).toBeVisible();
+    await expect(socialNavigation.getByRole("link", { name: "YouTube" })).toHaveAttribute(
+      "href",
+      "https://www.youtube.com/@DzematDonjeMostre",
+    );
     await expect(banner.getByRole("link", { name: "Admin" })).toBeVisible();
   });
 

@@ -183,6 +183,27 @@ export function formatYmdLong(ymd: string): string {
   return monthName ? `${parts.d}. ${monthName} ${parts.y}.` : "";
 }
 
+// "2026-06-16" -> "16. jun" for annual dates whose year is shown separately.
+export function formatYmdDayMonth(ymd: string): string {
+  const parts = parseYmd(ymd);
+  if (!parts) return "";
+
+  const monthName = MONTHS_LONG_BS[parts.m - 1];
+
+  return monthName ? `${parts.d}. ${monthName}` : "";
+}
+
+// Reuses a valid YMD month/day in another year. Returns null for missing days,
+// such as 29 February in a non-leap year.
+export function ymdWithYear(ymd: string, year: number): string | null {
+  const parts = parseYmd(ymd);
+  if (!parts || !Number.isInteger(year) || year < 1 || year > 9999) return null;
+
+  const candidate = `${String(year).padStart(4, "0")}-${pad2(parts.m)}-${pad2(parts.d)}`;
+
+  return isValidYmd(candidate) ? candidate : null;
+}
+
 // Badge parts for "YYYY-MM-DD": { month: "JUN", day: "16", weekday: "PON" }.
 export function getYmdBadgeParts(
   ymd: string,

@@ -14,6 +14,10 @@ export const ImportantDateFormSchema = z.object({
     isValidYmd,
     "Unesite ispravan datum (format: GGGG-MM-DD).",
   ),
+  recursYearly: z
+    .literal("on")
+    .optional()
+    .transform((value) => value === "on"),
   // Optional. Empty string from the textarea becomes null so we store a clean
   // value and the public card can branch on `description != null`.
   description: z

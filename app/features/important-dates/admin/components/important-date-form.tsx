@@ -12,6 +12,7 @@ import { parseWithZod } from "@conform-to/zod/v4";
 import { Field } from "#app/components/forms/field";
 import { FormActions } from "#app/components/forms/form-actions";
 import { Button } from "#app/components/ui/button";
+import { Checkbox } from "#app/components/ui/checkbox";
 import { Label } from "#app/components/ui/label";
 import { Textarea } from "#app/components/ui/textarea";
 import type { ImportantDateRow } from "#app/features/important-dates/admin/components/important-date-list";
@@ -41,6 +42,7 @@ export function ImportantDateForm({ importantDate, lastResult, submitting, onCan
           title: importantDate.title,
           date: dateToYmd(importantDate.date),
           description: importantDate.description ?? "",
+          recursYearly: importantDate.recursYearly ? "on" : undefined,
         }
       : undefined,
     shouldValidate: "onBlur",
@@ -93,6 +95,27 @@ export function ImportantDateForm({ importantDate, lastResult, submitting, onCan
               {fields.description.errors?.[0]}
             </p>
           ) : null}
+        </div>
+
+        <div className="border-border/70 flex items-start gap-3 rounded-xl border p-3.5">
+          <Checkbox
+            id={fields.recursYearly.id}
+            name={fields.recursYearly.name}
+            value="on"
+            defaultChecked={fields.recursYearly.initialValue === "on"}
+            aria-describedby={`${fields.recursYearly.id}-description`}
+          />
+          <div className="space-y-1">
+            <Label htmlFor={fields.recursYearly.id} className="cursor-pointer text-sm font-medium">
+              Ponavlja se svake godine
+            </Label>
+            <p
+              id={`${fields.recursYearly.id}-description`}
+              className="text-muted-foreground text-xs leading-5"
+            >
+              Prikazuje se istog dana i mjeseca svake godine, počevši od odabrane godine.
+            </p>
+          </div>
         </div>
       </div>
 

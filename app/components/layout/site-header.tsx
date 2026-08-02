@@ -22,11 +22,16 @@ import {
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import { useRootFacebookPageUrl } from "#app/lib/social-links";
+import {
+  useRootSocialLinks,
+  type SocialLink,
+  type SocialLinkPlatform,
+} from "#app/lib/social-links";
 
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>> | LucideIcon;
 
@@ -46,6 +51,14 @@ type ExternalNavItem = {
 
 type HeaderNavItem = InternalNavItem | ExternalNavItem;
 
+const SOCIAL_LINK_ICONS: Record<SocialLinkPlatform, NavIcon> = {
+  facebook: FacebookIcon,
+  youtube: YouTubeIcon,
+};
+
+const HEADER_ICON_BUTTON_CLASSNAME =
+  "border-border bg-background hover:bg-accent rounded-full shadow-xs backdrop-blur-none dark:border-input dark:bg-input/30 dark:shadow-xs";
+
 const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
   { type: "internal", label: "Početna", to: href("/"), Icon: Home },
   { type: "internal", label: "Objave", to: href("/objave"), Icon: Newspaper },
@@ -61,8 +74,8 @@ const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
 export function SiteHeader({ adminHref = href("/prijava") }: { adminHref?: string }) {
   const { pathname } = useLocation();
   const siteName = useRootSiteName();
-  const facebookPageUrl = useRootFacebookPageUrl();
-  const navItems = buildNavItems({ facebookPageUrl });
+  const socialLinks = useRootSocialLinks();
+  const navItems = buildNavItems({ socialLinks });
 
   // Reset menu state on route changes without a setState effect.
   return (
@@ -99,10 +112,10 @@ function SiteHeaderContent({
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <BrandLink siteName={siteName} onClick={closeMenu} />
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           <DesktopNavigation items={navItems} pathname={pathname} />
           <DesktopExternalLinks items={navItems} />
-          <ThemeToggle />
+          <ThemeToggle className={HEADER_ICON_BUTTON_CLASSNAME} iconClassName="text-foreground" />
           <DesktopAdminAccess href={adminHref} />
           <MobileMenuToggle controls={mobileMenuId} open={menuOpen} onToggle={toggleMenu} />
         </div>
@@ -140,26 +153,29 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
       to={href("/")}
       aria-label={siteName}
       onClick={onClick}
-      className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
+      className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 overflow-hidden rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
     >
       <IslamskaZajednicaLogo />
       <span className="flex min-w-0 flex-col leading-none">
-        <span className="font-display w-max max-w-56 text-base leading-tight text-balance sm:max-w-none sm:text-lg">
+        <span className="font-display min-w-0 truncate text-base leading-tight sm:text-lg">
           <span className="text-foreground font-bold">{brandName}</span>
           {dzematName ? (
             <>
-              <span className="text-muted-foreground mx-1.5 font-medium" aria-hidden="true">
+              <span
+                className="text-muted-foreground mx-1.5 hidden font-medium sm:inline"
+                aria-hidden="true"
+              >
                 ·
               </span>
-              <span className="text-primary text-[0.92em] font-semibold">{dzematName}</span>
+              <span className="text-primary hidden text-[0.92em] font-semibold sm:inline">
+                {dzematName}
+              </span>
             </>
           ) : null}
         </span>
-        <span className="text-muted-foreground mt-0.5 text-xs">
-          <span className="max-[560px]:hidden">
-            Rijaset Islamske zajednice u Bosni i Hercegovini
-          </span>
-          <span className="hidden max-[560px]:inline">Rijaset Islamske zajednice u BiH</span>
+        <span className="text-muted-foreground mt-0.5 truncate text-xs">
+          <span className="sm:hidden">Rijaset IZ u BiH</span>
+          <span className="hidden sm:inline">Rijaset Islamske zajednice u BiH</span>
         </span>
       </span>
     </Link>
@@ -225,25 +241,31 @@ function DesktopNavigation({ items, pathname }: { items: HeaderNavItem[]; pathna
 function DesktopExternalLinks({ items }: { items: HeaderNavItem[] }) {
   const externalItems = items.filter((item): item is ExternalNavItem => item.type === "external");
 
-  return externalItems.map((item) => (
-    <Button
-      asChild
-      key={item.href}
-      size="icon"
-      variant="outline"
-      className="border-border bg-background hover:bg-accent hidden rounded-full xl:inline-flex"
-    >
-      <a
-        href={item.href}
-        target="_blank"
-        rel="noreferrer"
-        title={item.label}
-        aria-label={item.label}
-      >
-        <item.Icon className="h-4 w-4" aria-hidden="true" />
-      </a>
-    </Button>
-  ));
+  if (externalItems.length === 0) return null;
+
+  return (
+    <nav aria-label="Društvene mreže" className="hidden items-center gap-1 xl:flex">
+      {externalItems.map((item) => (
+        <Button
+          asChild
+          key={item.href}
+          size="icon"
+          variant="outline"
+          className={HEADER_ICON_BUTTON_CLASSNAME}
+        >
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noreferrer"
+            title={item.label}
+            aria-label={item.label}
+          >
+            <item.Icon className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </Button>
+      ))}
+    </nav>
+  );
 }
 
 function DesktopAdminAccess({ href }: { href: string }) {
@@ -252,7 +274,7 @@ function DesktopAdminAccess({ href }: { href: string }) {
       asChild
       variant="outline"
       size="icon"
-      className="border-border bg-background hover:bg-accent hidden rounded-full xl:inline-flex"
+      className={cn(HEADER_ICON_BUTTON_CLASSNAME, "hidden xl:inline-flex")}
     >
       <Link to={href} aria-label="Admin" title="Admin" prefetch="intent">
         <LockKeyhole className="h-4 w-4" aria-hidden="true" />
@@ -471,15 +493,15 @@ function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement |
   };
 }
 
-function buildNavItems({ facebookPageUrl }: { facebookPageUrl: string | null }): HeaderNavItem[] {
+function buildNavItems({ socialLinks }: { socialLinks: SocialLink[] }): HeaderNavItem[] {
   const items: HeaderNavItem[] = [...PRIMARY_NAV_ITEMS];
 
-  if (facebookPageUrl) {
+  for (const socialLink of socialLinks) {
     items.push({
       type: "external",
-      label: "Facebook",
-      href: facebookPageUrl,
-      Icon: FacebookIcon,
+      label: socialLink.label,
+      href: socialLink.href,
+      Icon: SOCIAL_LINK_ICONS[socialLink.platform],
     });
   }
 
