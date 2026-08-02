@@ -84,6 +84,7 @@ These are the variables that matter most for local development:
 | `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
 | `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |
 | `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                             |
+| `YOUTUBE_CHANNEL_URL`            | Optional official YouTube channel URL. Header YouTube links are hidden when empty.                                                   |
 | `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.                 |
 | `PORT`                           | Defaults to `3000`.                                                                                                                  |
 

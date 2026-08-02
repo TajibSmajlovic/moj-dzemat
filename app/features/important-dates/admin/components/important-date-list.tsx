@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-import { CalendarOff, Pencil } from "lucide-react";
+import { CalendarOff, Pencil, RefreshCw } from "lucide-react";
 
 import { AdminPanel } from "#app/components/admin/admin-panel";
 import { DeleteRecordButton } from "#app/components/admin/delete-record-button";
@@ -16,13 +16,20 @@ import {
 } from "#app/components/ui/table";
 import { ImportantDateIntents } from "#app/features/important-dates/admin/important-date-intents";
 import { cn } from "#app/lib/cn";
-import { dateToYmd, formatYmdLong, getTodayYmd } from "#app/lib/date";
+import {
+  dateToYmd,
+  formatYmdDayMonth,
+  formatYmdLong,
+  getTodayYmd,
+  ymdWithYear,
+} from "#app/lib/date";
 
 export type ImportantDateRow = {
   id: string;
   title: string;
   date: Date;
   description: string | null;
+  recursYearly: boolean;
   createdAt: Date;
 };
 
@@ -54,7 +61,8 @@ export function ImportantDateList({ importantDates, deletingId, getEditHref }: P
           <ImportantDateMobileCard
             key={importantDate.id}
             importantDate={importantDate}
-            past={dateToYmd(importantDate.date) < todayYmd}
+            status={getImportantDateStatus(importantDate, todayYmd)}
+            todayYmd={todayYmd}
             deleting={deletingId === importantDate.id}
             getEditHref={getEditHref}
           />
@@ -65,7 +73,7 @@ export function ImportantDateList({ importantDates, deletingId, getEditHref }: P
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-56">Datum</TableHead>
+              <TableHead className="w-100">Datum</TableHead>
               <TableHead>Naslov</TableHead>
               <TableHead>Opis</TableHead>
               <TableHead className="w-32 text-right">Akcije</TableHead>
@@ -74,7 +82,7 @@ export function ImportantDateList({ importantDates, deletingId, getEditHref }: P
           <TableBody>
             {importantDates.map((importantDate) => {
               const ymd = dateToYmd(importantDate.date);
-              const past = ymd < todayYmd;
+              const status = getImportantDateStatus(importantDate, todayYmd);
 
               return (
                 <TableRow
@@ -84,9 +92,11 @@ export function ImportantDateList({ importantDates, deletingId, getEditHref }: P
                   <TableCell>
                     <div className="flex flex-wrap items-center gap-2">
                       <time dateTime={ymd} className="text-foreground text-sm font-medium">
-                        {formatYmdLong(ymd)}
+                        {formatImportantDate(importantDate, todayYmd)}
                       </time>
-                      {past ? <PastBadge /> : null}
+                      {importantDate.recursYearly ? <YearlyBadge /> : null}
+                      {status === "past" ? <PastBadge label="Prošlo" /> : null}
+                      {status === "past-this-year" ? <PastBadge label="Prošlo ove godine" /> : null}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -119,12 +129,14 @@ export function ImportantDateList({ importantDates, deletingId, getEditHref }: P
 
 function ImportantDateMobileCard({
   importantDate,
-  past,
+  status,
+  todayYmd,
   deleting,
   getEditHref,
 }: {
   importantDate: ImportantDateRow;
-  past: boolean;
+  status: ImportantDateStatus;
+  todayYmd: string;
   deleting: boolean;
   getEditHref: (id: string) => string;
 }) {
@@ -139,9 +151,11 @@ function ImportantDateMobileCard({
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span className="bg-primary/10 text-primary inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap">
-          <time dateTime={ymd}>{formatYmdLong(ymd)}</time>
+          <time dateTime={ymd}>{formatImportantDate(importantDate, todayYmd)}</time>
         </span>
-        {past ? <PastBadge /> : null}
+        {importantDate.recursYearly ? <YearlyBadge /> : null}
+        {status === "past" ? <PastBadge label="Prošlo" /> : null}
+        {status === "past-this-year" ? <PastBadge label="Prošlo ove godine" /> : null}
       </div>
 
       <Link
@@ -164,13 +178,51 @@ function ImportantDateMobileCard({
   );
 }
 
-function PastBadge() {
+function YearlyBadge() {
+  return (
+    <span className="bg-secondary/10 text-secondary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap">
+      <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+      Svake godine
+    </span>
+  );
+}
+
+function PastBadge({ label }: { label: string }) {
   return (
     <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap">
       <CalendarOff className="h-3.5 w-3.5" aria-hidden="true" />
-      Prošlo
+      {label}
     </span>
   );
+}
+
+type ImportantDateStatus = "upcoming" | "past" | "past-this-year";
+
+function getImportantDateStatus(
+  importantDate: ImportantDateRow,
+  todayYmd: string,
+): ImportantDateStatus {
+  const sourceYmd = dateToYmd(importantDate.date);
+  if (!importantDate.recursYearly) return sourceYmd < todayYmd ? "past" : "upcoming";
+
+  const sourceYear = Number(sourceYmd.slice(0, 4));
+  const currentYear = Number(todayYmd.slice(0, 4));
+  if (sourceYear > currentYear) return "upcoming";
+
+  const occurrenceYmd = ymdWithYear(sourceYmd, currentYear);
+
+  return occurrenceYmd && occurrenceYmd < todayYmd ? "past-this-year" : "upcoming";
+}
+
+function formatImportantDate(importantDate: ImportantDateRow, todayYmd: string) {
+  const ymd = dateToYmd(importantDate.date);
+  if (!importantDate.recursYearly) return formatYmdLong(ymd);
+
+  const dayMonth = formatYmdDayMonth(ymd);
+  const sourceYear = Number(ymd.slice(0, 4));
+  const currentYear = Number(todayYmd.slice(0, 4));
+
+  return sourceYear > currentYear ? `${dayMonth}, od ${sourceYear}.` : dayMonth;
 }
 
 type ActionProps = {

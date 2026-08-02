@@ -48,6 +48,7 @@ export const envSchema = z
     DZEMAT_ADDRESS: optionalText,
     DZEMAT_MAP_QUERY: optionalText,
     FACEBOOK_PAGE_URL: optionalText.pipe(z.string().url().optional()),
+    YOUTUBE_CHANNEL_URL: optionalText.pipe(z.string().url().optional()),
     CLOUDFLARE_WEB_ANALYTICS_TOKEN: optionalText,
 
     APP_URL: z

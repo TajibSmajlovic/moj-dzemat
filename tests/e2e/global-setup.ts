@@ -83,6 +83,7 @@ export default async function globalSetup() {
         title: importantDate.title,
         date: importantDate.date,
         description: importantDate.description,
+        recursYearly: importantDate.recursYearly,
       });
     }
   } finally {

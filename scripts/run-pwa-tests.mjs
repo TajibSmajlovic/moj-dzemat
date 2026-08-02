@@ -29,6 +29,7 @@ try {
     DZEMAT_ADDRESS: "Testna adresa 1, Sarajevo",
     DZEMAT_MAP_QUERY: "Testna adresa 1, Sarajevo",
     FACEBOOK_PAGE_URL: "",
+    YOUTUBE_CHANNEL_URL: "",
     CLOUDFLARE_WEB_ANALYTICS_TOKEN: "",
     APP_URL: appUrl,
     PORT: String(port),

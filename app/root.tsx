@@ -69,6 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       siteName: formatSiteName(environment.DZEMAT_NAME),
       siteUrl: environment.APP_URL,
       facebookPageUrl: environment.FACEBOOK_PAGE_URL,
+      youtubeChannelUrl: environment.YOUTUBE_CHANNEL_URL,
       themePreference,
       toast,
     },

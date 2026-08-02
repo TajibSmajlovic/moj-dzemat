@@ -16,7 +16,21 @@ describe("ImportantDateFormSchema", () => {
         title: "Bajram namaz",
         date: "2026-06-16",
         description: "Klanja se u 06:00.",
+        recursYearly: false,
       });
+    }
+  });
+
+  it("maps the checked yearly recurrence field to true", () => {
+    const result = ImportantDateFormSchema.safeParse({
+      title: "Sjećanje na genocid u Srebrenici",
+      date: "2024-07-11",
+      recursYearly: "on",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.recursYearly).toBe(true);
     }
   });
 
@@ -67,6 +81,16 @@ describe("ImportantDateFormSchema", () => {
         title: "Bajram namaz",
         date: "2026-06-16",
         description: "x".repeat(301),
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects an unexpected yearly recurrence value", () => {
+    expect(
+      ImportantDateFormSchema.safeParse({
+        title: "Bajram namaz",
+        date: "2026-06-16",
+        recursYearly: "true",
       }).success,
     ).toBe(false);
   });

@@ -25,15 +25,15 @@ const MEDZLIS_VISOKO_ORGANIZATION = {
 };
 
 type HomeStructuredDataProps = {
-  facebookPageUrl: string | null;
   location: DzematLocation | null;
+  socialProfileUrls: string[];
   siteName: string;
   siteUrl: string;
 };
 
 export function HomeStructuredData({
-  facebookPageUrl,
   location,
+  socialProfileUrls,
   siteName,
   siteUrl,
 }: HomeStructuredDataProps) {
@@ -74,7 +74,7 @@ export function HomeStructuredData({
               "@id": placeId,
             },
             parentOrganization: MEDZLIS_VISOKO_ORGANIZATION,
-            sameAs: facebookPageUrl ? [facebookPageUrl] : undefined,
+            sameAs: socialProfileUrls.length > 0 ? socialProfileUrls : undefined,
           },
           {
             "@type": "Mosque",

@@ -115,7 +115,10 @@ test.describe("seo", () => {
           },
         },
       },
-      sameAs: ["https://www.facebook.com/profile.php?id=100085095166223"],
+      sameAs: [
+        "https://www.facebook.com/profile.php?id=100085095166223",
+        "https://www.youtube.com/@DzematDonjeMostre",
+      ],
     });
     expect(mosque).toMatchObject({
       "@id": "http://localhost:3000/#place",

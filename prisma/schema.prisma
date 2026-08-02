@@ -176,12 +176,13 @@ model Question {
 // back via UTC extraction, so the displayed day never shifts with the
 // server/browser timezone.
 model ImportantDate {
-  id          String   @id @default(cuid())
-  title       String
-  date        DateTime // UTC midnight of the calendar day (date-only)
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  title        String
+  date         DateTime // UTC midnight of the calendar day (date-only)
+  description  String?
+  recursYearly Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([date])
 }

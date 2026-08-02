@@ -4,12 +4,14 @@ import {
   dateToYmd,
   formatDateLong,
   formatDateShort,
+  formatYmdDayMonth,
   formatYmdLong,
   getTodayYmd,
   getYmdBadgeParts,
   isValidYmd,
   toIsoDate,
   ymdToUtcDate,
+  ymdWithYear,
 } from "#app/lib/date";
 
 describe("toIsoDate", () => {
@@ -131,6 +133,18 @@ describe("formatYmdLong", () => {
   });
 });
 
+describe("formatYmdDayMonth", () => {
+  it("formats a YMD string without the source year", () => {
+    expect(formatYmdDayMonth("2026-06-16")).toBe("16. jun");
+    expect(formatYmdDayMonth("2026-01-01")).toBe("1. januar");
+  });
+
+  it("returns an empty string for invalid input", () => {
+    expect(formatYmdDayMonth("2026-02-30")).toBe("");
+    expect(formatYmdDayMonth("nope")).toBe("");
+  });
+});
+
 describe("getYmdBadgeParts", () => {
   it("returns abbreviated month, day, and weekday", () => {
     // 2026-06-16 is a Tuesday in the proleptic Gregorian calendar.
@@ -176,5 +190,21 @@ describe("dateToYmd", () => {
   it("returns an empty string for invalid input", () => {
     expect(dateToYmd(Number.NaN)).toBe("");
     expect(dateToYmd("nope")).toBe("");
+  });
+});
+
+describe("ymdWithYear", () => {
+  it("projects the month and day onto another year", () => {
+    expect(ymdWithYear("2024-07-11", 2026)).toBe("2026-07-11");
+    expect(ymdWithYear("2024-02-29", 2028)).toBe("2028-02-29");
+  });
+
+  it("skips February 29 in a non-leap year", () => {
+    expect(ymdWithYear("2024-02-29", 2026)).toBeNull();
+  });
+
+  it("rejects invalid input and invalid target years", () => {
+    expect(ymdWithYear("2026-02-30", 2028)).toBeNull();
+    expect(ymdWithYear("2026-06-16", Number.NaN)).toBeNull();
   });
 });

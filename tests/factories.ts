@@ -89,6 +89,7 @@ type CreateImportantDateOptions = {
   title?: string;
   date?: string; // "YYYY-MM-DD"
   description?: string | null;
+  recursYearly?: boolean;
 };
 
 export async function createImportantDate(options: CreateImportantDateOptions = {}) {
@@ -100,6 +101,7 @@ export async function createImportantDate(options: CreateImportantDateOptions = 
       title: options.title ?? "Bajram namaz",
       date,
       description: options.description === undefined ? "Test opis." : options.description,
+      recursYearly: options.recursYearly,
     },
   });
 }

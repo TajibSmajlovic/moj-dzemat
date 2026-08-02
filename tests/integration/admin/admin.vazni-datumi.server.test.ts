@@ -67,6 +67,7 @@ describe("admin important dates route", () => {
     formData.set("title", "Bajram namaz");
     formData.set("date", "2026-06-16");
     formData.set("description", "Klanja se u 06:00.");
+    formData.set("recursYearly", "on");
     withHoneypot(formData);
 
     const result = await callAction(formData, context);
@@ -78,6 +79,7 @@ describe("admin important dates route", () => {
     });
     expect(inserted?.description).toBe("Klanja se u 06:00.");
     expect(inserted?.date.toISOString()).toBe("2026-06-16T00:00:00.000Z");
+    expect(inserted?.recursYearly).toBe(true);
   });
 
   it("returns 400 with a field error when the date is invalid", async () => {
@@ -108,7 +110,7 @@ describe("admin important dates route", () => {
     expect(body.result.error.title?.[0]).toMatch(/obavezan/i);
   });
 
-  it("changes the title, date, and description of an existing row", async () => {
+  it("changes the title, date, description, and recurrence of an existing row", async () => {
     const existing = await createImportantDate({
       title: "Stari naslov",
       date: "2026-06-16",
@@ -121,13 +123,18 @@ describe("admin important dates route", () => {
     formData.set("title", "Novi naslov");
     formData.set("date", "2026-07-20");
     formData.set("description", "Novi opis.");
+    formData.set("recursYearly", "on");
     withHoneypot(formData);
 
     const result = await callAction(formData, context);
     expect((result as Response).status).toBe(302);
 
     const updated = await prisma.importantDate.findUnique({ where: { id: existing.id } });
-    expect(updated).toMatchObject({ title: "Novi naslov", description: "Novi opis." });
+    expect(updated).toMatchObject({
+      title: "Novi naslov",
+      description: "Novi opis.",
+      recursYearly: true,
+    });
     expect(updated?.date.toISOString()).toBe("2026-07-20T00:00:00.000Z");
   });
 

@@ -38,6 +38,7 @@ const serverEnvironment = Object.fromEntries(
     "DZEMAT_ADDRESS",
     "DZEMAT_MAP_QUERY",
     "FACEBOOK_PAGE_URL",
+    "YOUTUBE_CHANNEL_URL",
     "CLOUDFLARE_WEB_ANALYTICS_TOKEN",
     "APP_URL",
     "PORT",
