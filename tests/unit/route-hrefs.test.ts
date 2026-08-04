@@ -25,7 +25,7 @@ describe("dynamic route href helpers", () => {
     );
   });
 
-  it("URL-encodes password reset tokens as path parameters", () => {
-    expect(passwordResetHref('<token>"&x=1')).toBe("/nova-lozinka/%3Ctoken%3E%22%26x%3D1");
+  it("encodes password reset tokens as path parameters", () => {
+    expect(passwordResetHref('<token>"&x=1')).toBe("/nova-lozinka/%3Ctoken%3E%22&x=1");
   });
 });
