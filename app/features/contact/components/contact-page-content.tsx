@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 
 import { Button } from "#app/components/ui/button";
 import type { CommunityInfoRecord } from "#app/features/contact/contact";
+import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { sectionReveal, softFade } from "#app/lib/motion";
 
 type ContactPageContentProps = {
@@ -28,6 +29,8 @@ function bankAccountLabel(account: string): string {
 }
 
 export function ContactPageContent({ info }: ContactPageContentProps) {
+  const suppressRouteMotion = useSuppressPublicRouteMotion();
+
   const hasContact =
     info.showContact && Boolean(info.contactPhone ?? info.contactEmail ?? info.officeHours);
   const hasImam = info.showImam && Boolean(info.imamName ?? info.imamPhone ?? info.imamEmail);
@@ -43,6 +46,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
     <div className="space-y-6 sm:space-y-8">
       <motion.header
         {...softFade}
+        initial={suppressRouteMotion ? false : softFade.initial}
         className="border-border bg-card relative overflow-hidden rounded-3xl border px-5 py-7 shadow-sm sm:px-8 sm:py-10"
       >
         <div
@@ -79,6 +83,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
             <motion.section
               aria-labelledby="contact-details-heading"
               {...sectionReveal}
+              initial={suppressRouteMotion ? false : sectionReveal.initial}
               className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
             >
               <SectionHeading
@@ -116,6 +121,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
             <motion.section
               aria-labelledby="contact-people-heading"
               {...sectionReveal}
+              initial={suppressRouteMotion ? false : sectionReveal.initial}
               className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
             >
               <SectionHeading
@@ -145,7 +151,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
         </div>
       ) : null}
 
-      {hasBank ? <BankDetails info={info} /> : null}
+      {hasBank ? <BankDetails info={info} suppressRouteMotion={suppressRouteMotion} /> : null}
     </div>
   );
 }
@@ -248,11 +254,18 @@ function ImamCard({ info }: { info: CommunityInfoRecord }) {
   );
 }
 
-function BankDetails({ info }: { info: CommunityInfoRecord }) {
+function BankDetails({
+  info,
+  suppressRouteMotion,
+}: {
+  info: CommunityInfoRecord;
+  suppressRouteMotion: boolean;
+}) {
   return (
     <motion.section
       aria-labelledby="contact-bank-heading"
       {...sectionReveal}
+      initial={suppressRouteMotion ? false : sectionReveal.initial}
       className="border-border bg-card min-w-0 overflow-hidden rounded-2xl border shadow-sm"
     >
       <div className="grid min-w-0 lg:grid-cols-[0.8fr_1.2fr]">

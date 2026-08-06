@@ -164,6 +164,7 @@ export default tseslint.config(
       "unicorn/prefer-module": "off",
       "unicorn/prefer-top-level-await": "off",
       "unicorn/explicit-length-check": "off",
+      "unicorn/prefer-includes": "off",
 
       // General
       "no-console": ["warn", { allow: ["warn", "error"] }],

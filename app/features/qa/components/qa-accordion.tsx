@@ -1,10 +1,9 @@
-import { Link } from "react-router";
-
 import { ChevronDown } from "lucide-react";
 
 import { Accordion } from "#app/components/ui/accordion";
 import { ShareButton } from "#app/features/posts/components/share-button";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { cn } from "#app/lib/cn";
 
 type QaAccordionItem = {
@@ -57,14 +56,14 @@ export function QaAccordion({ questions, className }: QaAccordionProps) {
             <p className="text-sm leading-6 whitespace-pre-wrap sm:text-base">{item.answer}</p>
             <div className="flex flex-wrap items-center gap-2">
               <ShareButton path={href} tabIndex={isOpen ? undefined : -1} />
-              <Link
+              <PublicTransitionLink
                 to={href}
                 prefetch="intent"
                 tabIndex={isOpen ? undefined : -1}
                 className="text-primary inline-flex h-8 items-center px-1 text-sm font-medium hover:underline"
               >
                 Otvori
-              </Link>
+              </PublicTransitionLink>
             </div>
           </>
         );

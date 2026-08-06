@@ -1,6 +1,6 @@
 import type { Prisma } from "#generated/prisma/client";
 
-import type { PostCardData } from "#app/features/posts/components/post-card";
+import type { PostCardData } from "#app/features/posts/post-card-data";
 import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/features/posts/post-type";
 import { prisma } from "#app/server/db.server";
@@ -17,6 +17,7 @@ const publicPostCardSelect = {
   pinned: true,
   featured: true,
   images: { orderBy: { position: "asc" }, take: 1, select: { id: true } },
+  videos: { take: 1, select: { id: true } },
 } satisfies Prisma.PostSelect;
 
 const publicPostOrderBy: Prisma.PostOrderByWithRelationInput[] = [
@@ -79,5 +80,6 @@ function toPublicPostCard(post: PublicPostCardRecord): PostCardData {
     publishedAt: post.publishedAt,
     pinned: post.pinned,
     thumbnailId: post.images[0]?.id ?? null,
+    firstMediaKind: post.videos.length > 0 ? "video" : post.images.length > 0 ? "image" : null,
   };
 }
