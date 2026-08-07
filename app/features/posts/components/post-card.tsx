@@ -1,4 +1,4 @@
-import { Link, NavigationType, useNavigationType } from "react-router";
+import { NavigationType, useNavigationType } from "react-router";
 
 import { Pin } from "lucide-react";
 import { motion } from "motion/react";
@@ -7,9 +7,8 @@ import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
 import type { PostCardData } from "#app/features/posts/post-card-data";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
-import { usePostTransitionSource } from "#app/features/view-transitions/post-transition";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
-import { transitionNameForAnchor } from "#app/features/view-transitions/view-transition-model";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { cardReveal } from "#app/lib/motion";
@@ -27,22 +26,10 @@ export function PostCard({ post, priority }: PostCardProps) {
   const navigationType = useNavigationType();
   const suppressRouteMotion = useSuppressPublicRouteMotion();
   const skipEntrance = navigationType === NavigationType.Pop || suppressRouteMotion;
-  const postTransition = usePostTransitionSource({
-    slug: post.slug,
-    sourceKind: "card",
-    thumbnailId: post.thumbnailId ?? null,
-    firstMediaKind: post.firstMediaKind,
-    targetUrl: href,
-  });
 
   return (
     <motion.article
       {...(skipEntrance ? {} : cardReveal)}
-      data-post-transition-source={
-        postTransition.routeTransitionActive && postTransition.activeAnchor === "media"
-          ? "media"
-          : undefined
-      }
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
         "transition-shadow duration-200 ease-out hover:shadow-md hover:will-change-transform",
@@ -69,9 +56,6 @@ export function PostCard({ post, priority }: PostCardProps) {
             loading={priority ? "eager" : "lazy"}
             decoding="async"
             fetchPriority={priority ? "high" : undefined}
-            style={{
-              viewTransitionName: transitionNameForAnchor(postTransition.activeAnchor, "media"),
-            }}
             className="h-full w-full rounded-t-xl object-cover transition-transform duration-500 ease-out group-hover:will-change-transform motion-reduce:transition-none sm:group-hover:scale-[1.012] motion-reduce:sm:group-hover:scale-100"
           />
           <div className="post-card-transition-decoration pointer-events-none absolute top-2.5 left-2.5 z-20 transition-opacity duration-100 ease-out motion-reduce:transition-none sm:top-3 sm:left-3">
@@ -94,22 +78,15 @@ export function PostCard({ post, priority }: PostCardProps) {
           </div>
         )}
 
-        <h3
-          style={{
-            viewTransitionName: transitionNameForAnchor(postTransition.activeAnchor, "title"),
-          }}
-          className="font-display group-hover:text-primary text-foreground mb-1.5 line-clamp-2 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg"
-        >
-          <Link
+        <h3 className="font-display group-hover:text-primary text-foreground mb-1.5 line-clamp-2 text-base font-semibold text-balance wrap-break-word transition-colors sm:mb-2 sm:text-lg">
+          <PublicTransitionLink
             to={href}
             prefetch="intent"
-            state={postTransition.state}
-            viewTransition={postTransition.viewTransition}
-            onClick={postTransition.onClick}
+            state={{ fromList: true }}
             className="focus-visible:after:ring-ring after:absolute after:inset-0 after:z-10 after:rounded-xl focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:after:ring-2 focus-visible:after:ring-offset-2"
           >
             {post.title}
-          </Link>
+          </PublicTransitionLink>
         </h3>
 
         <p

@@ -1,5 +1,4 @@
 import type { PostTypeValue } from "#app/features/posts/post-type";
-import type { PostTransitionMediaKind } from "#app/features/view-transitions/view-transition-model";
 
 export type PostCardData = {
   slug: string;
@@ -9,5 +8,4 @@ export type PostCardData = {
   publishedAt: Date | string;
   pinned?: boolean;
   thumbnailId?: string | null;
-  firstMediaKind: PostTransitionMediaKind | null;
 };

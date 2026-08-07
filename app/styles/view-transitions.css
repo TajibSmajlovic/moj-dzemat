@@ -55,199 +55,49 @@ html[data-view-transition-kind="section"] {
   --route-transition-in-y: 5px;
 }
 
-html[data-view-transition-kind="post-forward"] {
-  --route-transition-out-duration: 170ms;
-  --route-transition-in-duration: 230ms;
-  --route-transition-out-y: -2px;
-  --route-transition-in-y: 4px;
-  --post-transition-duration: 340ms;
-  --post-title-out-duration: 120ms;
-  --post-title-in-duration: 210ms;
-  --post-title-in-delay: 55ms;
-  --post-media-in-duration: 210ms;
-}
-
-html[data-view-transition-kind="post-back"] {
-  --route-transition-out-duration: 130ms;
-  --route-transition-in-duration: 190ms;
-  --route-transition-out-y: 2px;
-  --route-transition-in-y: -4px;
-  --post-transition-duration: 280ms;
-  --post-title-out-duration: 100ms;
-  --post-title-in-duration: 170ms;
-  --post-title-in-delay: 35ms;
-  --post-media-in-duration: 170ms;
-}
-
 /*
    Keep document-height route content inside the viewport-bound root snapshot.
    Naming that element makes Chromium paint its top during the transition,
    which can flash the home hero while navigating from a scrolled post card.
  */
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )
-  .public-announcement-shell {
+html[data-view-transition-kind="section"] .public-announcement-shell {
   view-transition-name: public-announcement-shell;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )
-  .public-site-header {
+html[data-view-transition-kind="section"] .public-site-header {
   view-transition-name: public-site-header;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(root),
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(public-announcement-shell),
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(public-site-header) {
+html[data-view-transition-kind="section"]::view-transition-group(root),
+html[data-view-transition-kind="section"]::view-transition-group(public-announcement-shell),
+html[data-view-transition-kind="section"]::view-transition-group(public-site-header) {
   animation: none;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-old(root) {
+html[data-view-transition-kind="section"]::view-transition-old(root) {
   animation: view-transition-route-out var(--route-transition-out-duration)
     cubic-bezier(0.4, 0, 1, 1) both;
   mix-blend-mode: normal;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-new(root) {
+html[data-view-transition-kind="section"]::view-transition-new(root) {
   animation: view-transition-route-in var(--route-transition-in-duration)
     cubic-bezier(0.22, 1, 0.36, 1) both;
   mix-blend-mode: normal;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-old(public-announcement-shell),
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-old(public-site-header) {
+html[data-view-transition-kind="section"]::view-transition-old(public-announcement-shell),
+html[data-view-transition-kind="section"]::view-transition-old(public-site-header) {
   animation: none;
   opacity: 0;
   mix-blend-mode: normal;
 }
 
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-new(public-announcement-shell),
-html:is(
-    [data-view-transition-kind="section"],
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-new(public-site-header) {
+html[data-view-transition-kind="section"]::view-transition-new(public-announcement-shell),
+html[data-view-transition-kind="section"]::view-transition-new(public-site-header) {
   animation: none;
   opacity: 1;
   mix-blend-mode: normal;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(post-title),
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(post-media) {
-  animation-duration: var(--post-transition-duration);
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-group(post-media) {
-  overflow: visible;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-image-pair(post-media) {
-  overflow: clip;
-}
-
-html[data-view-transition-kind="post-forward"]::view-transition-image-pair(post-media) {
-  animation: view-transition-media-radius-forward var(--post-transition-duration)
-    cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-html[data-view-transition-kind="post-back"]::view-transition-image-pair(post-media) {
-  animation: view-transition-media-radius-back var(--post-transition-duration)
-    cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-old(post-title) {
-  animation: view-transition-fade-out var(--post-title-out-duration) ease-out both;
-  mix-blend-mode: normal;
-  object-fit: cover;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-old(post-media) {
-  animation: none;
-  opacity: 1;
-  mix-blend-mode: normal;
-  object-fit: cover;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-new(post-title) {
-  animation: view-transition-fade-in var(--post-title-in-duration) ease-out
-    var(--post-title-in-delay) both;
-  mix-blend-mode: normal;
-  object-fit: cover;
-}
-
-html:is(
-    [data-view-transition-kind="post-forward"],
-    [data-view-transition-kind="post-back"]
-  )::view-transition-new(post-media) {
-  animation: view-transition-fade-in var(--post-media-in-duration) ease-out both;
-  mix-blend-mode: normal;
-  object-fit: cover;
-}
-
-html[data-view-transition-kind="post-back"]
-  [data-post-transition-source="media"]
-  .post-card-transition-decoration {
-  opacity: 0;
 }
 
 [data-navigation-progress] {
@@ -293,24 +143,6 @@ html[data-view-transition-kind="post-back"]
   }
 }
 
-@keyframes view-transition-media-radius-forward {
-  from {
-    border-radius: calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0;
-  }
-  to {
-    border-radius: calc(var(--radius) + 4px);
-  }
-}
-
-@keyframes view-transition-media-radius-back {
-  from {
-    border-radius: calc(var(--radius) + 4px);
-  }
-  to {
-    border-radius: calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0;
-  }
-}
-
 @keyframes navigation-progress-sweep {
   0% {
     transform: translateX(-120%) scaleX(0.3);
@@ -323,9 +155,7 @@ html[data-view-transition-kind="post-back"]
 @media (prefers-reduced-motion: reduce) {
   html[data-view-transition-kind]::view-transition-group(root),
   html[data-view-transition-kind]::view-transition-group(public-announcement-shell),
-  html[data-view-transition-kind]::view-transition-group(public-site-header),
-  html[data-view-transition-kind]::view-transition-group(post-title),
-  html[data-view-transition-kind]::view-transition-group(post-media) {
+  html[data-view-transition-kind]::view-transition-group(public-site-header) {
     animation-duration: 1ms !important;
   }
 
@@ -334,12 +164,7 @@ html[data-view-transition-kind="post-back"]
   html[data-view-transition-kind]::view-transition-old(public-announcement-shell),
   html[data-view-transition-kind]::view-transition-new(public-announcement-shell),
   html[data-view-transition-kind]::view-transition-old(public-site-header),
-  html[data-view-transition-kind]::view-transition-new(public-site-header),
-  html[data-view-transition-kind]::view-transition-old(post-title),
-  html[data-view-transition-kind]::view-transition-new(post-title),
-  html[data-view-transition-kind]::view-transition-image-pair(post-media),
-  html[data-view-transition-kind]::view-transition-old(post-media),
-  html[data-view-transition-kind]::view-transition-new(post-media) {
+  html[data-view-transition-kind]::view-transition-new(public-site-header) {
     animation: none !important;
     clip-path: none !important;
     transform: none !important;

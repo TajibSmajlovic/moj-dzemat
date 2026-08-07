@@ -38,7 +38,7 @@ export const PublicTransitionLink = forwardRef<HTMLAnchorElement, PublicTransiti
   },
 );
 
-export function shouldHandleTransitionClick(
+function shouldHandleTransitionClick(
   event: Pick<
     MouseEvent<HTMLAnchorElement>,
     "button" | "defaultPrevented" | "metaKey" | "altKey" | "ctrlKey" | "shiftKey"

@@ -5,10 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "#app/components/ui/button";
 import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { useOptionalPublicViewTransition } from "#app/features/view-transitions/public-view-transition-provider";
-import {
-  hasNavigationStateFlag,
-  readPostTransitionOrigin,
-} from "#app/features/view-transitions/view-transition-model";
+import { hasNavigationStateFlag } from "#app/features/view-transitions/view-transition-model";
 import { cn } from "#app/lib/cn";
 
 const BACK_LINK_CLASSES =
@@ -35,8 +32,7 @@ type BackButtonProps = {
   label?: string;
   /**
    * Boolean key on `location.state`; when truthy, `navigate(-1)` is
-   * used instead of `fallback`. Post links set the default `fromList`
-   * flag together with their transition metadata.
+   * used instead of `fallback`. Post links set the default `fromList` flag.
    */
   stateKey?: string;
   className?: string;
@@ -65,9 +61,6 @@ export function BackButton({
       void navigate(fallback, { viewTransition: Boolean(publicViewTransition) });
       return;
     }
-
-    const origin = readPostTransitionOrigin(location.state);
-    if (origin) publicViewTransition?.beginPostBack(origin);
 
     void navigate(-1);
   };
