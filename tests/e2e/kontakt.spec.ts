@@ -24,7 +24,7 @@ test.describe("kontakt", () => {
   test("admin can save contact info and it appears on the public page", async ({ page }) => {
     await loginAsAdmin(page);
 
-    await page.goto(href("/admin/kontakt"), { waitUntil: "networkidle" });
+    await page.goto(href("/admin/kontakt"));
     await expect(page.getByRole("heading", { level: 1, name: "Kontakt" })).toBeVisible();
 
     const uniquePhone = `+38761${String(Date.now()).slice(-6)}`;

@@ -16,6 +16,10 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    // This suite runs against a production build, which registers the service
+    // worker. Blocking it keeps the extra fetch-interception layer out of these
+    // tests; the focused suite in `tests/e2e/pwa` owns that behaviour.
+    serviceWorkers: "block",
   },
   projects: [
     {
@@ -26,8 +30,11 @@ export default defineConfig({
   globalSetup: "./tests/e2e/global-setup.ts",
   globalTeardown: "./tests/e2e/global-teardown.ts",
   webServer: {
-    // Start the app for e2e with test env overrides (.env base,
-    // e2e DB, test routes). Use single-run mode because watch can hang on Windows.
+    // Start the app for e2e with test env overrides (.env base, e2e DB, test
+    // routes). `NODE_ENV=test` serves the `npm run build:e2e` artifact rather
+    // than the Vite dev server, so no test pays for on-demand dependency
+    // optimisation. It cannot be `production`, because the environment schema
+    // rejects the test-only flags below in that environment.
     command: "npx tsx --env-file=.env server/index.ts",
     url: `http://localhost:${PORT}/resources/healthcheck`,
     reuseExistingServer: !process.env.CI,

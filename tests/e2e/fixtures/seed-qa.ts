@@ -1,26 +1,11 @@
-import type { PostTypeValue } from "../../../app/features/posts/post-type";
-import { getTodayYmd } from "../../../app/lib/date";
+import { prisma } from "../../../app/server/db.server";
+import { createQuestion } from "../../factories";
 
-export const ADMIN_EMAIL = "admin@dzemat.ba";
-export const ADMIN_PASSWORD = "#tajnaLozinkaZaE2ETestove2024";
-export const BASE_TIME = Date.parse("2026-04-22T12:00:00Z");
+/**
+   Anchor for seeded question timestamps. Fixed for the same reason as
+   the post fixture's `BASE_TIME`: stable ordering on every run.
+ */
 const QUESTION_BASE_TIME = Date.parse("2026-04-22T15:00:00Z");
-
-const SEEDED_POST_COUNT = 35;
-const POST_TYPE_SEQUENCE = [
-  "obavijest",
-  "hutba",
-  "sergija",
-  "smrtovnica",
-  "price",
-] as const satisfies readonly PostTypeValue[];
-
-type SeededPost = {
-  index: number;
-  slug: string;
-  title: string;
-  type: PostTypeValue;
-};
 
 export type SeededQuestion = {
   key: string;
@@ -30,15 +15,6 @@ export type SeededQuestion = {
   answeredAt: Date | null;
   createdAt: Date;
 };
-
-export const SEEDED_POSTS = Array.from({ length: SEEDED_POST_COUNT }, (_, index) => ({
-  index,
-  title: `E2E objava ${String(index + 1).padStart(2, "0")}`,
-  slug: `e2e-objava-${index + 1}`,
-  type: POST_TYPE_SEQUENCE[index % POST_TYPE_SEQUENCE.length],
-})) as [SeededPost, ...SeededPost[]];
-
-export const POSTS_TITLES = SEEDED_POSTS.map((post) => post.title) as [string, ...string[]];
 
 export const SEEDED_QA_VISIBLE = [
   seedQuestionAnswered({
@@ -81,40 +57,11 @@ const SEEDED_QA_PENDING = [
   }),
 ] as const satisfies readonly [SeededQuestion, SeededQuestion];
 
-export const SEEDED_QA_QUESTIONS = [
+const SEEDED_QA_QUESTIONS = [
   ...SEEDED_QA_VISIBLE,
   SEEDED_QA_HIDDEN,
   ...SEEDED_QA_PENDING,
 ] as const satisfies readonly SeededQuestion[];
-
-export type SeededImportantDate = {
-  key: string;
-  title: string;
-  date: string; // "YYYY-MM-DD"
-  description: string | null;
-  recursYearly: boolean;
-};
-
-const E2E_CURRENT_YEAR = Number(getTodayYmd().slice(0, 4));
-
-// December 31 is always in the current public window. The recurring source
-// starts in the current year so this remains valid even when run on that day.
-export const SEEDED_IMPORTANT_DATES = [
-  {
-    key: "future",
-    title: "E2E važan nadolazeći datum",
-    date: `${E2E_CURRENT_YEAR}-12-31`,
-    description: "Nadolazeći E2E datum koji se prikazuje na početnoj stranici.",
-    recursYearly: true,
-  },
-  {
-    key: "past",
-    title: "E2E prošli važan datum",
-    date: `${E2E_CURRENT_YEAR - 1}-12-31`,
-    description: "Prošli E2E datum koji se prikazuje samo u admin panelu.",
-    recursYearly: false,
-  },
-] as const satisfies readonly [SeededImportantDate, SeededImportantDate];
 
 export const QA_PAGINATION_EXTRA_COUNT = 22;
 export const QA_PAGINATION_EXTRA_PREFIX = "E2E dodatno pitanje za paginaciju";
@@ -126,6 +73,45 @@ export function seedQuestionPaginationExtra(index: number): SeededQuestion {
     answer: `Dodatni E2E odgovor za paginaciju ${index + 1}.`,
     minutesAgo: 100 + index,
   });
+}
+
+/**
+   Restores the deterministic Q&A rows (visible, hidden, pending) that
+   `qa.spec.ts` and the public listing assert against.
+
+   Restore-safe: rows are matched on their question text and reset to
+   their seeded answer and visibility, so a spec that hides or answers a
+   seeded question can undo it. Questions a spec created itself are left
+   alone, since the specs that add them own their own cleanup.
+ */
+export async function ensureQA() {
+  for (const seeded of SEEDED_QA_QUESTIONS) {
+    const existing = await prisma.question.findFirst({
+      where: { question: seeded.question },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await createQuestion({
+        question: seeded.question,
+        answer: seeded.answer,
+        isHidden: seeded.isHidden,
+        answeredAt: seeded.answeredAt,
+        createdAt: seeded.createdAt,
+      });
+      continue;
+    }
+
+    await prisma.question.update({
+      where: { id: existing.id },
+      data: {
+        answer: seeded.answer,
+        isHidden: seeded.isHidden,
+        answeredAt: seeded.answeredAt,
+        createdAt: seeded.createdAt,
+      },
+    });
+  }
 }
 
 function seedQuestionAnswered({
@@ -183,8 +169,8 @@ function seedQuestionPending({
     key,
     question,
     answer: null,
-    isHidden: false,
     answeredAt: null,
+    isHidden: false,
     createdAt,
   };
 }

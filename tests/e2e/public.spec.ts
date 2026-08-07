@@ -3,7 +3,8 @@ import { href } from "react-router";
 import { expect, test } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
-import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-data";
+import { SEEDED_ANNOUNCEMENT_MESSAGE } from "./fixtures/seed-announcements";
+import { POSTS_TITLES, SEEDED_POSTS } from "./fixtures/seed-posts";
 
 function seededPostOfType(type: (typeof SEEDED_POSTS)[number]["type"]) {
   const post = SEEDED_POSTS.find((seededPost) => seededPost.type === type);
@@ -23,7 +24,7 @@ test.describe("public", () => {
     await expect(page.getByRole("heading", { name: "Najnovije objave" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Gdje se nalazimo" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Otvori u Google Maps" })).toBeVisible();
-    await expect(page.getByText("Džuma namaz u 13:00")).toBeVisible();
+    await expect(page.getByText(SEEDED_ANNOUNCEMENT_MESSAGE)).toBeVisible();
     await expect(page.getByRole("link", { name: "Pogledaj sve objave" })).toBeVisible();
 
     // First 6 post cards can be seen in the viewport, the rest can be seen by scrolling.

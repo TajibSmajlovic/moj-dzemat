@@ -8,7 +8,8 @@ import {
   postsArchiveHref,
 } from "../../app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
-import { POSTS_TITLES } from "./fixtures/seed-data";
+import { prisma } from "../../app/server/db.server";
+import { POSTS_TITLES, ensurePosts } from "./fixtures/seed-posts";
 import { loginAsAdmin } from "./utils/admin";
 import { fillPostForm, uploadTinyPng } from "./utils/post-form";
 import {
@@ -26,10 +27,20 @@ const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(ADMIN_POSTS_PAGE_SIZE);
 const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
 
 test.describe("posts", () => {
+  // The deletion test empties the seeded second page, and specs in other
+  // files assert against the full seed. Restoring here keeps the fixture
+  // whole no matter which test ran, or which one failed part way through.
+  test.afterEach(async () => {
+    await ensurePosts();
+  });
+
+  test.afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
   test("admin can navigate paginated post results", async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto(href("/admin/objave"));
-    await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(ADMIN_POSTS_URL);
     await expect(
@@ -61,7 +72,6 @@ test.describe("posts", () => {
   test("admin can toggle featured state from the list with optimistic UI", async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto(href("/admin/objave"));
-    await page.waitForLoadState("networkidle");
 
     // POSTS_TITLES[0] is the newest seeded post and lives on page 1.
     // Toggle it on then back off so the post-test DB state matches the seed.
@@ -90,7 +100,6 @@ test.describe("posts", () => {
   test("admin confirms deletion through the custom dialog", async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto(adminPostsPageHref(2));
-    await page.waitForLoadState("networkidle");
 
     await expect(page).toHaveURL(ADMIN_POSTS_PAGE_TWO_URL);
     await expect(page.getByText("Stranica 2 od 2")).toBeVisible();

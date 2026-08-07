@@ -10,7 +10,7 @@ import {
   SEEDED_QA_VISIBLE,
   seedQuestionPaginationExtra,
   type SeededQuestion,
-} from "./fixtures/seed-data";
+} from "./fixtures/seed-qa";
 import { loginAsAdmin } from "./utils/admin";
 
 const PUBLIC_SUBMISSION_PREFIX = "E2E javno pitanje kroz formu";

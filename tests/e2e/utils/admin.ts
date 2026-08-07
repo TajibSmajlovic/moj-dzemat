@@ -21,7 +21,7 @@ function requireEnv(name: string): string {
    "wrong credentials" assertion later.
  */
 export const ADMIN_EMAIL = requireEnv("E2E_ADMIN_EMAIL");
-export const ADMIN_PASSWORD = requireEnv("E2E_ADMIN_PASSWORD");
+const ADMIN_PASSWORD = requireEnv("E2E_ADMIN_PASSWORD");
 
 export async function loginAsAdmin(page: Page) {
   await page.goto(href("/prijava"));

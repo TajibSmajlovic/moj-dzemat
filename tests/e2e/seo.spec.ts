@@ -3,7 +3,7 @@ import { href } from "react-router";
 import { expect, test, type Page } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
-import { POSTS_TITLES } from "./fixtures/seed-data";
+import { POSTS_TITLES } from "./fixtures/seed-posts";
 
 type JsonLdObject = {
   "@type"?: string;

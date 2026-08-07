@@ -59,6 +59,12 @@ checks the source file and its generated route types. Do not add
 `OMIT_DEV_ROUTES` to `.env`, deployment configuration, or secrets; use the
 repository's `npm run build` command for production builds.
 
+`npm run build:e2e` is the one exception. It passes `--include-dev-routes` so
+the Playwright suite can drive the password-reset flow through
+`/dev/last-email`. Runtime access still depends on `ENABLE_TEST_ROUTES`, so the
+resulting artifact returns 404 for that route unless the server opts in as well.
+Never deploy it; production images build with plain `npm run build`.
+
 ## Local Environment
 
 The app reads runtime environment variables from
@@ -239,6 +245,12 @@ A few implementation details that help when debugging:
 - Playwright starts the app itself and points it at `prisma/e2e.db`
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
   and `DISABLE_RATE_LIMITING`
+- `npm run test:e2e` builds first and serves that artifact under `NODE_ENV=test`.
+  The Vite dev server is reserved for `npm run dev`, because its on-demand
+  dependency optimisation reloads the page mid-test the first time a heavy route
+  such as the Tiptap editor is opened. Use `npx playwright test` directly to
+  re-run against an artifact you have already built.
+- the main suite blocks service workers; `tests/e2e/pwa` owns that behaviour
 - the isolated production PWA e2e suite lives in `tests/e2e/pwa` and runs via
   `npm run test:pwa`
 - e2e fixture definitions live in `tests/e2e/fixtures/seed-data.ts`

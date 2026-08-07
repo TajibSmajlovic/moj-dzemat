@@ -4,6 +4,9 @@ import { createRequestHandler } from "@react-router/express";
 import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { pwaAssetHeaders } from "../app/features/pwa/pwa-assets.server";
 import { PWA_OFFLINE_SHELL_PATH, PWA_SERVICE_WORKER_PATH } from "../app/features/pwa/pwa-config";
@@ -29,6 +32,13 @@ declare module "express-serve-static-core" {
 
 const { APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
+// Vite's dev server exists for `npm run dev` only. Every other environment,
+// including the `test` environment Playwright drives, serves the prebuilt
+// bundle. Test runs therefore exercise the same assets and module graph as
+// production rather than paying for on-demand dependency optimisation, which
+// reloads the page mid-test the first time a heavy route is opened.
+const useViteDevServer = NODE_ENV === "development";
+const serverBuildPath = path.join(process.cwd(), "build", "server", "index.js");
 // Express owns liveness directly; readiness is a registered React Router resource route.
 const HEALTHCHECK_PATH = "/resources/healthcheck";
 const HEALTH_PATHS = new Set<string>([HEALTHCHECK_PATH, "/resources/readiness"]);
@@ -172,7 +182,30 @@ async function createServer(): Promise<express.Express> {
     res.status(404).end();
   });
 
-  if (isProd) {
+  if (useViteDevServer) {
+    const vite = await import("vite");
+    const viteDevServer = await vite.createServer({
+      server: { middlewareMode: true },
+      appType: "custom",
+    });
+    app.use(viteDevServer.middlewares);
+    app.all(
+      "/{*splat}",
+      createRequestHandler({
+        build: () =>
+          viteDevServer.ssrLoadModule(
+            "virtual:react-router/server-build",
+          ) as unknown as Promise<ServerBuild>,
+        mode: "development",
+      }),
+    );
+  } else {
+    if (!fs.existsSync(serverBuildPath)) {
+      throw new Error(
+        `Missing ${serverBuildPath}. Run \`npm run build\` before starting the server with NODE_ENV=${NODE_ENV}.`,
+      );
+    }
+
     // React Router's production assets live under `build/client`. Assets
     // are fingerprinted so we can set aggressive caching; HTML/other
     // static files get a shorter TTL.
@@ -202,30 +235,13 @@ async function createServer(): Promise<express.Express> {
     // with a dynamic import so tsx doesn't try to parse it at startup if
     // the build step hasn't run yet.
     const build = (await import(
-      /* @vite-ignore */ `${process.cwd()}/build/server/index.js`
+      /* @vite-ignore */ pathToFileURL(serverBuildPath).href
     )) as unknown as ServerBuild;
     app.all(
       "/{*splat}",
       createRequestHandler({
         build,
         mode: "production",
-      }),
-    );
-  } else {
-    const vite = await import("vite");
-    const viteDevServer = await vite.createServer({
-      server: { middlewareMode: true },
-      appType: "custom",
-    });
-    app.use(viteDevServer.middlewares);
-    app.all(
-      "/{*splat}",
-      createRequestHandler({
-        build: () =>
-          viteDevServer.ssrLoadModule(
-            "virtual:react-router/server-build",
-          ) as unknown as Promise<ServerBuild>,
-        mode: "development",
       }),
     );
   }
