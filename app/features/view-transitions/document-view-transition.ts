@@ -12,10 +12,11 @@ type ViewTransitionDocument = Document & {
   startViewTransition?: (update: VoidFunction) => ViewTransitionHandle;
 };
 
-export function getDocumentViewTransitionKind(): PublicViewTransitionKind | null {
+function getDocumentViewTransitionKind(): PublicViewTransitionKind | null {
   if (typeof document === "undefined") return null;
 
   const value = document.documentElement.getAttribute(VIEW_TRANSITION_KIND_ATTRIBUTE);
+
   return isPublicViewTransitionKind(value) ? value : null;
 }
 
@@ -37,6 +38,7 @@ export function clearDocumentViewTransitionKind(expectedKind?: PublicViewTransit
 let latestThemeTransitionToken = 0;
 export function startThemeViewTransition(update: VoidFunction): boolean {
   if (typeof document === "undefined") return false;
+
   const currentKind = getDocumentViewTransitionKind();
   if (currentKind && currentKind !== "theme") return false;
 

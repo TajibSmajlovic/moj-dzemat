@@ -1,7 +1,7 @@
 export const VIEW_TRANSITION_KIND_ATTRIBUTE = "data-view-transition-kind";
 
-export const POST_TITLE_TRANSITION_NAME = "post-title";
-export const POST_MEDIA_TRANSITION_NAME = "post-media";
+const POST_TITLE_TRANSITION_NAME = "post-title";
+const POST_MEDIA_TRANSITION_NAME = "post-media";
 
 export const PUBLIC_VIEW_TRANSITION_KINDS = [
   "section",
