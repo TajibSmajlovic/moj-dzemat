@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { href, Link } from "react-router";
+import { href } from "react-router";
 
 import Autoplay from "embla-carousel-autoplay";
 import { ArrowRight } from "lucide-react";
@@ -21,8 +21,9 @@ import { getPublicCommunityInfo } from "#app/features/contact/contact.server";
 import { ImportantDatesHomeSection } from "#app/features/important-dates/components/important-dates-home-section";
 import { getUpcomingImportantDates } from "#app/features/important-dates/important-dates.server";
 import { FeaturedHeroCard } from "#app/features/posts/components/featured-hero-card";
-import { PostCard, type PostCardData } from "#app/features/posts/components/post-card";
+import { PostCard } from "#app/features/posts/components/post-card";
 import { PostFilter } from "#app/features/posts/components/post-filter";
+import type { PostCardData } from "#app/features/posts/post-card-data";
 import { formatLatestPostsTitle } from "#app/features/posts/post-type";
 import {
   getActivePostType,
@@ -32,6 +33,8 @@ import {
 } from "#app/features/posts/public-posts.server";
 import { QaHomePreview } from "#app/features/qa/components/qa-home-preview";
 import { getPublicAnsweredQuestions, QA_HOME_PREVIEW_LIMIT } from "#app/features/qa/qa.server";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
+import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import {
   formatSiteDescription,
   getRootSiteName,
@@ -112,6 +115,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
   const siteName = useRootSiteName();
   const siteUrl = useRootSiteUrl();
   const socialProfileUrls = useRootSocialProfileUrls();
+  const suppressRouteMotion = useSuppressPublicRouteMotion();
   const latestTitle = formatLatestPostsTitle(activeType);
 
   return (
@@ -145,7 +149,11 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             ))}
           </section>
         ) : (
-          <motion.div {...softFade} className="py-20 text-center">
+          <motion.div
+            {...softFade}
+            initial={suppressRouteMotion ? false : softFade.initial}
+            className="py-20 text-center"
+          >
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>
@@ -154,10 +162,10 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
         <div className="mt-6 flex justify-center sm:mt-8">
           <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
-            <Link to={href("/objave")} prefetch="intent">
+            <PublicTransitionLink to={href("/objave")} prefetch="intent">
               Pogledaj sve objave
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </PublicTransitionLink>
           </Button>
         </div>
 

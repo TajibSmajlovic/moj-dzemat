@@ -25,6 +25,8 @@ import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-
 import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
+import { NavigationProgress } from "#app/features/view-transitions/navigation-progress";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import {
@@ -73,42 +75,48 @@ const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
 
 export function SiteHeader({ adminHref = href("/prijava") }: { adminHref?: string }) {
   const { pathname } = useLocation();
+  const headerRef = useRef<HTMLElement>(null);
   const siteName = useRootSiteName();
   const socialLinks = useRootSocialLinks();
   const navItems = buildNavItems({ socialLinks });
 
   // Reset menu state on route changes without a setState effect.
   return (
-    <SiteHeaderContent
-      key={pathname}
-      adminHref={adminHref}
-      navItems={navItems}
-      pathname={pathname}
-      siteName={siteName}
-    />
+    <header
+      ref={headerRef}
+      className="public-site-header border-border/50 bg-background/85 sticky top-0 z-40 border-b backdrop-blur-lg"
+    >
+      <SiteHeaderContent
+        key={pathname}
+        headerRef={headerRef}
+        adminHref={adminHref}
+        navItems={navItems}
+        pathname={pathname}
+        siteName={siteName}
+      />
+      <NavigationProgress />
+    </header>
   );
 }
 
 function SiteHeaderContent({
   adminHref,
+  headerRef,
   navItems,
   pathname,
   siteName,
 }: {
   adminHref: string;
+  headerRef: React.RefObject<HTMLElement | null>;
   navItems: HeaderNavItem[];
   pathname: string;
   siteName: string;
 }) {
-  const headerRef = useRef<HTMLElement>(null);
   const mobileMenuId = useId();
   const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef });
 
   return (
-    <header
-      ref={headerRef}
-      className="border-border/50 bg-background/85 sticky top-0 z-40 border-b backdrop-blur-lg"
-    >
+    <>
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:py-4">
         <BrandLink siteName={siteName} onClick={closeMenu} />
 
@@ -141,7 +149,7 @@ function SiteHeaderContent({
           />
         </div>
       </div>
-    </header>
+    </>
   );
 }
 
@@ -149,7 +157,7 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
   const { brandName, dzematName } = getSiteNameParts(siteName);
 
   return (
-    <Link
+    <PublicTransitionLink
       to={href("/")}
       aria-label={siteName}
       onClick={onClick}
@@ -178,7 +186,7 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
           <span className="hidden sm:inline">Rijaset Islamske zajednice u BiH</span>
         </span>
       </span>
-    </Link>
+    </PublicTransitionLink>
   );
 }
 
@@ -293,10 +301,14 @@ function DesktopNavItem({ item, pathname }: { item: InternalNavItem; pathname: s
   );
 
   return (
-    <Link to={item.to} aria-current={active ? "page" : undefined} className={className}>
+    <PublicTransitionLink
+      to={item.to}
+      aria-current={active ? "page" : undefined}
+      className={className}
+    >
       <item.Icon className="h-4 w-4" aria-hidden="true" />
       {item.label}
-    </Link>
+    </PublicTransitionLink>
   );
 }
 
@@ -409,7 +421,7 @@ function MobileNavItem({
   const active = isNavItemActive(item, pathname);
 
   return (
-    <Link
+    <PublicTransitionLink
       to={item.to}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
@@ -424,7 +436,7 @@ function MobileNavItem({
       tabIndex={open ? undefined : -1}
     >
       {item.label}
-    </Link>
+    </PublicTransitionLink>
   );
 }
 

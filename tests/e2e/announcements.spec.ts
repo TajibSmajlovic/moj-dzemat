@@ -2,9 +2,8 @@ import { href } from "react-router";
 
 import { expect, test } from "@playwright/test";
 
+import { SEEDED_ANNOUNCEMENT_MESSAGE } from "./fixtures/seed-announcements";
 import { loginAsAdmin } from "./utils/admin";
-
-const SEED_MESSAGE = "Džuma namaz u 13:00";
 
 test.describe("admin / obavijesna traka", () => {
   test("create + toggle + delete enforces the single-active invariant through the UI", async ({
@@ -12,12 +11,12 @@ test.describe("admin / obavijesna traka", () => {
   }) => {
     await loginAsAdmin(page);
 
-    await page.goto(href("/admin/obavijesna-traka"), { waitUntil: "networkidle" });
+    await page.goto(href("/admin/obavijesna-traka"));
     await expect(page.getByRole("heading", { name: "Obavijesna traka" })).toBeVisible();
 
     // Sanity: the seed row from globalSetup is the lone active row.
     // `exact: true` so the badge "Aktivna" doesn't also match "Neaktivna".
-    const seedRow = page.getByRole("row").filter({ hasText: SEED_MESSAGE });
+    const seedRow = page.getByRole("row").filter({ hasText: SEEDED_ANNOUNCEMENT_MESSAGE });
     await expect(seedRow).toBeVisible();
     await expect(seedRow.getByText("Aktivna", { exact: true })).toBeVisible();
 

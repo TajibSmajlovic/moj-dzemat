@@ -26,6 +26,7 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env server/index.ts",
     "build": "node scripts/build.mjs",
+    "build:e2e": "node scripts/build.mjs --include-dev-routes",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "start": "NODE_ENV=production node build/server-entry.mjs",
     "typecheck": "react-router typegen && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
@@ -37,8 +38,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:cov": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --headed",
+    "test:e2e": "npm run build:e2e && playwright test",
+    "test:e2e:ui": "npm run build:e2e && playwright test --headed",
     "test:pwa": "node scripts/run-pwa-tests.mjs",
     "knip": "knip",
     "db:migrate": "prisma migrate dev && prisma generate",

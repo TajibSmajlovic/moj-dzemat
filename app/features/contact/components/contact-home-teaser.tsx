@@ -1,8 +1,9 @@
-import { href, Link } from "react-router";
+import { href } from "react-router";
 
 import { ArrowRight, ContactRound } from "lucide-react";
 
 import { communityInfoHasContent, type CommunityInfoRecord } from "#app/features/contact/contact";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 
 type Props = {
   info: CommunityInfoRecord;
@@ -15,7 +16,7 @@ export function ContactHomeTeaser({ info }: Props) {
 
   return (
     <section aria-labelledby="contact-home-heading" className="border-border/60 border-b py-2">
-      <Link
+      <PublicTransitionLink
         to={href("/kontakt")}
         prefetch="intent"
         className="group focus-visible:ring-ring hover:bg-accent/35 -mx-2 flex min-h-24 min-w-0 items-center gap-3 rounded-xl px-2 py-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-4 sm:px-3"
@@ -48,7 +49,7 @@ export function ContactHomeTeaser({ info }: Props) {
           className="text-primary h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1"
           aria-hidden="true"
         />
-      </Link>
+      </PublicTransitionLink>
     </section>
   );
 }

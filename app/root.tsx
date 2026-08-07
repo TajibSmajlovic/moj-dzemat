@@ -22,6 +22,7 @@ import { getToast } from "#app/server/toast.server";
 
 import type { Route } from "./+types/root";
 import "./styles/tailwind.css";
+import "./styles/view-transitions.css";
 
 export const links: Route.LinksFunction = () => [
   { rel: "manifest", href: PWA_MANIFEST_PATH },

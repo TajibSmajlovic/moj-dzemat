@@ -10,6 +10,17 @@ if (workerMode !== "normal" && workerMode !== "recovery") {
   process.exit(1);
 }
 
+// Opt-in escape hatch for `npm run build:e2e`. Playwright needs
+// `/dev/last-email` in the bundle to assert the password-reset flow, and it
+// cannot use NODE_ENV=production because the environment schema rejects the
+// test-only flags there. Runtime access stays gated by ENABLE_TEST_ROUTES, so
+// an artifact built this way still 404s unless the server opts in too.
+const includeDevRoutes = process.argv.includes("--include-dev-routes");
+
+if (includeDevRoutes) {
+  console.warn("[build] Including development-only routes. Never deploy this artifact.");
+}
+
 function run(stepName, command, args, env = process.env) {
   console.log(`[build] ${stepName}`);
 
@@ -28,7 +39,7 @@ run("client", "react-router", ["build"], {
   ...process.env,
   ENABLE_TEST_ROUTES: "false",
   // Exclude development-only routes from both production bundles and manifests.
-  OMIT_DEV_ROUTES: "true",
+  OMIT_DEV_ROUTES: includeDevRoutes ? "false" : "true",
 });
 
 const pwaArtifactBuilderPath = "build/.pwa-artifact-builder.mjs";

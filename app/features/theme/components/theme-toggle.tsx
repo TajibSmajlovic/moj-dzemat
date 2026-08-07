@@ -12,6 +12,7 @@ import {
   setThemePreference,
   type ThemePreference,
 } from "#app/features/theme/theme";
+import { startThemeViewTransition } from "#app/features/view-transitions/document-view-transition";
 import { cn } from "#app/lib/cn";
 import { useRootLoaderData } from "#app/lib/root-loader-data";
 
@@ -89,16 +90,7 @@ function commitThemePreference(theme: ThemePreference) {
 
   const apply = () => setThemePreference(theme);
 
-  const startViewTransition = (
-    document as Document & {
-      startViewTransition?: (callback: VoidFunction) => unknown;
-    }
-  ).startViewTransition;
-
-  if (!prefersReducedMotion && typeof startViewTransition === "function") {
-    startViewTransition.call(document, apply);
-    return;
-  }
+  if (!prefersReducedMotion && startThemeViewTransition(apply)) return;
 
   apply();
 }

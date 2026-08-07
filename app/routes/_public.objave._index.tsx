@@ -15,6 +15,7 @@ import {
   getActivePostType,
   getPublicPostCards,
 } from "#app/features/posts/public-posts.server";
+import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import {
   formatPageTitle,
   getRootSiteName,
@@ -82,6 +83,7 @@ export async function loader({ url }: Route.LoaderArgs) {
 export default function ObjavePage({ loaderData }: Route.ComponentProps) {
   const { activeType, posts, pagination } = loaderData;
   const archiveTitle = formatPostArchiveTitle(activeType);
+  const suppressRouteMotion = useSuppressPublicRouteMotion();
 
   const siteUrl = useRootSiteUrl();
   const breadcrumbItems = siteUrl
@@ -140,7 +142,11 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
             ) : null}
           </>
         ) : (
-          <motion.div {...softFade} className="py-20 text-center">
+          <motion.div
+            {...softFade}
+            initial={suppressRouteMotion ? false : softFade.initial}
+            className="py-20 text-center"
+          >
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>

@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 import { TINY_PNG_BASE64 } from "../../helpers/png";
 
@@ -17,9 +17,7 @@ type FillPostFormOptions = {
  * Fills the post create/edit form. Every field is optional so the same
  * helper covers both flows: a create test passes everything, an edit
  * test typically passes only the fields it's mutating, and the slug-
- * conflict test passes everything but `publish`. Playwright auto-waits
- * for the inputs to be actionable, so the explicit `waitFor` on the
- * rich editor is just clarity for readers.
+ * conflict test passes everything but `publish`.
  */
 export async function fillPostForm(page: Page, options: FillPostFormOptions) {
   if (options.title !== undefined) {
@@ -32,8 +30,18 @@ export async function fillPostForm(page: Page, options: FillPostFormOptions) {
     await page.getByLabel("Vrsta").selectOption(options.type);
   }
   if (options.body !== undefined) {
-    await page.locator(".ProseMirror").waitFor({ state: "visible" });
-    await page.locator(".ProseMirror").fill(options.body);
+    // The rich editor is client-only, so it does not exist until the route
+    // has hydrated and Tiptap has booted.
+    const editor = page.locator(".ProseMirror");
+    await editor.waitFor({ state: "visible" });
+    await editor.fill(options.body);
+
+    // The editor is not the field that gets submitted. Its content reaches
+    // the form through React state and a hidden input, so wait for that hop
+    // before the caller clicks save on a stale value.
+    await expect
+      .poll(() => page.locator('input[type="hidden"][name="body"]').inputValue())
+      .toContain(options.body);
   }
   if (options.publish === true) {
     await page.getByLabel("Objavi odmah").click();

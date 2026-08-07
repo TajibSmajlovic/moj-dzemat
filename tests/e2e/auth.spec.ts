@@ -2,11 +2,17 @@ import { href } from "react-router";
 
 import { expect, test } from "@playwright/test";
 
-import { POSTS_TITLES } from "./fixtures/seed-data";
-import { ADMIN_EMAIL, ADMIN_PASSWORD, loginAsAdmin } from "./utils/admin";
+import { prisma } from "../../app/server/db.server";
+import { ensureAdmin } from "./fixtures/seed-admin";
+import { POSTS_TITLES } from "./fixtures/seed-posts";
+import { ADMIN_EMAIL, loginAsAdmin } from "./utils/admin";
 import { resetPasswordViaDevInbox } from "./utils/reset-password";
 
 test.describe("auth", () => {
+  test.afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
   test("unauthenticated access is redirected to login", async ({ page }) => {
     await page.goto(href("/admin/objave"));
     await expect(page).toHaveURL(new RegExp(String.raw`${href("/prijava")}\?redirectTo=`));
@@ -54,17 +60,27 @@ test.describe("auth", () => {
   test("forgot-password flow emits a reset email captured by /dev/last-email", async ({ page }) => {
     const NEW_PASSWORD = "novaSigurnaLozinka2026";
 
-    // Reset to a temporary password.
-    await resetPasswordViaDevInbox(page, { email: ADMIN_EMAIL, newPassword: NEW_PASSWORD });
+    try {
+      // Reset to a temporary password.
+      await resetPasswordViaDevInbox(page, { email: ADMIN_EMAIL, newPassword: NEW_PASSWORD });
 
-    // Restore the original password so subsequent tests aren't broken.
-    // We have to log out first because the reset auto-logs us in, and
-    // the forgot-password form doesn't care whether we're authed but
-    // the auto-login on completion would otherwise no-op.
-    await page.goto(href("/admin/objave"));
-    await page.getByRole("button", { name: "Odjava" }).click();
-    await expect(page).toHaveURL(href("/"));
-
-    await resetPasswordViaDevInbox(page, { email: ADMIN_EMAIL, newPassword: ADMIN_PASSWORD });
+      // The reset auto-logs us in, so the admin area proves the new password
+      // produced a real session, and logging out proves it can be ended.
+      await page.goto(href("/admin/objave"));
+      await page.getByRole("button", { name: "Odjava" }).click();
+      await expect(page).toHaveURL(href("/"));
+    } finally {
+      // Restore the seeded password even when something above failed. Every
+      // later spec signs in with it, so leaving it changed would turn one
+      // failure here into a suite-wide cascade.
+      //
+      // The restore writes to the database instead of driving the reset flow
+      // a second time. Re-running the UI would depend on the very machinery
+      // that just failed, and a throw in `finally` would bury the original
+      // error. Cookies go too, so the session issued by the reset above does
+      // not leak into the next test.
+      await ensureAdmin();
+      await page.context().clearCookies();
+    }
   });
 });

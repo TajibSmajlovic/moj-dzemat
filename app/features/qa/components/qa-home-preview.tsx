@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "#app/components/ui/button";
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
 import type { PublicQuestion } from "#app/features/qa/qa.server";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 
 type QaHomePreviewProps = {
   questions: PublicQuestion[];
@@ -63,10 +64,10 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
       {questions.length > 0 ? (
         <div className="mt-6 flex justify-center sm:mt-8">
           <Button asChild size="lg" className="rounded-full px-6 shadow-sm">
-            <Link to={href("/pitanja-i-odgovori")} prefetch="intent">
+            <PublicTransitionLink to={href("/pitanja-i-odgovori")} prefetch="intent">
               Pogledaj sva pitanja
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            </PublicTransitionLink>
           </Button>
         </div>
       ) : null}
