@@ -182,8 +182,7 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
           ) : null}
         </span>
         <span className="text-muted-foreground mt-0.5 truncate text-xs">
-          <span className="sm:hidden">Rijaset IZ u BiH</span>
-          <span className="hidden sm:inline">Rijaset Islamske zajednice u BiH</span>
+          <span>Rijaset Islamske zajednice u BiH</span>
         </span>
       </span>
     </PublicTransitionLink>

@@ -1,14 +1,11 @@
-import { Link } from "react-router";
-
 import { Star } from "lucide-react";
 import { motion } from "motion/react";
 
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
 import type { PostCardData } from "#app/features/posts/post-card-data";
 import { postHref } from "#app/features/posts/post-routes";
-import { usePostTransitionSource } from "#app/features/view-transitions/post-transition";
+import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
-import { transitionNameForAnchor } from "#app/features/view-transitions/view-transition-model";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import {
   featuredHeroExcerptReveal,
@@ -31,13 +28,6 @@ type FeaturedHeroCardProps = {
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   const targetUrl = postHref(post.slug);
   const suppressRouteMotion = useSuppressPublicRouteMotion();
-  const postTransition = usePostTransitionSource({
-    slug: post.slug,
-    sourceKind: "hero",
-    thumbnailId: null,
-    firstMediaKind: null,
-    targetUrl,
-  });
 
   return (
     <motion.div
@@ -47,12 +37,10 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
         .filter(Boolean)
         .join(" ")}
     >
-      <Link
+      <PublicTransitionLink
         to={targetUrl}
         prefetch="intent"
-        state={postTransition.state}
-        viewTransition={postTransition.viewTransition}
-        onClick={postTransition.onClick}
+        state={{ fromList: true }}
         className="focus-visible:ring-ring block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         <div className="bg-primary relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14 dark:bg-[hsl(162_63%_28%)]">
@@ -81,9 +69,6 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
 
             <motion.h2
               {...featuredHeroTitleReveal}
-              style={{
-                viewTransitionName: transitionNameForAnchor(postTransition.activeAnchor, "title"),
-              }}
               className="font-display text-primary-foreground dark:text-foreground mb-2.5 text-[1.7rem] leading-tight font-bold text-balance sm:mb-3 sm:text-3xl"
             >
               {post.title}
@@ -114,7 +99,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
             </motion.div>
           </div>
         </div>
-      </Link>
+      </PublicTransitionLink>
     </motion.div>
   );
 }

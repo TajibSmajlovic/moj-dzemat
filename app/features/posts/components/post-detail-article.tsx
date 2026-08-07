@@ -17,11 +17,6 @@ import { YouTubeFacade } from "#app/features/posts/components/youtube-facade";
 import { postImageHref } from "#app/features/posts/post-routes";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import { youtubeEmbedUrl } from "#app/features/posts/post-video";
-import { useOptionalPublicViewTransition } from "#app/features/view-transitions/public-view-transition-provider";
-import {
-  transitionNameForAnchor,
-  type PostTransitionAnchor,
-} from "#app/features/view-transitions/view-transition-model";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { motionTransitions } from "#app/lib/motion";
 
@@ -68,17 +63,6 @@ export function PostDetailArticle({
   // time, so the renderer trusts the value as-is.
   const bodyHtml = post.body;
   const media = buildMedia(post);
-  const publicViewTransition = useOptionalPublicViewTransition();
-  const firstMedia = media[0];
-  const transitionAnchor =
-    publicViewTransition?.activeAnchorForDetail(
-      post.slug,
-      firstMedia?.kind === "image"
-        ? { kind: "image", id: firstMedia.image.id }
-        : firstMedia?.kind === "video"
-          ? { kind: "video" }
-          : null,
-    ) ?? null;
 
   return (
     <>
@@ -90,10 +74,7 @@ export function PostDetailArticle({
       />
 
       <article>
-        <h1
-          style={{ viewTransitionName: transitionNameForAnchor(transitionAnchor, "title") }}
-          className="font-display text-foreground mt-3 mb-3 text-2xl leading-[1.16] font-bold text-balance sm:mt-2 sm:mb-2 sm:text-4xl sm:leading-tight"
-        >
+        <h1 className="font-display text-foreground mt-3 mb-3 text-2xl leading-[1.16] font-bold text-balance sm:mt-2 sm:mb-2 sm:text-4xl sm:leading-tight">
           {post.title}
         </h1>
 
@@ -114,13 +95,7 @@ export function PostDetailArticle({
           </div>
         </div>
 
-        {media.length > 0 ? (
-          <PostMediaCarousel
-            media={media}
-            fallbackAlt={post.title}
-            transitionAnchor={transitionAnchor}
-          />
-        ) : null}
+        {media.length > 0 ? <PostMediaCarousel media={media} fallbackAlt={post.title} /> : null}
 
         <div className="bg-border mb-8 h-px" />
 
@@ -148,15 +123,7 @@ function buildMedia(post: PostDetailPost): MediaItem[] {
   ];
 }
 
-const PostMediaCarousel = ({
-  media,
-  fallbackAlt,
-  transitionAnchor,
-}: {
-  media: MediaItem[];
-  fallbackAlt: string;
-  transitionAnchor: PostTransitionAnchor | null;
-}) => {
+const PostMediaCarousel = ({ media, fallbackAlt }: { media: MediaItem[]; fallbackAlt: string }) => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const showPrevious = () => {
@@ -183,9 +150,6 @@ const PostMediaCarousel = ({
         fallbackAlt={fallbackAlt}
         onOpen={setLightboxIndex}
         priority={index === 0}
-        transitionName={
-          index === 0 ? transitionNameForAnchor(transitionAnchor, "media") : undefined
-        }
       />
     ) : (
       <YouTubeFacade
@@ -250,14 +214,12 @@ function ExpandableImage({
   fallbackAlt,
   onOpen,
   priority = false,
-  transitionName,
 }: {
   image: PostDetailImage;
   index: number;
   fallbackAlt: string;
   onOpen: (index: number) => void;
   priority?: boolean;
-  transitionName?: string;
 }) {
   const label = image.altText
     ? `Otvori sliku ${index + 1}: ${image.altText}`
@@ -278,7 +240,6 @@ function ExpandableImage({
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         fetchPriority={priority ? "high" : undefined}
-        style={{ viewTransitionName: transitionName }}
         className="aspect-video h-full w-full rounded-xl object-cover transition-transform duration-300 ease-out group-hover:scale-[1.015] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
       />
       <span

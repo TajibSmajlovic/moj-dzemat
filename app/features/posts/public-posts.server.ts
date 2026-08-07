@@ -17,7 +17,6 @@ const publicPostCardSelect = {
   pinned: true,
   featured: true,
   images: { orderBy: { position: "asc" }, take: 1, select: { id: true } },
-  videos: { take: 1, select: { id: true } },
 } satisfies Prisma.PostSelect;
 
 const publicPostOrderBy: Prisma.PostOrderByWithRelationInput[] = [
@@ -80,6 +79,5 @@ function toPublicPostCard(post: PublicPostCardRecord): PostCardData {
     publishedAt: post.publishedAt,
     pinned: post.pinned,
     thumbnailId: post.images[0]?.id ?? null,
-    firstMediaKind: post.videos.length > 0 ? "video" : post.images.length > 0 ? "image" : null,
   };
 }
