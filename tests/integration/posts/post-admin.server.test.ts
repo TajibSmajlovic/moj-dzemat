@@ -461,6 +461,57 @@ describe("createOrUpdatePostFromForm", () => {
       expect(stored?.publishedAt.getTime()).toBeGreaterThan(post.publishedAt.getTime());
     });
 
+    it("cancels unfinished notification work when unpublishing from the edit form", async () => {
+      const { user } = await createUser();
+      const post = await createPost({
+        authorId: user.id,
+        status: "published",
+      });
+      const notification = await prisma.postNotification.create({
+        data: {
+          postId: post.id,
+          status: "pending",
+          titleSnapshot: post.title,
+          resolverPathSnapshot: `/objave/otvori/${post.id}`,
+          deadlineAt: new Date(Date.now() + 60_000),
+        },
+      });
+      const delivery = await prisma.pushDelivery.create({
+        data: {
+          notificationId: notification.id,
+          endpointHashSnapshot: `v1:${"a".repeat(43)}`,
+        },
+      });
+      const formData = new FormData();
+      formData.set("id", post.id);
+      formData.set("title", post.title);
+      formData.set("slug", post.slug);
+      formData.set("type", post.type);
+      formData.set("body", post.body);
+      formData.set("notifyOnPublish", "on");
+
+      const response = await createOrUpdatePostFromForm({
+        request: multipartRequest(formData),
+        authorId: user.id,
+        intent: "update",
+      });
+
+      expect(statusOf(response)).toBe(302);
+      await expect(prisma.post.findUnique({ where: { id: post.id } })).resolves.toMatchObject({
+        status: "draft",
+      });
+      const storedNotification = await prisma.postNotification.findUnique({
+        where: { id: notification.id },
+      });
+      const storedDelivery = await prisma.pushDelivery.findUnique({
+        where: { id: delivery.id },
+      });
+      expect(storedNotification?.status).toBe("cancelled");
+      expect(storedNotification?.cancelledAt).toBeInstanceOf(Date);
+      expect(storedDelivery?.status).toBe("cancelled");
+      expect(storedDelivery?.cancelledAt).toBeInstanceOf(Date);
+    });
+
     it("allows keeping the same slug when other fields change", async () => {
       const { user } = await createUser();
       const post = await createPost({ authorId: user.id, slug: "moj-slug", title: "Old" });

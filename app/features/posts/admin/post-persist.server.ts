@@ -7,6 +7,12 @@ import { reconcilePostVideos } from "#app/features/posts/admin/post-videos.serve
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import type { ParsedVideo } from "#app/features/posts/post-video";
+import { kickWebPushDispatcher } from "#app/features/web-push/dispatcher.server";
+import {
+  cancelPostNotificationWork,
+  recordFirstPublicationDecision,
+  type PublicationDecision,
+} from "#app/features/web-push/post-notification.server";
 import { isPrismaKnownRequestError, prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
 
@@ -23,6 +29,7 @@ export type PersistPostArgs = {
   existingId: string | null;
   featured: boolean;
   intent: "create" | "update";
+  notifyOnPublish: boolean;
   pinned: boolean;
   processedImages: ProcessedPostImage[];
   imageAltTextUpdates: ImageAltTextUpdate[];
@@ -37,16 +44,19 @@ export type PersistedPost = {
   id: string;
   slug: string;
   status: PostStatusValue;
+  notificationDecision: PublicationDecision;
 };
 
 export async function persistPostAndImages(args: PersistPostArgs): Promise<PersistedPost> {
-  return prisma.$transaction(async (tx) => {
+  const now = new Date();
+  const saved = await prisma.$transaction(async (tx) => {
     const {
       authorId,
       body,
       existingId,
       featured,
       intent,
+      notifyOnPublish,
       pinned,
       processedImages,
       imageAltTextUpdates,
@@ -77,6 +87,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
         : null;
     const shouldStampPublishedAt =
       status === "published" && (!existingPost || existingPost.status === "draft");
+    const shouldCancelNotification = status === "draft" && existingPost?.status === "published";
 
     const post =
       intent === "update" && existingId
@@ -89,14 +100,38 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
               body,
               featured,
               pinned,
+              notifyOnPublish,
               status,
-              ...(shouldStampPublishedAt ? { publishedAt: new Date() } : {}),
+              ...(shouldStampPublishedAt ? { publishedAt: now } : {}),
             },
-            select: { id: true, slug: true, status: true },
+            select: {
+              id: true,
+              slug: true,
+              status: true,
+              title: true,
+              notifyOnPublish: true,
+            },
           })
         : await tx.post.create({
-            data: { title, slug, type, body, featured, pinned, status, authorId },
-            select: { id: true, slug: true, status: true },
+            data: {
+              title,
+              slug,
+              type,
+              body,
+              featured,
+              pinned,
+              notifyOnPublish,
+              status,
+              authorId,
+              ...(status === "published" ? { publishedAt: now } : {}),
+            },
+            select: {
+              id: true,
+              slug: true,
+              status: true,
+              title: true,
+              notifyOnPublish: true,
+            },
           });
 
     await createImageRows(tx, post.id, processedImages);
@@ -113,8 +148,21 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
       );
     }
 
-    return post;
+    let notificationDecision: PublicationDecision = "not-applicable";
+    if (shouldStampPublishedAt) {
+      notificationDecision = await recordFirstPublicationDecision(tx, post, now);
+    } else if (shouldCancelNotification) {
+      await cancelPostNotificationWork(tx, post.id, now);
+    }
+
+    return { ...post, notificationDecision };
   });
+
+  if (saved.notificationDecision === "queued") {
+    kickWebPushDispatcher({ bypassCooldown: true });
+  }
+
+  return saved;
 }
 
 /**

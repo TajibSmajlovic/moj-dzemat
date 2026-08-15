@@ -1,4 +1,10 @@
+import { createECDH } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const vapidEcdh = createECDH("prime256v1");
+vapidEcdh.setPrivateKey(Buffer.alloc(32, 1));
+const VAPID_PRIVATE_KEY = vapidEcdh.getPrivateKey().toString("base64url");
+const VAPID_PUBLIC_KEY = vapidEcdh.getPublicKey().toString("base64url");
 
 const BASE_ENV = {
   NODE_ENV: "development",
@@ -12,6 +18,10 @@ const BASE_ENV = {
   ENABLE_TEST_ROUTES: "false",
   HONEYPOT_SKIP_MIN_AGE: "false",
   DISABLE_RATE_LIMITING: "false",
+  WEB_PUSH_ENABLED: "false",
+  WEB_PUSH_VAPID_PUBLIC_KEY: "",
+  WEB_PUSH_VAPID_PRIVATE_KEY: "",
+  WEB_PUSH_ENCRYPTION_KEYS: "",
 } as const;
 
 const MANAGED_KEYS = Object.keys(BASE_ENV);
@@ -87,5 +97,39 @@ describe("env.server", () => {
     expect(env().ENABLE_TEST_ROUTES).toBe(false);
     expect(env().HONEYPOT_SKIP_MIN_AGE).toBe(false);
     expect(env().DISABLE_RATE_LIMITING).toBe(false);
+  });
+
+  it("keeps Web Push disabled by default without requiring key material", async () => {
+    setEnv();
+    const { env } = await importEnvModule();
+
+    expect(env().WEB_PUSH_ENABLED).toBe(false);
+    expect(env().WEB_PUSH_VAPID_PUBLIC_KEY).toBeUndefined();
+  });
+
+  it("accepts a complete matching Web Push configuration", async () => {
+    setEnv({
+      WEB_PUSH_ENABLED: "true",
+      WEB_PUSH_VAPID_PUBLIC_KEY: VAPID_PUBLIC_KEY,
+      WEB_PUSH_VAPID_PRIVATE_KEY: VAPID_PRIVATE_KEY,
+      WEB_PUSH_ENCRYPTION_KEYS: Buffer.alloc(32, 7).toString("base64url"),
+    });
+    const { env } = await importEnvModule();
+
+    expect(env().WEB_PUSH_ENABLED).toBe(true);
+    expect(env().WEB_PUSH_ENCRYPTION_KEYS).toBeTypeOf("string");
+  });
+
+  it("rejects mismatched VAPID keys while Web Push is enabled", async () => {
+    setEnv({
+      WEB_PUSH_ENABLED: "true",
+      WEB_PUSH_VAPID_PUBLIC_KEY: VAPID_PUBLIC_KEY,
+      WEB_PUSH_VAPID_PRIVATE_KEY: Buffer.alloc(32, 2).toString("base64url"),
+      WEB_PUSH_ENCRYPTION_KEYS: Buffer.alloc(32, 7).toString("base64url"),
+    });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { env } = await importEnvModule();
+
+    expect(() => env()).toThrow("Invalid environment variables");
   });
 });

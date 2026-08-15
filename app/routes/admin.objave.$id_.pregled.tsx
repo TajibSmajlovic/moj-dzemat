@@ -74,13 +74,18 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 
   invariantResponse(intent === PostAdminIntents.ToggleStatus, "Nepodržana radnja.");
 
-  const next = await togglePostStatus(id, user.id);
+  const result = await togglePostStatus(id, user.id);
 
   return redirectWithToast(
     adminPostPreviewHref(id),
     createActionToast({
       action: "update",
-      description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
+      description:
+        result.notificationDecision === "queued"
+          ? "Objava je objavljena. Obavijest je zakazana za slanje."
+          : result.status === "published"
+            ? "Objava je objavljena."
+            : "Objava je sakrivena.",
     }),
   );
 }

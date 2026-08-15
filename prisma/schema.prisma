@@ -72,6 +72,37 @@ enum PostStatus {
   published
 }
 
+enum PostNotificationStatus {
+  pending
+  skipped
+  completed
+  cancelled
+  expired
+}
+
+enum PushDeliveryStatus {
+  pending
+  sending
+  retry
+  sent
+  failed
+  cancelled
+}
+
+enum PushDeliveryResultCode {
+  accepted
+  timeout
+  network_error
+  temporary_response
+  invalid_request
+  payload_too_large
+  vapid_rejected
+  subscription_gone
+  invalid_subscription
+  expired
+  cancelled
+}
+
 model Post {
   id          String     @id @default(cuid())
   slug        String     @unique
@@ -89,6 +120,10 @@ model Post {
   featured Boolean @default(false)
   pinned   Boolean @default(false)
 
+  // Draft-only editorial preference. The durable PostNotification marker
+  // records the actual first-publication decision independently of this flag.
+  notifyOnPublish Boolean @default(false)
+
   // Author is nullable: we keep the relation for audit but never render
   // it publicly, and admins may come/go without orphaning their posts.
   author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
@@ -105,6 +140,69 @@ model Post {
   @@index([featured, publishedAt])
   @@index([pinned, publishedAt])
   @@index([authorId])
+}
+
+// Anonymous browser subscriptions. Secrets are kept together in one
+// Compact JWE; only a one-way endpoint hash is queryable.
+model PushSubscription {
+  id                    Int       @id @default(autoincrement())
+  endpointHash          String    @unique
+  encryptedSubscription String
+  expiresAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  deliveries PushDelivery[]
+
+  @@index([expiresAt])
+}
+
+// Immutable first-publication decision marker. postId deliberately has no
+// foreign key so deletion cannot erase the fact that a decision was made.
+model PostNotification {
+  id                   String                 @id @default(cuid())
+  postId               String                 @unique
+  status               PostNotificationStatus
+  skipReason           String?
+  titleSnapshot        String
+  resolverPathSnapshot String
+  deadlineAt           DateTime
+  completedAt          DateTime?
+  cancelledAt          DateTime?
+  expiredAt            DateTime?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  deliveries PushDelivery[]
+
+  @@index([status, deadlineAt])
+}
+
+model PushDelivery {
+  id                   Int                     @id @default(autoincrement())
+  notificationId       String
+  subscriptionId       Int?
+  endpointHashSnapshot String
+  status               PushDeliveryStatus      @default(pending)
+  attemptCount         Int                     @default(0)
+  nextAttemptAt        DateTime                @default(now())
+  leaseOwner           String?
+  leaseExpiresAt       DateTime?
+  lastHttpStatus       Int?
+  resultCode           PushDeliveryResultCode?
+  sentAt               DateTime?
+  failedAt             DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  notification PostNotification  @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subscription PushSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([notificationId, endpointHashSnapshot])
+  @@index([status, nextAttemptAt])
+  @@index([status, leaseExpiresAt])
+  @@index([subscriptionId])
 }
 
 // Up to three images per post (cap enforced in the action layer).

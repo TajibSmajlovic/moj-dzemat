@@ -16,6 +16,7 @@ import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
+import { env } from "#app/server/env.server";
 import { logger } from "#app/server/logger.server";
 
 import type { Route } from "./+types/admin.objave.$id";
@@ -27,8 +28,10 @@ const POST_FORM_SELECT = {
   type: true,
   body: true,
   status: true,
+  createdAt: true,
   featured: true,
   pinned: true,
+  notifyOnPublish: true,
   images: {
     orderBy: { position: "asc" as const },
     select: { id: true, altText: true },
@@ -55,14 +58,19 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   context.get(adminUserContext);
 
   const id = requireId(params.id);
-  const post = await prisma.post.findUnique({
-    where: { id },
-    select: POST_FORM_SELECT,
-  });
+  const [post, notification] = await Promise.all([
+    prisma.post.findUnique({ where: { id }, select: POST_FORM_SELECT }),
+    prisma.postNotification.findUnique({ where: { postId: id }, select: { id: true } }),
+  ]);
 
   invariantResponse(post, "Objava nije pronađena.", { status: 404 });
 
-  return { post };
+  const environment = env();
+  return {
+    post,
+    webPushEnabled: environment.WEB_PUSH_ENABLED,
+    notificationDecisionRecorded: notification !== null,
+  };
 }
 
 export async function action({ request, context, params }: Route.ActionArgs) {
@@ -128,6 +136,8 @@ export default function AdminEditPost({ actionData, loaderData }: Route.Componen
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
           cancelTo={href("/admin/objave")}
+          webPushEnabled={loaderData.webPushEnabled}
+          notificationDecisionRecorded={loaderData.notificationDecisionRecorded}
         />
       </AdminPanel>
     </main>

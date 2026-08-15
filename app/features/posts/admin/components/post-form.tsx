@@ -9,7 +9,7 @@ import {
   type SubmissionResult,
 } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
-import { Eye, ImagePlus, Pin, Play, Plus, Star, Trash2 } from "lucide-react";
+import { Bell, Eye, ImagePlus, Pin, Play, Plus, Star, Trash2 } from "lucide-react";
 
 import { Field } from "#app/components/forms/field";
 import { FormActions } from "#app/components/forms/form-actions";
@@ -55,8 +55,10 @@ type PostFormProps = {
     type: string;
     body: string;
     status: PostStatusValue;
+    createdAt: Date;
     featured: boolean;
     pinned: boolean;
+    notifyOnPublish: boolean;
     images: PostFormImage[];
     videos?: PostFormVideo[];
   };
@@ -64,6 +66,8 @@ type PostFormProps = {
   submitting?: boolean;
   /** When set, 'Odustani' navigates here (post list). */
   cancelTo?: string;
+  webPushEnabled: boolean;
+  notificationDecisionRecorded?: boolean;
 };
 
 /**
@@ -71,7 +75,14 @@ type PostFormProps = {
    `/admin/objave/:id`. New files ride in `images`; per-image deletes
    use `useFetcher` so they do not reset the rest of the form.
  */
-export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormProps) {
+export function PostForm({
+  post,
+  lastResult,
+  submitting,
+  cancelTo,
+  webPushEnabled,
+  notificationDecisionRecorded = false,
+}: PostFormProps) {
   const isEdit = Boolean(post);
   const [form, fields] = useForm({
     id: "post-form",
@@ -90,6 +101,8 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
   const remainingSlots = Math.max(0, MAX_IMAGES_PER_POST - existingCount);
 
   const [bodyHtml, setBodyHtml] = useState(post?.body ?? "");
+  const notificationDisabled =
+    !webPushEnabled || post?.status === "published" || notificationDecisionRecorded;
 
   return (
     <Form
@@ -143,7 +156,7 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
           ))}
         </SelectField>
 
-        <div className="flex flex-wrap gap-5 pt-1">
+        <div className="grid items-start gap-x-6 gap-y-4 pt-1 sm:grid-cols-2 xl:grid-cols-4">
           <FlagToggle
             id="post-publish"
             name="publish"
@@ -151,6 +164,27 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
             icon={<Eye className="text-primary h-4 w-4" aria-hidden="true" />}
             label="Objavi odmah"
           />
+          <div className="min-w-0 space-y-1">
+            {notificationDisabled && post?.notifyOnPublish ? (
+              <input type="hidden" name="notifyOnPublish" value="on" />
+            ) : null}
+
+            <FlagToggle
+              id="post-notify-on-publish"
+              name={notificationDisabled ? undefined : "notifyOnPublish"}
+              defaultChecked={post?.notifyOnPublish ?? false}
+              disabled={notificationDisabled}
+              describedBy="post-notify-on-publish-help"
+              icon={<Bell className="text-primary h-4 w-4" aria-hidden="true" />}
+              label="Pošalji obavijest"
+            />
+
+            <p id="post-notify-on-publish-help" className="text-muted-foreground pl-12 text-xs">
+              {webPushEnabled
+                ? "Šalje se samo pri prvoj objavi."
+                : "Slanje obavijesti nije uključeno."}
+            </p>
+          </div>
           <FlagToggle
             id="post-featured"
             name="featured"
@@ -209,18 +243,37 @@ export function PostForm({ post, lastResult, submitting, cancelTo }: PostFormPro
 
 type FlagToggleProps = {
   id: string;
-  name: string;
+  name?: string;
   defaultChecked: boolean;
   icon: React.ReactNode;
   label: string;
+  disabled?: boolean;
+  describedBy?: string;
 };
 
-function FlagToggle({ id, name, defaultChecked, icon, label }: FlagToggleProps) {
+function FlagToggle({
+  id,
+  name,
+  defaultChecked,
+  icon,
+  label,
+  disabled,
+  describedBy,
+}: FlagToggleProps) {
   return (
-    <label htmlFor={id} className="flex cursor-pointer items-center gap-2 text-sm font-medium">
-      <Checkbox id={id} name={name} defaultChecked={defaultChecked} />
+    <label
+      htmlFor={id}
+      className="flex cursor-pointer items-center gap-2 text-sm font-medium has-disabled:cursor-not-allowed has-disabled:opacity-70"
+    >
+      <Checkbox
+        id={id}
+        name={name}
+        defaultChecked={defaultChecked}
+        disabled={disabled}
+        aria-describedby={describedBy}
+      />
       {icon}
-      <span>{label}</span>
+      <span className="text-nowrap">{label}</span>
     </label>
   );
 }
