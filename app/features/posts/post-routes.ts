@@ -18,6 +18,10 @@ export function postHref(slug: string): string {
   return href("/objave/:slug", { slug });
 }
 
+export function postNotificationResolverHref(id: string): string {
+  return href("/objave/otvori/:id", { id });
+}
+
 export function postsArchiveHref({
   activeType = "all",
   page = 1,

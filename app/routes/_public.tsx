@@ -6,6 +6,9 @@ import { AnnouncementBar } from "#app/features/announcements/components/announce
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { getCurrentUser } from "#app/features/auth/auth.server";
 import { PublicViewTransitionProvider } from "#app/features/view-transitions/public-view-transition-provider";
+import { WebPushPrompt } from "#app/features/web-push/components/web-push-prompt";
+import { WebPushProvider } from "#app/features/web-push/web-push";
+import { useRootLoaderData } from "#app/lib/root-loader-data";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public";
@@ -26,31 +29,36 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function PublicLayout({ loaderData }: Route.ComponentProps) {
+  const rootData = useRootLoaderData();
+
   return (
     <PublicViewTransitionProvider>
-      <div className="bg-background text-foreground relative flex min-h-screen flex-col">
-        <AnnouncementBar
-          announcement={loaderData.announcement}
-          className="public-announcement-shell"
-        />
-        <SiteHeader adminHref={loaderData.isAdminLoggedIn ? href("/admin") : href("/prijava")} />
-
-        <div className="flex-1">
-          <Outlet />
-        </div>
-
-        <SiteFooter />
-
-        {loaderData.cloudflareWebAnalyticsToken ? (
-          <script
-            defer
-            src="https://static.cloudflareinsights.com/beacon.min.js"
-            data-cf-beacon={JSON.stringify({
-              token: loaderData.cloudflareWebAnalyticsToken,
-            })}
+      <WebPushProvider config={rootData?.webPush ?? { enabled: false }}>
+        <div className="bg-background text-foreground relative flex min-h-screen flex-col">
+          <AnnouncementBar
+            announcement={loaderData.announcement}
+            className="public-announcement-shell"
           />
-        ) : null}
-      </div>
+          <SiteHeader adminHref={loaderData.isAdminLoggedIn ? href("/admin") : href("/prijava")} />
+
+          <div className="flex-1">
+            <Outlet />
+          </div>
+
+          <SiteFooter />
+          <WebPushPrompt />
+
+          {loaderData.cloudflareWebAnalyticsToken ? (
+            <script
+              defer
+              src="https://static.cloudflareinsights.com/beacon.min.js"
+              data-cf-beacon={JSON.stringify({
+                token: loaderData.cloudflareWebAnalyticsToken,
+              })}
+            />
+          ) : null}
+        </div>
+      </WebPushProvider>
     </PublicViewTransitionProvider>
   );
 }

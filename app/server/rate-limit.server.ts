@@ -84,6 +84,12 @@ export const qaQuestionLimiter = createRateLimiter({
   max: 5,
 });
 
+export const webPushSubscriptionLimiter = createRateLimiter({
+  name: "web-push-subscription",
+  windowMs: MINUTE_MS,
+  max: 20,
+});
+
 export const staticFileLimiter = createRateLimiter({
   name: "static-files",
   windowMs: MINUTE_MS,

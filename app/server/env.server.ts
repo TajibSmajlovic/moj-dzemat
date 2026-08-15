@@ -1,3 +1,4 @@
+import { createECDH } from "node:crypto";
 import { z } from "zod";
 
 /**
@@ -26,6 +27,17 @@ const optionalText = z
   .optional()
   .transform((value) => (value === "" ? undefined : value));
 
+function decodeUnpaddedBase64Url(value: string): Buffer | null {
+  if (!/^[A-Za-z0-9_-]+$/.test(value)) return null;
+
+  try {
+    const decoded = Buffer.from(value, "base64url");
+    return decoded.toString("base64url") === value ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
 const testOnlyProductionFlags = [
   "ENABLE_TEST_ROUTES",
   "HONEYPOT_SKIP_MIN_AGE",
@@ -50,6 +62,14 @@ export const envSchema = z
     FACEBOOK_PAGE_URL: optionalText.pipe(z.string().url().optional()),
     YOUTUBE_CHANNEL_URL: optionalText.pipe(z.string().url().optional()),
     CLOUDFLARE_WEB_ANALYTICS_TOKEN: optionalText,
+
+    WEB_PUSH_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+    WEB_PUSH_VAPID_PUBLIC_KEY: optionalText,
+    WEB_PUSH_VAPID_PRIVATE_KEY: optionalText,
+    WEB_PUSH_ENCRYPTION_KEYS: optionalText,
 
     APP_URL: z
       .string()
@@ -85,6 +105,72 @@ export const envSchema = z
     PRIMARY_REGION: z.string().optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.WEB_PUSH_ENABLED) {
+      const requiredKeys = [
+        "WEB_PUSH_VAPID_PUBLIC_KEY",
+        "WEB_PUSH_VAPID_PRIVATE_KEY",
+        "WEB_PUSH_ENCRYPTION_KEYS",
+      ] as const;
+
+      for (const key of requiredKeys) {
+        if (!value[key]) {
+          ctx.addIssue({ code: "custom", path: [key], message: `${key} is required` });
+        }
+      }
+
+      const publicKey = value.WEB_PUSH_VAPID_PUBLIC_KEY
+        ? decodeUnpaddedBase64Url(value.WEB_PUSH_VAPID_PUBLIC_KEY)
+        : null;
+      const privateKey = value.WEB_PUSH_VAPID_PRIVATE_KEY
+        ? decodeUnpaddedBase64Url(value.WEB_PUSH_VAPID_PRIVATE_KEY)
+        : null;
+
+      if (value.WEB_PUSH_VAPID_PUBLIC_KEY && publicKey?.length !== 65) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["WEB_PUSH_VAPID_PUBLIC_KEY"],
+          message: "must be an unpadded base64url 65-byte P-256 public key",
+        });
+      }
+      if (value.WEB_PUSH_VAPID_PRIVATE_KEY && privateKey?.length !== 32) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["WEB_PUSH_VAPID_PRIVATE_KEY"],
+          message: "must be an unpadded base64url 32-byte P-256 private key",
+        });
+      }
+      if (publicKey?.length === 65 && privateKey?.length === 32) {
+        try {
+          const ecdh = createECDH("prime256v1");
+          ecdh.setPrivateKey(privateKey);
+          if (!ecdh.getPublicKey().equals(publicKey)) {
+            ctx.addIssue({
+              code: "custom",
+              path: ["WEB_PUSH_VAPID_PUBLIC_KEY"],
+              message: "does not match WEB_PUSH_VAPID_PRIVATE_KEY",
+            });
+          }
+        } catch {
+          ctx.addIssue({
+            code: "custom",
+            path: ["WEB_PUSH_VAPID_PRIVATE_KEY"],
+            message: "is not a valid P-256 private key",
+          });
+        }
+      }
+
+      if (value.WEB_PUSH_ENCRYPTION_KEYS) {
+        const keys = value.WEB_PUSH_ENCRYPTION_KEYS.split(",").map((key) => key.trim());
+        if (keys.some((key) => decodeUnpaddedBase64Url(key)?.length !== 32)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["WEB_PUSH_ENCRYPTION_KEYS"],
+            message: "must contain comma-separated unpadded base64url 32-byte keys",
+          });
+        }
+      }
+    }
+
     if (value.NODE_ENV !== "production") return;
 
     if (!value.RESEND_API_KEY) {

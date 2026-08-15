@@ -10,6 +10,7 @@ import { PostsAdminTable } from "#app/features/posts/admin/components/posts-admi
 import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents, type PostAdminIntent } from "#app/features/posts/admin/post-intents";
 import { adminPostsPageHref } from "#app/features/posts/post-routes";
+import { cancelPostNotificationWork } from "#app/features/web-push/post-notification.server";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { parsePageParam } from "#app/lib/pagination";
@@ -70,7 +71,10 @@ async function handleDelete(formData: FormData, userId: string) {
     where: { id },
     select: { title: true, slug: true, type: true },
   });
-  await prisma.post.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    await cancelPostNotificationWork(tx, id, new Date());
+    await tx.post.delete({ where: { id } });
+  });
 
   logger.info({ postId: id, userId, slug: post?.slug, type: post?.type }, "post deleted");
 
@@ -129,13 +133,18 @@ async function handleTogglePinned(formData: FormData, userId: string) {
 
 async function handleToggleStatus(formData: FormData, userId: string) {
   const id = requireId(formData.get("id"));
-  const next = await togglePostStatus(id, userId);
+  const result = await togglePostStatus(id, userId);
 
   return {
     ok: true,
     toast: createActionToast({
       action: "update",
-      description: next === "published" ? "Objava je objavljena." : "Objava je sakrivena.",
+      description:
+        result.notificationDecision === "queued"
+          ? "Objava je objavljena. Obavijest je zakazana za slanje."
+          : result.status === "published"
+            ? "Objava je objavljena."
+            : "Objava je sakrivena.",
     }),
   };
 }

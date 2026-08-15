@@ -16,6 +16,7 @@ import {
   getPublicPostCards,
 } from "#app/features/posts/public-posts.server";
 import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
+import { WebPushCard } from "#app/features/web-push/components/web-push-card";
 import {
   formatPageTitle,
   getRootSiteName,
@@ -107,6 +108,8 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
               Pregled svih obavijesti, hutbi, sergija, smrtovnica i priča.
             </p>
           </div>
+
+          <WebPushCard />
 
           <PostFilter active={activeType} destination="archive" />
         </section>

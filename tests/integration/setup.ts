@@ -39,6 +39,9 @@ afterEach(async () => {
     ]);
 
   // Order matters: children first so FK cascades don't surprise us.
+  await prisma.pushDelivery.deleteMany();
+  await prisma.postNotification.deleteMany();
+  await prisma.pushSubscription.deleteMany();
   await prisma.postImage.deleteMany();
   await prisma.postVideo.deleteMany();
   await prisma.post.deleteMany();

@@ -61,6 +61,7 @@ describe("PostFormSchema", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.publish).toBe(false);
+        expect(result.data.notifyOnPublish).toBe(false);
         expect(result.data.featured).toBe(false);
         expect(result.data.pinned).toBe(false);
       }
@@ -72,12 +73,14 @@ describe("PostFormSchema", () => {
         publish: "on",
         featured: "on",
         pinned: "on",
+        notifyOnPublish: "on",
       });
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.publish).toBe(true);
         expect(result.data.featured).toBe(true);
         expect(result.data.pinned).toBe(true);
+        expect(result.data.notifyOnPublish).toBe(true);
       }
     });
 
@@ -90,6 +93,7 @@ describe("PostFormSchema", () => {
       expect(PostFormSchema.safeParse({ ...valid, featured: true }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, pinned: false }).success).toBe(false);
       expect(PostFormSchema.safeParse({ ...valid, pinned: 1 }).success).toBe(false);
+      expect(PostFormSchema.safeParse({ ...valid, notifyOnPublish: "off" }).success).toBe(false);
     });
   });
 });

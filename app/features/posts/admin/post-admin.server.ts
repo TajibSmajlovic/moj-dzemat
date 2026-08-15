@@ -20,6 +20,11 @@ import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 import { PostFormSchema } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { ParsedVideo } from "#app/features/posts/post-video";
+import { kickWebPushDispatcher } from "#app/features/web-push/dispatcher.server";
+import {
+  cancelPostNotificationWork,
+  recordFirstPublicationDecision,
+} from "#app/features/web-push/post-notification.server";
 import { requireId } from "#app/lib/id";
 import { invariant } from "#app/lib/invariant";
 import { createActionToast } from "#app/lib/toast";
@@ -30,23 +35,45 @@ import { logger } from "#app/server/logger.server";
 import { redirectWithToast } from "#app/server/toast.server";
 
 export async function togglePostStatus(postId: string, userId: string) {
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id: postId },
-    select: { status: true },
+  const now = new Date();
+  const result = await prisma.$transaction(async (tx) => {
+    const post = await tx.post.findUniqueOrThrow({
+      where: { id: postId },
+      select: { status: true },
+    });
+    const status: PostStatusValue = post.status === "published" ? "draft" : "published";
+    const updated = await tx.post.update({
+      where: { id: postId },
+      data: {
+        status,
+        ...(status === "published" ? { publishedAt: now } : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+        notifyOnPublish: true,
+      },
+    });
+
+    if (status === "draft") {
+      await cancelPostNotificationWork(tx, postId, now);
+
+      return { status, notificationDecision: "not-applicable" as const };
+    }
+
+    return {
+      status,
+      notificationDecision: await recordFirstPublicationDecision(tx, updated, now),
+    };
   });
-  const nextStatus: PostStatusValue = post.status === "published" ? "draft" : "published";
 
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      status: nextStatus,
-      ...(nextStatus === "published" ? { publishedAt: new Date() } : {}),
-    },
-  });
+  if (result.notificationDecision === "queued") {
+    kickWebPushDispatcher({ bypassCooldown: true });
+  }
 
-  logger.info({ postId, userId, status: nextStatus }, "post status toggled");
+  logger.info({ postId, userId, status: result.status }, "post status toggled");
 
-  return nextStatus;
+  return result;
 }
 
 type CreateOrUpdateArgs = {
@@ -82,7 +109,16 @@ export async function createOrUpdatePostFromForm({
     return data({ result: submission.reply() }, { status: 400 });
   }
 
-  const { title, slug, type, body: rawBody, publish, featured, pinned } = submission.value;
+  const {
+    title,
+    slug,
+    type,
+    body: rawBody,
+    publish,
+    notifyOnPublish,
+    featured,
+    pinned,
+  } = submission.value;
   const body = sanitizePostBody(rawBody);
   if (!body) {
     return data(
@@ -127,6 +163,7 @@ export async function createOrUpdatePostFromForm({
       existingId,
       featured,
       intent,
+      notifyOnPublish,
       pinned,
       processedImages,
       imageAltTextUpdates,
@@ -197,14 +234,19 @@ export async function createOrUpdatePostFromForm({
 
   return redirectWithToast(
     redirectTo,
-    intent === "create"
+    savedPost.notificationDecision === "queued"
       ? createActionToast({
-          action: "create",
-          description: "Objava je uspješno dodana.",
+          action: intent === "create" ? "create" : "update",
+          description: "Objava je objavljena. Obavijest je zakazana za slanje.",
         })
-      : createActionToast({
-          action: "update",
-          description: "Objava je uspješno ažurirana.",
-        }),
+      : intent === "create"
+        ? createActionToast({
+            action: "create",
+            description: "Objava je uspješno dodana.",
+          })
+        : createActionToast({
+            action: "update",
+            description: "Objava je uspješno ažurirana.",
+          }),
   );
 }

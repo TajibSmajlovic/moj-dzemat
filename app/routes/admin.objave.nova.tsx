@@ -12,6 +12,7 @@ import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
+import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/admin.objave.nova";
 
@@ -21,6 +22,7 @@ export function meta(_args: Route.MetaArgs) {
 
 export function loader({ context }: Route.LoaderArgs) {
   context.get(adminUserContext);
+  return { webPushEnabled: env().WEB_PUSH_ENABLED };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -37,7 +39,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   });
 }
 
-export default function AdminNewPost({ actionData }: Route.ComponentProps) {
+export default function AdminNewPost({ actionData, loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const submitting = useIsSubmittingIntent(navigation, PostAdminIntents.Create);
 
@@ -62,6 +64,7 @@ export default function AdminNewPost({ actionData }: Route.ComponentProps) {
           lastResult={actionData && "result" in actionData ? actionData.result : null}
           submitting={submitting}
           cancelTo={href("/admin/objave")}
+          webPushEnabled={loaderData.webPushEnabled}
         />
       </AdminPanel>
     </main>
