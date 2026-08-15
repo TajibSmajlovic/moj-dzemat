@@ -411,7 +411,7 @@ async function sendWebPushRequest({
   });
 }
 
-export function createPinnedAddressLookup(address: ResolvedPublicAddress): LookupFunction {
+function createPinnedAddressLookup(address: ResolvedPublicAddress): LookupFunction {
   return (_hostname, options: LookupOptions, callback) => {
     if (options.all) {
       callback(null, [address]);
