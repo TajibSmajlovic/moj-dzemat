@@ -5,10 +5,10 @@ import { SiteHeader } from "#app/components/layout/site-header";
 import { AnnouncementBar } from "#app/features/announcements/components/announcement-bar";
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { getCurrentUser } from "#app/features/auth/auth.server";
-import { PublicViewTransitionProvider } from "#app/features/view-transitions/public-view-transition-provider";
 import { WebPushPrompt } from "#app/features/web-push/components/web-push-prompt";
 import { WebPushProvider } from "#app/features/web-push/web-push";
 import { useRootLoaderData } from "#app/lib/root-loader-data";
+import { PublicViewTransitionProvider } from "#app/platform/view-transitions/public-view-transition-provider";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public";

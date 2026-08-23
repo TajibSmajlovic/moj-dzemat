@@ -5,8 +5,8 @@ import { motion } from "motion/react";
 
 import { Button } from "#app/components/ui/button";
 import type { CommunityInfoRecord } from "#app/features/contact/contact";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { sectionReveal, softFade } from "#app/lib/motion";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 
 type ContactPageContentProps = {
   info: CommunityInfoRecord;

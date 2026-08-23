@@ -4,70 +4,38 @@
 
 - What changed:
 - Why:
-- Reviewer focus:
 
-## Impact
+## Scope and Risk
 
-- Type:
-  - [ ] Bug fix
-  - [ ] Feature
-  - [ ] Refactor
-  - [ ] UI polish
-  - [ ] Docs
-  - [ ] Ops / deploy
+- Affected areas:
+- Main risks or failure modes:
 
-- Areas:
-  - [ ] Public site
-  - [ ] Admin panel
-  - [ ] Auth / password reset
-  - [ ] Forms / editor / uploads
-  - [ ] Questions / important dates / announcements
-  - [ ] Theme
-  - [ ] SEO / routing
-  - [ ] Email
-  - [ ] Prisma / migrations / seed
-  - [ ] Fly / LiteFS / env
+## Verification
 
-## Validation
+<!-- Record actual results. Do not rely on CI as a substitute for skipped local checks. -->
 
-<!-- CI covers automated checks. Use this section for what you verified yourself. -->
+- `npm run agent:verify`:
+- Focused checks:
+- User-visible behavior verified:
+- Evidence or artifacts:
+- Skipped checks or caveats:
 
-### Manual QA
+## Architecture and Documentation
 
-<!-- List the flows you checked yourself. Write N/A if not applicable. -->
+- Architecture boundaries or public contracts:
+- Docs, specs, or execution plans:
 
--
+## Deployment
 
-### Reviewer verification
+<!-- Write "None" when the normal deploy and rollback paths apply. -->
 
-<!-- Anything reviewers should verify manually. Write N/A if nothing special. -->
-
--
-
-### Skipped / Caveats
-
-<!-- Anything skipped, flaky, or worth calling out. If you skipped local verification, explain why. -->
-
--
-
-## Deployment Notes
-
-<!-- Write "None" if this follows the normal deploy path. -->
-
-<!-- Use "None" or "Standard rollback" where applicable. -->
-
+- Migrations, environment, seed, or backfill:
 - Special deploy steps:
-- Migrations / env / seed / backfill:
 - Rollback:
 
-## Screenshots / Recording
+## Visual Evidence
 
 <!-- Required for visible UI changes. Otherwise write N/A. -->
 
 - Desktop:
 - Mobile:
-
-## Docs / Follow-up
-
-- Docs:
-- Follow-up:

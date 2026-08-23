@@ -1,26 +1,25 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+
+import { requiredEnvironment } from "./utils/environment";
 
 /**
-   Playwright global setup. Wipes `prisma/e2e.db`, runs `migrate deploy`,
-   then applies every fixture in `./fixtures`. Runs before Playwright
-   starts its `webServer`, which points at the same database via
-   `DATABASE_URL=file:./e2e.db`.
+   Playwright global setup. Migrates the isolated database created by the
+   E2E runner, then applies every fixture in `./fixtures` before the server
+   starts.
 
    Nothing here may import the fixtures or the Prisma client at the top of
    the file: the client reads `DATABASE_URL` when its module is first
    evaluated, and this function is what sets it.
  */
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const dbPath = path.join(projectRoot, "prisma", "e2e.db");
-const databaseUrl = "file:./e2e.db";
+const projectRoot = process.cwd();
+const dbPath = requiredEnvironment("E2E_TEST_DATABASE_PATH");
+const databaseUrl = requiredEnvironment("DATABASE_URL");
 
 export default async function globalSetup() {
-  if (fs.existsSync(dbPath)) {
-    fs.rmSync(dbPath);
+  if (!fs.existsSync(dbPath)) {
+    throw new Error("The isolated E2E database was not created by the runner.");
   }
 
   execSync("npx prisma migrate deploy", {

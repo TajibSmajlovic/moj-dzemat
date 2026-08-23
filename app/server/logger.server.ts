@@ -1,14 +1,11 @@
-import pino from "pino";
+import pino, { type LoggerOptions } from "pino";
 
 import { env } from "#app/server/env.server";
 
-/**
-   Structured JSON logger writing to stdout. Fly.io already aggregates
-   stdout, so we don't ship a transport. Request-scoped loggers are
-   created in the Express layer via `.child({ requestId })`.
- */
-export const logger = pino({
-  level: env().NODE_ENV === "production" ? "info" : "debug",
+const environment = env();
+
+const loggerOptions: LoggerOptions = {
+  level: environment.NODE_ENV === "production" ? "info" : "debug",
   // Strip secrets and direct personal identifiers from every log line.
   // Keep operational ids (requestId/userId) so incidents remain traceable.
   redact: {
@@ -38,6 +35,15 @@ export const logger = pino({
   },
   base: {
     service: "moj-dzemat",
+    component: "web",
+    ...(environment.AGENT_RUN_ID ? { runId: environment.AGENT_RUN_ID } : {}),
   },
   timestamp: pino.stdTimeFunctions.isoTime,
-});
+};
+
+export const logger = environment.AGENT_LOG_PATH
+  ? pino(
+      loggerOptions,
+      pino.destination({ dest: environment.AGENT_LOG_PATH, append: true, sync: false }),
+    )
+  : pino(loggerOptions);

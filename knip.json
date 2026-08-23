@@ -5,8 +5,9 @@
     "app/features/pwa/recovery-worker.ts",
     "app/features/pwa/service-worker.ts",
     "app/routes/**/*.{ts,tsx}",
-    "scripts/build-pwa-artifacts.ts",
-    "scripts/seed-pwa-tests.ts",
+    "scripts/pwa/build-artifacts.ts",
+    "scripts/agent/seed.ts",
+    "scripts/pwa/seed-tests.ts",
     "tests/**/*.test.{ts,tsx}",
     "tests/e2e/**/*.spec.ts"
   ],

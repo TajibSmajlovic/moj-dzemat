@@ -13,6 +13,26 @@ Active subscription data remains until the visitor unsubscribes, the browser exp
 Non-secret delivery history is retained for 30 days.
 The permanent first-publication decision marker is retained so editing or republishing a post cannot send a second notification.
 
+## Visitor behavior
+
+The public post archive shows the notification controls whenever the browser and
+current application worker can support them. The homepage and public post detail
+pages may also show a compact prompt after the visitor interacts with the page
+and keeps it visible for 15 seconds. The prompt appears at most once per browser
+session, and dismissing it suppresses it for 30 days.
+
+Permission is requested only after the visitor explicitly chooses to enable
+notifications. Unsupported browsers and denied permission produce explanatory
+states without affecting reading or navigation. On iPhone and iPad, the visitor
+must install and open the PWA from the home screen before Web Push can be enabled.
+
+An enabled subscription is synchronized with the server at most once per 24
+hours unless its endpoint changes or the visitor explicitly retries. A visitor
+can unsubscribe at any time. If server cleanup fails, the browser retains only
+the endpoint hash required to retry cleanup on a later visit. When Web Push is
+disabled server-side, an existing local subscription is shown as paused and can
+still be removed.
+
 ## Generate stable keys
 
 Generate one VAPID pair and keep it stable for the lifetime of existing subscriptions.

@@ -1,7 +1,7 @@
 import { MessageCircleQuestion } from "lucide-react";
 
 import { JsonLdScript } from "#app/components/seo/json-ld-script";
-import { ShareButton } from "#app/features/posts/components/share-button";
+import { ShareButton } from "#app/components/share-button";
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { qaSingleQuestionJsonLd } from "#app/features/qa/qa-seo";

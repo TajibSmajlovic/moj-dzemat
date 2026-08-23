@@ -1,6 +1,6 @@
 import { prisma } from "#app/server/db.server";
 
-import { PWA_TEST_POSTS } from "../tests/e2e/pwa/fixtures";
+import { PWA_TEST_POSTS } from "../../tests/e2e/pwa/fixtures";
 
 if (process.env.PWA_TEST_RUN !== "true") {
   throw new Error("Refusing to seed outside the isolated PWA test runner.");

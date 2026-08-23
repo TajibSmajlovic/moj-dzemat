@@ -15,16 +15,20 @@ import {
   type PersistedPost,
 } from "#app/features/posts/admin/post-persist.server";
 import { resolveVideoInputs } from "#app/features/posts/admin/post-videos.server";
-import { adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
+import {
+  adminPostPreviewHref,
+  postHref,
+  postNotificationResolverHref,
+} from "#app/features/posts/post-routes";
 import { sanitizePostBody } from "#app/features/posts/post-sanitize.server";
 import { PostFormSchema } from "#app/features/posts/post-schema";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { ParsedVideo } from "#app/features/posts/post-video";
-import { kickWebPushDispatcher } from "#app/features/web-push/dispatcher.server";
 import {
   cancelPostNotificationWork,
+  kickWebPushDispatcher,
   recordFirstPublicationDecision,
-} from "#app/features/web-push/post-notification.server";
+} from "#app/features/web-push/post-publication.server";
 import { requireId } from "#app/lib/id";
 import { invariant } from "#app/lib/invariant";
 import { createActionToast } from "#app/lib/toast";
@@ -63,7 +67,11 @@ export async function togglePostStatus(postId: string, userId: string) {
 
     return {
       status,
-      notificationDecision: await recordFirstPublicationDecision(tx, updated, now),
+      notificationDecision: await recordFirstPublicationDecision(
+        tx,
+        { ...updated, resolverPath: postNotificationResolverHref(updated.id) },
+        now,
+      ),
     };
   });
 

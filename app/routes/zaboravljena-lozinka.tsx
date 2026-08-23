@@ -10,7 +10,7 @@ import { HoneypotInputs } from "#app/components/forms/honeypot";
 import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
 import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
@@ -39,7 +39,7 @@ export function meta({ matches }: Route.MetaArgs) {
 export async function loader() {
   return {
     honeypot: honeypotToken(),
-    ...(await getAuthPage()),
+    announcement: await getActiveAnnouncement(),
   };
 }
 

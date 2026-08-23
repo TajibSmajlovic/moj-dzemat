@@ -29,20 +29,50 @@ jobs:
       ${{
         github.event_name == 'workflow_dispatch' ||
         (
+          github.event.workflow_run.event == 'push' &&
           github.event.workflow_run.conclusion == 'success' &&
           !contains(github.event.workflow_run.head_commit.message, '[skip deploy]')
         )
       }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Deploy the exact commit that passed CI rather than whatever happens
           # to be at the branch tip when this workflow starts.
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # CI runs can finish out of order. Only the newest tested master commit
+      # may reach production; the environment limits manual runs separately.
+      - name: Check deploy target
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git fetch --no-tags --depth=1 origin master
+          CURRENT_SHA="$(git rev-parse FETCH_HEAD)"
+          if [ "$TESTED_SHA" != "$CURRENT_SHA" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "## Deploy skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "A newer commit now points to master." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # master 2026-08-22
+        if: steps.target.outputs.deploy == 'true'
+        with:
+          version: 0.4.87
 
       - name: Deploy to Fly
+        if: steps.target.outputs.deploy == 'true'
         run: flyctl deploy --remote-only --wait-timeout 300
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

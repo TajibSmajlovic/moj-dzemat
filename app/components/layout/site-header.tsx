@@ -25,8 +25,6 @@ import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-
 import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
-import { NavigationProgress } from "#app/features/view-transitions/navigation-progress";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import {
@@ -34,6 +32,8 @@ import {
   type SocialLink,
   type SocialLinkPlatform,
 } from "#app/lib/social-links";
+import { NavigationProgress } from "#app/platform/view-transitions/navigation-progress";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
 type NavIcon = ComponentType<SVGProps<SVGSVGElement>> | LucideIcon;
 

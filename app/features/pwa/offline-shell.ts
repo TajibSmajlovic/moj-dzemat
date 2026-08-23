@@ -1,4 +1,4 @@
-import { POST_TYPE_LABEL } from "#app/features/posts/post-type";
+import { POST_TYPE_LABEL } from "#app/features/posts/post-contract";
 import { formatDateTimeLong } from "#app/lib/date";
 
 import {

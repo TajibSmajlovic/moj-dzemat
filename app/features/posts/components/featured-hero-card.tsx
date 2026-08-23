@@ -4,8 +4,6 @@ import { motion } from "motion/react";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
 import type { PostCardData } from "#app/features/posts/post-card-data";
 import { postHref } from "#app/features/posts/post-routes";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import {
   featuredHeroExcerptReveal,
@@ -14,6 +12,8 @@ import {
   featuredHeroReveal,
   featuredHeroTitleReveal,
 } from "#app/lib/motion";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 
 type FeaturedHeroCardPost = Pick<
   PostCardData,

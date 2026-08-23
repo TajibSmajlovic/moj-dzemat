@@ -11,6 +11,7 @@ import { Toaster as Sonner, toast, type ToasterProps } from "sonner";
 
 import { cn } from "#app/lib/cn";
 import {
+  hasSuccessToast,
   resolveToastTone,
   ToastSchema,
   type Toast as ToastPayload,
@@ -103,4 +104,21 @@ function useToast(toastInput?: ToastPayload | null) {
   }, [toastInput]);
 }
 
-export { Toaster, showToast, useToast };
+function useActionToast(actionData: unknown) {
+  const lastSeen = useRef<unknown>(undefined);
+
+  useEffect(() => {
+    if (!actionData || actionData === lastSeen.current) return;
+    if (hasSuccessToast(actionData)) {
+      showToast(actionData.toast);
+    }
+
+    lastSeen.current = actionData;
+  }, [actionData]);
+}
+
+function useFetcherToast(fetcher: { data?: unknown }) {
+  useActionToast(fetcher.data);
+}
+
+export { Toaster, useActionToast, useFetcherToast, useToast };

@@ -12,9 +12,9 @@ import {
   setThemePreference,
   type ThemePreference,
 } from "#app/features/theme/theme";
-import { startThemeViewTransition } from "#app/features/view-transitions/document-view-transition";
 import { cn } from "#app/lib/cn";
 import { useRootLoaderData } from "#app/lib/root-loader-data";
+import { startThemeViewTransition } from "#app/platform/view-transitions/document-view-transition";
 
 type ThemeToggleProps = {
   className?: string;

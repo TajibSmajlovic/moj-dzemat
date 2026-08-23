@@ -12,6 +12,9 @@ The public site is installable as a Progressive Web App. It can retain
 text-only snapshots of the 20 most recently viewed published posts for offline
 reading; images and videos remain online-only.
 
+Visitors can optionally subscribe to anonymous Web Push notifications for newly
+published posts without creating an account or enabling engagement tracking.
+
 The app is intentionally small operationally: React Router SSR on Express,
 Prisma + SQLite, admin-only authentication, Resend-backed email in production,
 and image blobs normalized with `sharp`.
@@ -41,15 +44,17 @@ and pull request expectations live in [CONTRIBUTING.md](CONTRIBUTING.md).
 ```text
 app/
   components/          reusable UI primitives, layout chrome, forms, icons, and generic admin pieces
-  features/            vertical slices for posts, Q&A, important dates, contact, announcements, auth, and theme
+  features/            vertical slices for posts, Q&A, content management, auth, PWA, Web Push, and theme
   lib/                 small shared app helpers used across multiple slices
+  platform/            cross-cutting browser capabilities shared by product features
   routes/              file-based routes for public pages, auth, admin, sitemap, and dev helpers
   server/              server infrastructure: Prisma, env, email, logging, security, image pipeline
   styles/              Tailwind theme and global CSS
+docs/                  agent-facing product, design, architecture, security, reliability, and plan guidance
 prisma/                schema, migrations, seed script, and local SQLite files
 server/                Express entrypoint used by development and production server boot
 tests/                 unit, integration, e2e, fixtures, factories, and test helpers
-scripts/               build orchestration and other repo scripts
+scripts/               typed build, agent, repository-check, PWA, and test orchestration
 public/                static assets
 ```
 
@@ -59,15 +64,32 @@ server logic live in `app/features/*`. Cross-cutting server pieces that should
 not know about a domain live in `app/server`, and generic UI remains in
 `app/components`.
 
+The high-level system map lives in [ARCHITECTURE.md](ARCHITECTURE.md), with
+mechanically enforced dependency rules in
+[docs/architecture/boundaries.md](docs/architecture/boundaries.md).
+
+## Agent Knowledge System
+
+Start with [AGENTS.md](AGENTS.md). Deeper repository guidance is organized by
+owner:
+
+- [product sense](docs/PRODUCT_SENSE.md) and
+  [product specifications](docs/product-specs/index.md)
+- [design](docs/DESIGN.md) and [frontend](docs/FRONTEND.md)
+- [security](docs/SECURITY.md) and [reliability](docs/RELIABILITY.md)
+- [durable design decisions](docs/design-docs/index.md)
+- [execution-plan conventions](docs/PLANS.md) and
+  [tracked technical debt](docs/exec-plans/tech-debt-tracker.md)
+
 Useful route groups:
 
-| Area      | Routes                                                                                                                                                                        |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public    | `/`, `/objave`, `/objave/:slug`, `/pitanja-i-odgovori`, `/pitanja-i-odgovori/:id`, `/kontakt`, `/robots.txt`, `/sitemap.xml`                                                  |
-| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                                                                                        |
-| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/pitanja`, `/admin/vazni-datumi`, `/admin/kontakt`, `/admin/obavijesna-traka` |
-| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                                                                              |
-| Resources | `/slike/:id`, `/resources/healthcheck`, `/resources/readiness`                                                                                                                |
+| Area      | Routes                                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public    | `/`, `/objave`, `/objave/:slug`, `/objave/otvori/:id`, `/pitanja-i-odgovori`, `/pitanja-i-odgovori/:id`, `/pitanja-i-odgovori/hvala`, `/kontakt`, `/robots.txt`, `/sitemap.xml` |
+| Auth      | `/prijava`, `/zaboravljena-lozinka`, `/nova-lozinka/:token`, `/odjava`                                                                                                          |
+| Admin     | `/admin/objave`, `/admin/objave/nova`, `/admin/objave/:id`, `/admin/objave/:id/pregled`, `/admin/pitanja`, `/admin/vazni-datumi`, `/admin/kontakt`, `/admin/obavijesna-traka`   |
+| Dev-only  | `/dev/last-email` when `ENABLE_TEST_ROUTES=true`                                                                                                                                |
+| Resources | `/slike/:id`, `/manifest.webmanifest`, `/resources/healthcheck`, `/resources/readiness`, `/resources/web-push/subscription`                                                     |
 
 ## Deployment
 
@@ -91,17 +113,20 @@ configuration:
 - optional branding and integrations: `DZEMAT_NAME`, `DZEMAT_ADDRESS`,
   `DZEMAT_MAP_QUERY`, `FACEBOOK_PAGE_URL`, `YOUTUBE_CHANNEL_URL`,
   `CLOUDFLARE_WEB_ANALYTICS_TOKEN`
+- optional Web Push: `WEB_PUSH_ENABLED`, `WEB_PUSH_VAPID_PUBLIC_KEY`,
+  `WEB_PUSH_VAPID_PRIVATE_KEY`, and `WEB_PUSH_ENCRYPTION_KEYS`; follow the
+  [Web Push rollout guide](docs/design-docs/web-push.md) before enabling it
 
 Leave `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and
 `DISABLE_RATE_LIMITING` unset or `false` in production.
 
 The focused PWA production checklist and cleanup-worker procedure live in
-[docs/pwa-recovery.md](docs/pwa-recovery.md).
+[docs/design-docs/pwa-runtime-and-recovery.md](docs/design-docs/pwa-runtime-and-recovery.md).
 
 ## Community And Security
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) — local setup, testing, and PR expectations
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — community standards
-- [.github/SECURITY.md](.github/SECURITY.md) — how to report vulnerabilities privately
+- [CONTRIBUTING.md](CONTRIBUTING.md) - local setup, testing, and PR expectations
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - community standards
+- [.github/SECURITY.md](.github/SECURITY.md) - how to report vulnerabilities privately
 - Use the issue templates under [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)
   for bugs, features, and other work

@@ -11,7 +11,7 @@ import { PasswordField } from "#app/components/forms/password-field";
 import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { getCurrentUser, login } from "#app/features/auth/auth.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
@@ -42,7 +42,7 @@ export async function loader({ request, url }: Route.LoaderArgs) {
   return {
     honeypot: honeypotToken(),
     redirectTo: safeRedirect(url.searchParams.get("redirectTo") ?? undefined, ""),
-    ...(await getAuthPage()),
+    announcement: await getActiveAnnouncement(),
   };
 }
 

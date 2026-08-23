@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigation } from "react-router";
 
-import { isPublicPathname } from "#app/features/view-transitions/view-transition-model";
+import { isPublicPathname } from "#app/platform/view-transitions/view-transition-model";
 
 const NAVIGATION_PROGRESS_DELAY_MS = 200;
 const NAVIGATION_PROGRESS_MIN_VISIBLE_MS = 140;

@@ -1,11 +1,10 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
 import sharp from "sharp";
 
-import { PWA_BACKGROUND_COLOR } from "../app/features/pwa/pwa-config.ts";
+import { PWA_BACKGROUND_COLOR } from "../../app/features/pwa/pwa-config";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const publicDirectory = path.join(projectRoot, "public");
 const sourceLogo = path.join(publicDirectory, "logo.png");
 const maskableLogoSize = 352;
@@ -16,14 +15,14 @@ const pngOptions = {
   palette: false,
 };
 
-async function transparentIcon(size, fileName) {
+async function transparentIcon(size: number, fileName: string): Promise<void> {
   await sharp(sourceLogo)
     .resize(size, size, { fit: "contain" })
     .png(pngOptions)
     .toFile(path.join(publicDirectory, fileName));
 }
 
-async function maskableIcon() {
+async function maskableIcon(): Promise<void> {
   const logo = await sharp(sourceLogo)
     .resize(maskableLogoSize, maskableLogoSize, { fit: "contain" })
     .png(pngOptions)

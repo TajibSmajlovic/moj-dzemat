@@ -4,6 +4,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
 import { POSTS_TITLES } from "./fixtures/seed-posts";
+import { requiredEnvironment } from "./utils/environment";
+
+const APP_ORIGIN = requiredEnvironment("APP_URL");
 
 type JsonLdObject = {
   "@type"?: string;
@@ -51,13 +54,10 @@ test.describe("seo", () => {
   }) => {
     await page.goto(href("/"));
 
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      "href",
-      "http://localhost:3000/",
-    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${APP_ORIGIN}/`);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      "http://localhost:3000/social-card-default.jpg",
+      `${APP_ORIGIN}/social-card-default.jpg`,
     );
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
       "content",
@@ -87,9 +87,9 @@ test.describe("seo", () => {
     expect(parsed).toBeTruthy();
     expect(graph.map((entry) => entry["@type"])).toEqual(["Organization", "Mosque"]);
     expect(organization).toMatchObject({
-      "@id": "http://localhost:3000/#organization",
+      "@id": `${APP_ORIGIN}/#organization`,
       name: "Moj Džemat - Donje Mostre",
-      url: "http://localhost:3000",
+      url: APP_ORIGIN,
       description:
         "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
       address: {
@@ -98,7 +98,7 @@ test.describe("seo", () => {
         addressCountry: "BA",
       },
       location: {
-        "@id": "http://localhost:3000/#place",
+        "@id": `${APP_ORIGIN}/#place`,
       },
       parentOrganization: {
         "@type": "Organization",
@@ -121,9 +121,9 @@ test.describe("seo", () => {
       ],
     });
     expect(mosque).toMatchObject({
-      "@id": "http://localhost:3000/#place",
+      "@id": `${APP_ORIGIN}/#place`,
       name: "Moj Džemat - Donje Mostre",
-      url: "http://localhost:3000",
+      url: APP_ORIGIN,
       description:
         "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
       address: {
@@ -133,7 +133,7 @@ test.describe("seo", () => {
       },
       publicAccess: true,
       parentOrganization: {
-        "@id": "http://localhost:3000/#organization",
+        "@id": `${APP_ORIGIN}/#organization`,
       },
     });
   });
@@ -145,10 +145,7 @@ test.describe("seo", () => {
       "content",
       "noindex,follow,max-image-preview:large",
     );
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-      "href",
-      "http://localhost:3000/",
-    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${APP_ORIGIN}/`);
   });
 
   test("archive exposes canonical metadata without duplicate shared tags", async ({ page }) => {
@@ -156,7 +153,7 @@ test.describe("seo", () => {
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      "http://localhost:3000/objave",
+      `${APP_ORIGIN}/objave`,
     );
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Objave/);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -171,13 +168,13 @@ test.describe("seo", () => {
         "@type": "ListItem",
         position: 1,
         name: "Početna",
-        item: "http://localhost:3000/",
+        item: `${APP_ORIGIN}/`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Objave",
-        item: "http://localhost:3000/objave",
+        item: `${APP_ORIGIN}/objave`,
       },
     ]);
   });
@@ -192,7 +189,7 @@ test.describe("seo", () => {
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      "http://localhost:3000/objave",
+      `${APP_ORIGIN}/objave`,
     );
   });
 
@@ -230,24 +227,24 @@ test.describe("seo", () => {
 
     expect(article).toMatchObject({
       "@type": "Article",
-      "@id": `http://localhost:3000${postHref("e2e-objava-1")}#article`,
-      url: `http://localhost:3000${postHref("e2e-objava-1")}`,
+      "@id": `${APP_ORIGIN}${postHref("e2e-objava-1")}#article`,
+      url: `${APP_ORIGIN}${postHref("e2e-objava-1")}`,
       headline: POSTS_TITLES[0],
       description: expect.stringContaining("Drugi paragraf."),
       inLanguage: "bs-BA",
       articleSection: "Obavijest",
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `http://localhost:3000${postHref("e2e-objava-1")}`,
+        "@id": `${APP_ORIGIN}${postHref("e2e-objava-1")}`,
       },
       author: {
         "@type": "Organization",
-        "@id": "http://localhost:3000/#organization",
+        "@id": `${APP_ORIGIN}/#organization`,
         name: "Moj Džemat - Donje Mostre",
-        url: "http://localhost:3000",
+        url: APP_ORIGIN,
       },
       publisher: {
-        "@id": "http://localhost:3000/#organization",
+        "@id": `${APP_ORIGIN}/#organization`,
       },
     });
     expect(findJsonLdObject(jsonLdObjects, "BreadcrumbList")?.itemListElement).toEqual([
@@ -255,19 +252,19 @@ test.describe("seo", () => {
         "@type": "ListItem",
         position: 1,
         name: "Početna",
-        item: "http://localhost:3000/",
+        item: `${APP_ORIGIN}/`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Objave",
-        item: "http://localhost:3000/objave",
+        item: `${APP_ORIGIN}/objave`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: POSTS_TITLES[0],
-        item: `http://localhost:3000${postHref("e2e-objava-1")}`,
+        item: `${APP_ORIGIN}${postHref("e2e-objava-1")}`,
       },
     ]);
   });

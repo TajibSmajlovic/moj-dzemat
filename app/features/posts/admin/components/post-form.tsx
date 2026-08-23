@@ -20,6 +20,7 @@ import { Checkbox } from "#app/components/ui/checkbox";
 import { ConfirmAction } from "#app/components/ui/confirm-action";
 import { Input } from "#app/components/ui/input";
 import { Label } from "#app/components/ui/label";
+import { useFetcherToast } from "#app/components/ui/sonner";
 import { Textarea } from "#app/components/ui/textarea";
 import { RichEditor } from "#app/features/posts/admin/components/rich-editor";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
@@ -37,7 +38,6 @@ import {
   youtubeThumbnailUrl,
 } from "#app/features/posts/post-video";
 import { IntentInput } from "#app/lib/intent";
-import { useFetcherToast } from "#app/lib/toast";
 
 type PostFormImage = { id: string; altText: string | null };
 type PostFormVideo = { id: string; url: string; providerId: string };

@@ -10,7 +10,7 @@ import {
   getOfflineShellRevision,
   parsePwaWorkerMode,
   type BuildPwaArtifactOptions,
-} from "../../../scripts/build-pwa-artifacts";
+} from "../../../scripts/pwa/build-artifacts";
 
 const temporaryDirectories: string[] = [];
 

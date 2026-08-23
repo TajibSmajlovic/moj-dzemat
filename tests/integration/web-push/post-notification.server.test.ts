@@ -4,7 +4,8 @@ vi.mock("#app/server/env.server", () => ({
   env: () => ({ WEB_PUSH_ENABLED: true }),
 }));
 
-import { recordFirstPublicationDecision } from "#app/features/web-push/post-notification.server";
+import { postNotificationResolverHref } from "#app/features/posts/post-routes";
+import { recordFirstPublicationDecision } from "#app/features/web-push/post-publication.server";
 import { prisma } from "#app/server/db.server";
 
 describe("first-publication Web Push decision", () => {
@@ -22,7 +23,11 @@ describe("first-publication Web Push decision", () => {
     });
 
     const decision = await prisma.$transaction((tx) =>
-      recordFirstPublicationDecision(tx, post, now),
+      recordFirstPublicationDecision(
+        tx,
+        { ...post, resolverPath: postNotificationResolverHref(post.id) },
+        now,
+      ),
     );
 
     expect(decision).toBe("no-subscribers");
@@ -52,7 +57,11 @@ describe("first-publication Web Push decision", () => {
     });
 
     const decision = await prisma.$transaction((tx) =>
-      recordFirstPublicationDecision(tx, post, now),
+      recordFirstPublicationDecision(
+        tx,
+        { ...post, resolverPath: postNotificationResolverHref(post.id) },
+        now,
+      ),
     );
 
     expect(decision).toBe("queued");

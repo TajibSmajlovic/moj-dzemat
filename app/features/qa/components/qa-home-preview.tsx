@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "#app/components/ui/button";
 import { QaAccordion } from "#app/features/qa/components/qa-accordion";
 import type { PublicQuestion } from "#app/features/qa/qa.server";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
 type QaHomePreviewProps = {
   questions: PublicQuestion[];

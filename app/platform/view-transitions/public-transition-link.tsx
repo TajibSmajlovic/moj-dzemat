@@ -1,7 +1,7 @@
 import { forwardRef, type MouseEvent } from "react";
 import { createPath, Link, type LinkProps, useLocation, useResolvedPath } from "react-router";
 
-import { useOptionalPublicViewTransition } from "#app/features/view-transitions/public-view-transition-provider";
+import { useOptionalPublicViewTransition } from "#app/platform/view-transitions/public-view-transition-provider";
 
 type PublicTransitionLinkProps = Omit<LinkProps, "download" | "reloadDocument" | "viewTransition">;
 

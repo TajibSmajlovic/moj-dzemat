@@ -129,9 +129,33 @@ Important details:
 | `npm run dev`       | Starts the local SSR dev server from `server/index.ts`.     |
 | `npm run build`     | Builds the production client and server bundles.            |
 | `npm run start`     | Starts the production build from `build/server-entry.mjs`.  |
-| `npm run check`     | Runs typecheck, ESLint, and Prettier checks.                |
+| `npm run check`     | Runs harness, typecheck, ESLint, and Prettier checks.       |
 | `npm run knip`      | Checks for unused files, exports, and dependencies.         |
 | `npm run pwa:icons` | Regenerates the committed PWA icons from `public/logo.png`. |
+
+### Agent workflow
+
+| Command                      | What it does                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `npm run agent:start`        | Starts an isolated app with its own port, database, cache, seed, log, and manifest. |
+| `npm run agent:logs`         | Filters structured logs for the exact manifest passed with `--manifest`.            |
+| `npm run agent:stop`         | Verifies runtime identity, stops its process, and removes only its temporary state. |
+| `npm run agent:verify`       | Runs the complete harness, static, test, E2E, and PWA verification.                 |
+| `npm run agent:gc`           | Reports documentation, architecture, unused-code, and stale-runtime findings.       |
+| `npm run architecture:check` | Enforces dependency boundaries with the TypeScript parser.                          |
+| `npm run docs:check`         | Checks agent-critical local links, anchors, and documented npm scripts.             |
+
+`npm run agent:start` prints an `AGENT_RUNTIME_MANIFEST` path. Use the exact path
+for later commands:
+
+```bash
+npm run agent:logs -- --manifest /path/from/start/manifest.json --request-id request-123
+npm run agent:stop -- --manifest /path/from/start/manifest.json
+```
+
+The manifest contains process and local connection metadata but no secret values.
+Use a separate Git worktree for each parallel code change because build output is
+still shared within one checkout.
 
 ### Database
 
@@ -169,6 +193,11 @@ On Linux CI or bare Linux machines you may need:
 ```bash
 npx playwright install --with-deps chromium
 ```
+
+`npm run test:e2e` builds the application, creates a dynamic loopback port and
+temporary SQLite database, seeds all browser fixtures, and refuses to reuse an
+existing server. Successful runs remove temporary state; failed local runs print
+the retained artifact path for diagnosis.
 
 `npm run test:pwa` builds the production application, applies migrations to a
 temporary SQLite database, seeds deterministic published posts, and runs the
@@ -242,18 +271,17 @@ A few implementation details that help when debugging:
   and actions, plus `tests/helpers/action-result.ts` for `data()`/`Response`
   assertions
 - admin route tests can use `tests/helpers/auth.ts` to create an admin session
-- Playwright starts the app itself and points it at `prisma/e2e.db`
+- Playwright starts the app itself with a temporary database and dynamic port
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
   and `DISABLE_RATE_LIMITING`
 - `npm run test:e2e` builds first and serves that artifact under `NODE_ENV=test`.
   The Vite dev server is reserved for `npm run dev`, because its on-demand
   dependency optimisation reloads the page mid-test the first time a heavy route
-  such as the Tiptap editor is opened. Use `npx playwright test` directly to
-  re-run against an artifact you have already built.
+  such as the Tiptap editor is opened.
 - the main suite blocks service workers; `tests/e2e/pwa` owns that behaviour
 - the isolated production PWA e2e suite lives in `tests/e2e/pwa` and runs via
   `npm run test:pwa`
-- e2e fixture definitions live in `tests/e2e/fixtures/seed-data.ts`
+- e2e fixture definitions are aggregated by `tests/e2e/fixtures/index.ts`
 - e2e global setup reuses shared factories, then seeds a deterministic admin,
   posts across all public post types, Q&A rows, one announcement, and important
   dates
@@ -267,6 +295,9 @@ npm run test:run
 npm run build
 ```
 
+For an agent-driven change, use `npm run agent:verify` as the authoritative final
+command.
+
 Run `npm run test:e2e` for UI, routing, auth, editor, upload, or admin workflow changes.
 Run `npm run test:pwa` for changes to the manifest, service worker, offline
 shell, post snapshots, PWA build pipeline, or production PWA asset serving.
@@ -276,20 +307,20 @@ shell, post snapshots, PWA build pipeline, or production PWA asset serving.
 Before opening a PR:
 
 - make sure the branch is focused and up to date with `master`
-- fill out the pull request template
+- fill out the pull request template with concrete verification results
 - include screenshots or recordings for visible UI changes
 - call out migrations, environment variables, seed changes, deploy steps, and rollback notes
 - explain skipped checks or known caveats
 - verify production-only safety for auth, email, test routes, rate limiting, and secrets
 
-Recommended local verification before requesting review:
+Run the authoritative final verification for an agent-driven change:
 
 ```bash
-npm run check
-npm run knip
-npm run test:run
-npm run build
+npm run agent:verify
 ```
+
+If a check cannot run, record the exact skipped command and reason in the pull
+request. CI does not replace missing local verification evidence.
 
 ## Commit Hygiene
 

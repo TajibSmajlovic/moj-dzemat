@@ -30,7 +30,7 @@ declare module "express-serve-static-core" {
   }
 }
 
-const { APP_URL, NODE_ENV, PORT } = env();
+const { AGENT_RUN_ID, APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
 // Vite's dev server exists for `npm run dev` only. Every other environment,
 // including the `test` environment Playwright drives, serves the prebuilt
@@ -84,6 +84,7 @@ async function createServer(): Promise<express.Express> {
       (req.headers["x-request-id"] as string | undefined) ??
       crypto.randomUUID();
     res.setHeader("X-Request-Id", requestId);
+    if (AGENT_RUN_ID) res.setHeader("X-Agent-Run-Id", AGENT_RUN_ID);
 
     for (const [key, value] of Object.entries(securityHeaders({ isProd }))) {
       res.setHeader(key, value);
@@ -185,7 +186,11 @@ async function createServer(): Promise<express.Express> {
   if (useViteDevServer) {
     const vite = await import("vite");
     const viteDevServer = await vite.createServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        // Agent runs use explicit browser reloads and do not own a Vite HMR socket.
+        ...(AGENT_RUN_ID ? { hmr: false } : {}),
+      },
       appType: "custom",
     });
     app.use(viteDevServer.middlewares);

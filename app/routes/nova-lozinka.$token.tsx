@@ -10,7 +10,7 @@ import { PasswordField } from "#app/components/forms/password-field";
 import { PublicAuthShell } from "#app/components/layout/auth-shell";
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
-import { getAuthPage } from "#app/features/auth/auth-page.server";
+import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import {
   MIN_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH_MESSAGE,
@@ -46,14 +46,20 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const [verification, chrome] = await Promise.all([verifyResetToken(params.token), getAuthPage()]);
+  const [verification, announcement] = await Promise.all([
+    verifyResetToken(params.token),
+    getActiveAnnouncement(),
+  ]);
 
   if (!verification.ok) {
     logger.warn({ reason: verification.reason }, "password reset page opened with invalid token");
 
-    return data({ invalid: true as const, honeypot: honeypotToken(), ...chrome }, { status: 400 });
+    return data(
+      { invalid: true as const, honeypot: honeypotToken(), announcement },
+      { status: 400 },
+    );
   }
-  return { invalid: false as const, honeypot: honeypotToken(), ...chrome };
+  return { invalid: false as const, honeypot: honeypotToken(), announcement };
 }
 
 export async function action({ params, request }: Route.ActionArgs) {

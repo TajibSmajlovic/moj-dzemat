@@ -54,8 +54,7 @@ form and must never use production credentials.
 
 Before deploying:
 
-1. Run `npm run check`, `npm run knip`, `npm run test:run`,
-   `npm run build`, and `npm run test:pwa`.
+1. Run the authoritative `npm run agent:verify` command.
 2. Confirm `build/client/sw.js` is the normal worker and does not contain
    `skipWaiting`.
 3. Exercise the recovery build locally as described below, then run

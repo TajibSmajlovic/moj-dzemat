@@ -1,10 +1,10 @@
 import { ChevronDown } from "lucide-react";
 
+import { ShareButton } from "#app/components/share-button";
 import { Accordion } from "#app/components/ui/accordion";
-import { ShareButton } from "#app/features/posts/components/share-button";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { cn } from "#app/lib/cn";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
 type QaAccordionItem = {
   id: string;

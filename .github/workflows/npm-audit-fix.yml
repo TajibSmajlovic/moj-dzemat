@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: npm-audit-fix-${{ github.ref }}
+  # Every run checks master and writes the same automation branch.
+  group: npm-audit-fix
   cancel-in-progress: true
 
 permissions:
@@ -17,19 +18,23 @@ jobs:
   audit-fix:
     name: Open PR for fixable npm audit issues
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: master
+          # Dependency scripts run before the PR step and must not inherit a
+          # stored token with repository write access.
+          persist-credentials: false
 
       - run: cp .env.example .env
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: npm
 
+      - run: npm install --global npm@11.18.0
       - run: npm ci
 
       - name: Check for npm audit issues
@@ -38,7 +43,6 @@ jobs:
         run: npm audit
 
       - name: Apply safe npm audit fixes
-        id: fix
         if: steps.audit.outcome == 'failure'
         continue-on-error: true
         run: npm audit fix
@@ -60,19 +64,31 @@ jobs:
         run: npm audit
 
       - name: Validate dependency changes
+        id: validate
         if: steps.verify.outcome == 'success'
         run: |
-          npm run check
-          npm run knip
-          npm run test:run
-          npm run build
+          npx playwright install --with-deps chromium
+          npm run agent:verify
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: steps.validate.outcome == 'failure'
+        with:
+          name: npm-audit-browser-artifacts
+          path: |
+            playwright-report
+            playwright-pwa-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Create pull request
         if: >
           steps.changes.outputs.changed == 'true' &&
-          steps.verify.outcome == 'success'
-        uses: peter-evans/create-pull-request@v8
+          steps.verify.outcome == 'success' &&
+          steps.validate.outcome == 'success'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: automation/npm-audit-fix
           delete-branch: true
           title: "chore: fix npm audit issues"
@@ -83,10 +99,11 @@ jobs:
 
             Validation completed:
             - npm audit
-            - typecheck, lint, and formatting
+            - documentation, architecture, typecheck, lint, and formatting
             - Knip
             - unit and integration tests
-            - production build
+            - Playwright end-to-end tests
+            - production PWA tests and build
           labels: |
             dependencies
             npm
@@ -98,8 +115,10 @@ jobs:
           steps.audit.outcome == 'failure' &&
           steps.verify.outcome != 'success'
         run: |
-          echo "## Manual dependency update required" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`npm audit fix\` could not produce a clean dependency graph." >> "$GITHUB_STEP_SUMMARY"
-          echo "Review the audit output and update the affected direct dependency manually." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Manual dependency update required"
+            echo ""
+            echo "\`npm audit fix\` could not produce a clean dependency graph."
+            echo "Review the audit output and update the affected direct dependency manually."
+          } >> "$GITHUB_STEP_SUMMARY"
           npm audit

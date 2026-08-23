@@ -4,7 +4,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
-const projectRoot = path.resolve(import.meta.dirname, "..");
+const projectRoot = path.resolve(import.meta.dirname, "../..");
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-pwa-tests-"));
 
 try {
@@ -45,8 +45,8 @@ try {
   run("temporary database migrations", "npx", ["prisma", "migrate", "deploy"], testEnvironment);
   run(
     "deterministic temporary database seed",
-    "npx",
-    ["tsx", "scripts/seed-pwa-tests.ts"],
+    process.execPath,
+    ["--import", "tsx", "scripts/pwa/seed-tests.ts"],
     testEnvironment,
   );
   run(
@@ -62,7 +62,12 @@ try {
   fs.rmSync(temporaryDirectory, { force: true, recursive: true });
 }
 
-function run(stepName, command, args, environment) {
+function run(
+  stepName: string,
+  command: string,
+  args: readonly string[],
+  environment: NodeJS.ProcessEnv,
+): void {
   console.log(`[pwa-test] ${stepName}`);
 
   const result = spawnSync(command, args, {
@@ -78,7 +83,7 @@ function run(stepName, command, args, environment) {
   }
 }
 
-function reserveLoopbackPort() {
+function reserveLoopbackPort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
 
