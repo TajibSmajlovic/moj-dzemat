@@ -148,12 +148,12 @@
     "vitest": "^4.1.6"
   },
   "allowScripts": {
-    "@prisma/client@7.8.0": true,
+    "@prisma/engines@7.9.1": true,
     "better-sqlite3@12.11.1": true,
-    "esbuild@0.28.1": true,
+    "better-sqlite3@13.0.3": true,
+    "esbuild@0.28.2": true,
     "fsevents@2.3.2": true,
     "fsevents@2.3.3": true,
-    "prisma@7.9.1": true,
-    "@prisma/engines@7.9.1": true
+    "prisma@7.9.1": true
   }
 }
