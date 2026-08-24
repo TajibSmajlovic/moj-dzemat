@@ -50,6 +50,15 @@ describe("agent runtime ownership", () => {
 
     expect(() => runtime.loadOwnedManifest(manifestPath)).toThrow(/real directory|symlink/);
   });
+
+  it("rejects structurally incomplete manifests", () => {
+    const statePath = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-agent-invalid-"));
+    temporaryPaths.push(statePath);
+    const manifestPath = path.join(statePath, "manifest.json");
+    fs.writeFileSync(manifestPath, JSON.stringify({ state_path: statePath }));
+
+    expect(() => runtime.loadOwnedManifest(manifestPath)).toThrow(/missing run_id/);
+  });
 });
 
 describe("agent log filters", () => {

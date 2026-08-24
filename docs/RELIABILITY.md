@@ -55,8 +55,9 @@ correct content when SQLite is unavailable.
 - The service worker is an optional enhancement. Normal routing remains
   network-first, and the dedicated cleanup-worker procedure lives in
   [the PWA recovery guide](design-docs/pwa-runtime-and-recovery.md).
-- Agent and E2E runtimes own separate ports, SQLite files, caches, logs, and
-  manifests so a failed run does not mutate the normal developer database.
+- Agent runtimes own separate ports, SQLite files, Vite caches, logs, and
+  manifests. E2E runs own separate ports, SQLite files, and test-output
+  directories, so neither mutates the normal developer database.
 
 ## Observability
 

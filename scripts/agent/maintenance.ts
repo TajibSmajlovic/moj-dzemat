@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { loadOwnedManifest } from "./runtime";
+
 const projectRoot = path.resolve(import.meta.dirname, "../..");
 const ACTIVE_PLAN_MAX_AGE_DAYS = 14;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -121,12 +123,8 @@ function runMaintenance(): void {
     }
 
     try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as { pid?: unknown };
-      if (
-        typeof manifest.pid === "number" &&
-        Number.isSafeInteger(manifest.pid) &&
-        !processIsAlive(manifest.pid)
-      ) {
+      const { manifest } = loadOwnedManifest(manifestPath);
+      if (!processIsAlive(manifest.pid)) {
         console.error(
           `MAINTENANCE stopped-runtime: ${statePath}\nImpact: a completed runtime left temporary state behind.\nFix: npm run agent:stop -- --manifest ${manifestPath}`,
         );

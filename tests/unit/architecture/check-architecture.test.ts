@@ -32,6 +32,25 @@ const violationCases: { rule: string; files: Record<string, string> }[] = [
       "app/components/card.tsx": "import { db } from '#app/server/db.server';\n",
     },
   },
+  {
+    rule: "client-server-boundary",
+    files: {
+      "app/features/posts/admin/components/form.tsx":
+        "import { db } from '#app/server/db.server';\n",
+    },
+  },
+  {
+    rule: "client-server-boundary",
+    files: {
+      "app/lib/browser-helper.ts": "import { db } from '#app/server/db.server';\n",
+    },
+  },
+  {
+    rule: "client-server-boundary",
+    files: {
+      "app/components/card.tsx": "import { PrismaClient } from '#generated/prisma/client';\n",
+    },
+  },
 ];
 
 afterEach(() => {
@@ -98,6 +117,14 @@ describe("architecture checker", () => {
     expect(violations).toHaveLength(1);
     expect(violations[0]?.rule).toBe("client-server-boundary");
     expect(violations[0]?.line).toBe(2);
+  });
+
+  it("allows type-only imports from generated server code", () => {
+    const root = fixture({
+      "app/lib/post.ts": "import type { Post } from '#generated/prisma/client';\n",
+    });
+
+    expect(checkArchitecture(root)).toEqual([]);
   });
 
   it("resolves the repository root from a nested directory", () => {

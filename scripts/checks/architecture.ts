@@ -74,6 +74,10 @@ function resolveInternalTarget(rootDir: string, source: string, specifier: strin
 
   if (specifier.startsWith("#app/")) {
     absoluteTarget = path.join(rootDir, "app", specifier.slice("#app/".length));
+  } else if (specifier.startsWith("#generated/")) {
+    absoluteTarget = path.join(rootDir, "generated", specifier.slice("#generated/".length));
+  } else if (specifier.startsWith("#prisma/")) {
+    absoluteTarget = path.join(rootDir, "prisma", specifier.slice("#prisma/".length));
   } else if (specifier.startsWith(".")) {
     absoluteTarget = path.resolve(rootDir, path.dirname(source), specifier);
   } else {
@@ -198,10 +202,14 @@ function violationFor(edge: ImportEdge): ArchitectureViolation | null {
 
   const isBrowserOwned =
     edge.source.startsWith("app/components/") ||
+    edge.source.startsWith("app/lib/") ||
     edge.source.startsWith("app/platform/") ||
-    /^app\/features\/[^/]+\/components\//.test(edge.source);
+    /^app\/features\/[^/]+\/(?:[^/]+\/)*components\//.test(edge.source);
   const isServerTarget =
-    edge.target.startsWith("app/server/") || /\.server(?:\/|$)/.test(edge.target);
+    edge.target.startsWith("app/server/") ||
+    edge.target.startsWith("generated/") ||
+    edge.target.startsWith("prisma/") ||
+    /\.server(?:\/|$)/.test(edge.target);
   if (!edge.typeOnly && isBrowserOwned && isServerTarget) {
     return {
       ...edge,
