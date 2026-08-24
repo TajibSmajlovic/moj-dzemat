@@ -1,10 +1,15 @@
 # syntax = docker/dockerfile:1.7
 
+# Keep local, CI, and image builds on the package manager declared in
+# package.json instead of the npm version bundled with the Node image.
+FROM node:24-alpine AS node-base
+RUN npm install --global npm@11.18.0
+
 # ---- deps --------------------------------------------------------------
 # Separate stage so we can copy `node_modules` into subsequent stages
 # without re-running `npm ci`. Alpine for small image size; build tools
 # are available here if better-sqlite3 needs to compile its native binding.
-FROM node:24-alpine AS deps
+FROM node-base AS deps
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl python3 make g++
@@ -21,7 +26,7 @@ RUN npm rebuild better-sqlite3
 # ---- build -------------------------------------------------------------
 # Compile RR client + server bundles, generate Prisma client, and prune
 # dev dependencies so the runtime image stays small.
-FROM node:24-alpine AS build
+FROM node-base AS build
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl
@@ -48,7 +53,7 @@ RUN npm prune --omit=dev --ignore-scripts
 # instead of relying on the LiteFS image's unversioned Alpine nodejs package.
 FROM flyio/litefs:0.5 AS litefs
 
-FROM node:24-alpine AS runtime
+FROM node-base AS runtime
 WORKDIR /app
 
 COPY --from=litefs /usr/local/bin/litefs /usr/local/bin/litefs

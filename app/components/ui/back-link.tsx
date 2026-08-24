@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "#app/components/ui/button";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
-import { useOptionalPublicViewTransition } from "#app/features/view-transitions/public-view-transition-provider";
-import { hasNavigationStateFlag } from "#app/features/view-transitions/view-transition-model";
 import { cn } from "#app/lib/cn";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
+import { useOptionalPublicViewTransition } from "#app/platform/view-transitions/public-view-transition-provider";
+import { hasNavigationStateFlag } from "#app/platform/view-transitions/view-transition-model";
 
 const BACK_LINK_CLASSES =
   "text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors";

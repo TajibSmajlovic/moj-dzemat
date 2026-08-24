@@ -21,7 +21,12 @@ if (includeDevRoutes) {
   console.warn("[build] Including development-only routes. Never deploy this artifact.");
 }
 
-function run(stepName, command, args, env = process.env) {
+function run(
+  stepName: string,
+  command: string,
+  args: readonly string[],
+  env: NodeJS.ProcessEnv = process.env,
+): void {
   console.log(`[build] ${stepName}`);
 
   const result = spawnSync(command, args, {
@@ -46,7 +51,7 @@ const pwaArtifactBuilderPath = "build/.pwa-artifact-builder.mjs";
 
 try {
   run("PWA artifact builder", "esbuild", [
-    "scripts/build-pwa-artifacts.ts",
+    "scripts/pwa/build-artifacts.ts",
     "--bundle",
     "--platform=node",
     "--format=esm",

@@ -15,7 +15,9 @@ import {
 } from "#app/features/pwa/offline-shell-document";
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR } from "#app/features/pwa/pwa-config";
 
-const projectRoot = path.resolve(import.meta.dirname, "..");
+import { findRepositoryRoot } from "../repository-root";
+
+const projectRoot = findRepositoryRoot(import.meta.dirname);
 
 export type PwaWorkerMode = "normal" | "recovery";
 

@@ -24,7 +24,6 @@ import {
   countPublicAnsweredQuestions,
   getPublicAnsweredQuestions,
 } from "#app/features/qa/qa.server";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
 import { sectionReveal, softFade } from "#app/lib/motion";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
@@ -35,6 +34,7 @@ import {
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";

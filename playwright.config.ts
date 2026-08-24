@@ -1,6 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
 
-const PORT = process.env.INTERNAL_PORT ?? "3000";
+const runtimeConfigured = Boolean(
+  process.env.E2E_TEST_PORT &&
+  process.env.E2E_TEST_TEMP_DIR &&
+  process.env.E2E_TEST_DATABASE_PATH &&
+  process.env.DATABASE_URL,
+);
+const port = process.env.E2E_TEST_PORT ?? "3000";
+const temporaryDirectory = process.env.E2E_TEST_TEMP_DIR ?? path.resolve("test-results");
+const databaseUrl = process.env.DATABASE_URL ?? "file:./unconfigured-e2e.db";
+const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -9,10 +19,13 @@ export default defineConfig({
   workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
+  outputDir: process.env.CI
+    ? path.resolve("test-results")
+    : path.join(temporaryDirectory, "test-results"),
   timeout: 30_000,
   expect: { timeout: 5000 },
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -28,29 +41,31 @@ export default defineConfig({
     },
   ],
   globalSetup: "./tests/e2e/global-setup.ts",
-  globalTeardown: "./tests/e2e/global-teardown.ts",
   webServer: {
     // Start the app for e2e with test env overrides (.env base, e2e DB, test
     // routes). `NODE_ENV=test` serves the `npm run build:e2e` artifact rather
     // than the Vite dev server, so no test pays for on-demand dependency
     // optimisation. It cannot be `production`, because the environment schema
     // rejects the test-only flags below in that environment.
-    command: "npx tsx --env-file=.env server/index.ts",
-    url: `http://localhost:${PORT}/resources/healthcheck`,
-    reuseExistingServer: !process.env.CI,
+    command: runtimeConfigured
+      ? "node --env-file=.env --import tsx server/index.ts"
+      : "node -e \"console.error('Use npm run test:e2e to create an isolated runtime.'); process.exit(1)\"",
+    url: `${baseURL}/resources/healthcheck`,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       NODE_ENV: "test",
       ENABLE_TEST_ROUTES: "true",
       HONEYPOT_SKIP_MIN_AGE: "true",
       DISABLE_RATE_LIMITING: "true",
-      DATABASE_URL: "file:./e2e.db",
+      DATABASE_URL: databaseUrl,
+      APP_URL: baseURL,
       DZEMAT_NAME: "Donje Mostre",
       DZEMAT_ADDRESS: "Džamija Donje Moštre, R445, Donje Moštre, Visoko, Bosna i Hercegovina",
       DZEMAT_MAP_QUERY: "Džamija Donje Moštre, R445, Visoko, Bosna i Hercegovina",
       FACEBOOK_PAGE_URL: "https://www.facebook.com/profile.php?id=100085095166223",
       YOUTUBE_CHANNEL_URL: "https://www.youtube.com/@DzematDonjeMostre",
-      PORT,
+      PORT: port,
     },
   },
 });

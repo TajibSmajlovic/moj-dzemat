@@ -4,6 +4,7 @@ import { HelpCircle } from "lucide-react";
 
 import { AdminPageHeader } from "#app/components/admin/admin-page-header";
 import { Button } from "#app/components/ui/button";
+import { useActionToast } from "#app/components/ui/sonner";
 import { adminUserContext } from "#app/features/auth/auth-context";
 import { QaAdminList } from "#app/features/qa/admin/components/qa-admin-list";
 import { parseAdminQuestionTab } from "#app/features/qa/admin/qa-admin-tabs";
@@ -19,7 +20,6 @@ import { cn } from "#app/lib/cn";
 import { requireId } from "#app/lib/id";
 import { assertUnreachable, parseIntent, useSubmittingRowId } from "#app/lib/intent";
 import { parsePageParam } from "#app/lib/pagination";
-import { useActionToast } from "#app/lib/toast";
 
 import type { Route } from "./+types/admin.pitanja._index";
 

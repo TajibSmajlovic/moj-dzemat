@@ -12,7 +12,7 @@ import {
   type infer as Infer,
 } from "zod/mini";
 
-import { POST_TYPES, type PostTypeValue } from "#app/features/posts/post-type";
+import { POST_TYPES, type PostTypeValue } from "#app/features/posts/post-contract";
 
 import { PWA_POST_SNAPSHOT_LIMIT, PWA_POST_SNAPSHOT_SCHEMA_VERSION } from "./pwa-config";
 

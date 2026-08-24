@@ -4,15 +4,16 @@ import {
   type ProcessedPostImage,
 } from "#app/features/posts/admin/post-images.server";
 import { reconcilePostVideos } from "#app/features/posts/admin/post-videos.server";
+import { postNotificationResolverHref } from "#app/features/posts/post-routes";
 import type { PostStatusValue } from "#app/features/posts/post-status";
 import type { PostTypeValue } from "#app/features/posts/post-type";
 import type { ParsedVideo } from "#app/features/posts/post-video";
-import { kickWebPushDispatcher } from "#app/features/web-push/dispatcher.server";
 import {
   cancelPostNotificationWork,
+  kickWebPushDispatcher,
   recordFirstPublicationDecision,
   type PublicationDecision,
-} from "#app/features/web-push/post-notification.server";
+} from "#app/features/web-push/post-publication.server";
 import { isPrismaKnownRequestError, prisma } from "#app/server/db.server";
 import { FormError } from "#app/server/form-error.server";
 
@@ -150,7 +151,11 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
 
     let notificationDecision: PublicationDecision = "not-applicable";
     if (shouldStampPublishedAt) {
-      notificationDecision = await recordFirstPublicationDecision(tx, post, now);
+      notificationDecision = await recordFirstPublicationDecision(
+        tx,
+        { ...post, resolverPath: postNotificationResolverHref(post.id) },
+        now,
+      );
     } else if (shouldCancelNotification) {
       await cancelPostNotificationWork(tx, post.id, now);
     }

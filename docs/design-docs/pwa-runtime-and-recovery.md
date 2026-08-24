@@ -44,18 +44,18 @@ npm run test:pwa
 
 The runner supplies dummy production-valid secrets and email configuration,
 keeps `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, and
-`DISABLE_RATE_LIMITING` set to `false`, and removes its temporary database in
-`finally`. Local browser artifacts are temporary. In CI, failure traces,
-screenshots, videos, and the PWA HTML report are retained in the workflow's
-`playwright-pwa-artifacts` upload. The suite does not submit an email-triggering
-form and must never use production credentials.
+`DISABLE_RATE_LIMITING` set to `false`. It removes temporary state after a
+successful local run and after every CI run. On a local failure it retains the
+temporary database and browser artifacts and prints their path for diagnosis.
+In CI, failure traces, screenshots, videos, and the PWA HTML report are retained
+in the workflow's `playwright-pwa-artifacts` upload. The suite does not submit
+an email-triggering form and must never use production credentials.
 
 ## Normal deployment checklist
 
 Before deploying:
 
-1. Run `npm run check`, `npm run knip`, `npm run test:run`,
-   `npm run build`, and `npm run test:pwa`.
+1. Run the authoritative `npm run agent:verify` command.
 2. Confirm `build/client/sw.js` is the normal worker and does not contain
    `skipWaiting`.
 3. Exercise the recovery build locally as described below, then run

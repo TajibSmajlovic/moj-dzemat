@@ -2,7 +2,7 @@ import {
   PUBLIC_VIEW_TRANSITION_KINDS,
   VIEW_TRANSITION_KIND_ATTRIBUTE,
   type PublicViewTransitionKind,
-} from "#app/features/view-transitions/view-transition-model";
+} from "#app/platform/view-transitions/view-transition-model";
 
 type ViewTransitionHandle = {
   finished: Promise<unknown>;

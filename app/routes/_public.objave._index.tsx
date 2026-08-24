@@ -15,7 +15,6 @@ import {
   getActivePostType,
   getPublicPostCards,
 } from "#app/features/posts/public-posts.server";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { WebPushCard } from "#app/features/web-push/components/web-push-card";
 import {
   formatPageTitle,
@@ -37,6 +36,7 @@ import {
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 
 import type { Route } from "./+types/_public.objave._index";
 

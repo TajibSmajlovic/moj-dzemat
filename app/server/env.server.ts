@@ -77,6 +77,8 @@ export const envSchema = z
       .transform((value) => value.replace(/\/$/, "")),
 
     PORT: z.coerce.number().int().positive().default(3000),
+    AGENT_RUN_ID: optionalText,
+    AGENT_LOG_PATH: optionalText,
 
     // Dev-only hook. `ENABLE_TEST_ROUTES=true` turns on /dev/last-email for
     // e2e password-reset flows. Never flip this in production.

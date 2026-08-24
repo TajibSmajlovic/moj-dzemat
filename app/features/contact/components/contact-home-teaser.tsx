@@ -3,7 +3,7 @@ import { href } from "react-router";
 import { ArrowRight, ContactRound } from "lucide-react";
 
 import { communityInfoHasContent, type CommunityInfoRecord } from "#app/features/contact/contact";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
 type Props = {
   info: CommunityInfoRecord;

@@ -7,12 +7,12 @@ import { FacebookIcon } from "#app/components/icons/facebook-icon";
 import { PostTypeBadge } from "#app/features/posts/components/post-type-badge";
 import type { PostCardData } from "#app/features/posts/post-card-data";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
 import { cardReveal } from "#app/lib/motion";
 import { shareOnFacebook } from "#app/lib/share";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 
 type PostCardProps = {
   post: PostCardData;

@@ -8,16 +8,16 @@ import { env } from "#app/server/env.server";
 const COOKIE_NAME = "mdz_session";
 
 /**
-   Stateful session storage. The cookie holds only the session id; the
-   Session row in SQLite is the source of truth. That means logout
-   invalidates instantly across devices (no waiting for token expiry)
-   and we can list/kill sessions from admin tools later on.
-
-   `SESSION_SECRET` is a comma-separated list: the first value signs
-   newly issued cookies, all values verify incoming ones. Rotation is:
-     1. prepend the new secret -> deploy -> cookies are now signed with it
-     2. wait at least the configured max age -> all old-secret cookies have expired
-     3. remove the old secret
+ * The cookie holds only a session ID; its SQLite row is the source of truth.
+ * Deleting a row invalidates that session at once, without waiting for a token
+ * to expire.
+ *
+ * `SESSION_SECRET` is a comma-separated list. The first value signs new
+ * cookies, while every value can verify incoming cookies. To rotate it:
+ *
+ * 1. Prepend the new secret and deploy.
+ * 2. Wait at least the configured session max age.
+ * 3. Remove the old secret.
  */
 
 const secrets = env().SESSION_SECRET;

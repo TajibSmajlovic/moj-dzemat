@@ -1,7 +1,6 @@
 import type { Prisma } from "#generated/prisma/client";
 import { randomUUID } from "node:crypto";
 
-import { postNotificationResolverHref } from "#app/features/posts/post-routes";
 import { DAY_MS } from "#app/lib/time";
 import { env } from "#app/server/env.server";
 
@@ -12,6 +11,7 @@ type PublicationPost = {
   id: string;
   title: string;
   notifyOnPublish: boolean;
+  resolverPath: string;
 };
 
 export async function recordFirstPublicationDecision(
@@ -37,7 +37,7 @@ export async function recordFirstPublicationDecision(
       status: queued ? "pending" : "skipped",
       skipReason,
       titleSnapshot: post.title,
-      resolverPathSnapshot: postNotificationResolverHref(post.id),
+      resolverPathSnapshot: post.resolverPath,
       deadlineAt: new Date(now.getTime() + DAY_MS),
     },
     select: { id: true },

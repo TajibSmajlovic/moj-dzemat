@@ -4,9 +4,9 @@ import { CheckCircle2, Home, MessageCirclePlus } from "lucide-react";
 
 import { PageMain } from "#app/components/layout/page-main";
 import { Button } from "#app/components/ui/button";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { buildNoindexMeta } from "#app/lib/seo";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
 import type { Route } from "./+types/_public.pitanja-i-odgovori.hvala";
 

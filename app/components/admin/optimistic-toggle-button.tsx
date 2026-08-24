@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { useFetcher } from "react-router";
 
 import { IconActionButton } from "#app/components/admin/icon-action-button";
+import { useFetcherToast } from "#app/components/ui/sonner";
 import { IntentInput } from "#app/lib/intent";
-import { useFetcherToast } from "#app/lib/toast";
 
 type IconActionButtonTone = "default" | "primary" | "secondary" | "destructive";
 

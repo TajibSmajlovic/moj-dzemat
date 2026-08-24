@@ -12,8 +12,8 @@ import { useLocation, useNavigation, useViewTransitionState } from "react-router
 import {
   clearDocumentViewTransitionKind,
   setDocumentViewTransitionKind,
-} from "#app/features/view-transitions/document-view-transition";
-import { isPublicPathname } from "#app/features/view-transitions/view-transition-model";
+} from "#app/platform/view-transitions/document-view-transition";
+import { isPublicPathname } from "#app/platform/view-transitions/view-transition-model";
 
 const INTENT_FALLBACK_TIMEOUT_MS = 30_000;
 

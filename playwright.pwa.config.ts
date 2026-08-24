@@ -3,6 +3,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
 
+import { requiredEnvironment } from "./tests/e2e/utils/environment";
+
 const port = requiredEnvironment("PWA_TEST_PORT");
 const temporaryDirectory = requiredEnvironment("PWA_TEST_TEMP_DIR");
 const baseURL = `http://127.0.0.1:${port}`;
@@ -81,12 +83,3 @@ export default defineConfig({
     env: serverEnvironment,
   },
 });
-
-function requiredEnvironment(name: string): string {
-  const value = process.env[name];
-  if (value === undefined) {
-    throw new Error(`${name} is required by the focused PWA test runner.`);
-  }
-
-  return value;
-}

@@ -33,8 +33,6 @@ import {
 } from "#app/features/posts/public-posts.server";
 import { QaHomePreview } from "#app/features/qa/components/qa-home-preview";
 import { getPublicAnsweredQuestions, QA_HOME_PREVIEW_LIMIT } from "#app/features/qa/qa.server";
-import { PublicTransitionLink } from "#app/features/view-transitions/public-transition-link";
-import { useSuppressPublicRouteMotion } from "#app/features/view-transitions/public-view-transition-provider";
 import {
   formatSiteDescription,
   getRootSiteName,
@@ -53,6 +51,8 @@ import {
 } from "#app/lib/seo";
 import { useRootSocialProfileUrls } from "#app/lib/social-links";
 import { absoluteUrl } from "#app/lib/url";
+import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
+import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public._index";
