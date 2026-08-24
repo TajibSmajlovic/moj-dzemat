@@ -61,7 +61,7 @@ test.describe("production PWA", () => {
     expect(workerResponse.headers()["cache-control"]).toBe("no-cache, must-revalidate");
 
     await page.goto("/");
-    const scope = await waitForPwaControl(page);
+    const scope = await waitForAppPwaControl(page);
 
     expect(new URL(scope).pathname).toBe(PWA_SCOPE);
   });
@@ -109,7 +109,7 @@ test.describe("production PWA", () => {
     const savedPost = pwaTestPost(2);
 
     await page.goto("/");
-    await waitForPwaControl(page);
+    await registerPwaWorkerDirectly(page);
     await page.goto(postPath(savedPost));
     await expectSnapshotIds(page, [savedPost.id]);
     await page.goto("/");
@@ -145,7 +145,7 @@ test.describe("production PWA", () => {
     page,
   }) => {
     await page.goto("/");
-    await waitForPwaControl(page);
+    await registerPwaWorkerDirectly(page);
 
     for (const pathname of [
       "/admin",
@@ -187,7 +187,7 @@ type ManifestResponse = {
   }[];
 };
 
-async function waitForPwaControl(page: Page): Promise<string> {
+async function waitForAppPwaControl(page: Page): Promise<string> {
   const scope = await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
 
@@ -196,6 +196,19 @@ async function waitForPwaControl(page: Page): Promise<string> {
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 
   return scope;
+}
+
+async function registerPwaWorkerDirectly(page: Page): Promise<void> {
+  await page.evaluate(
+    async ({ scriptUrl, workerScope }) => {
+      await navigator.serviceWorker.register(scriptUrl, {
+        scope: workerScope,
+      });
+      await navigator.serviceWorker.ready;
+    },
+    { scriptUrl: PWA_SERVICE_WORKER_PATH, workerScope: PWA_SCOPE },
+  );
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 }
 
 async function expectSnapshotIds(page: Page, expectedIds: readonly string[]): Promise<void> {

@@ -49,7 +49,7 @@
     "agent:stop": "node --import tsx scripts/agent/runtime.ts stop",
     "agent:verify": "npm run check && npm run knip && npm run test:run && npm run test:e2e && npm run test:pwa",
     "agent:gc": "node --import tsx scripts/agent/maintenance.ts",
-    "knip": "knip",
+    "knip": "knip --treat-config-hints-as-errors",
     "db:migrate": "prisma migrate dev && prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",

@@ -39,7 +39,7 @@ admin navigation reflect pending questions. See
 Editors create, edit, and delete dated community items. A date is stored as UTC
 midnight for a calendar day so display does not shift across time zones. Annual
 items are projected onto the current year without changing the stored source
-date. The public page shows only upcoming occurrences in the current calendar
+date. The homepage shows only upcoming occurrences in the current calendar
 year, ordered nearest first.
 
 ### Contact and community information

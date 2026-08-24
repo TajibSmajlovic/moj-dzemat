@@ -69,13 +69,21 @@ describe("agent documentation checker", () => {
     expect(finding?.detail).toContain("agent:verify");
   });
 
-  it("discovers Markdown documents nested under docs", () => {
+  it("discovers Markdown documents at the root and under docs and .github", () => {
     const root = fixture({
       "package.json": JSON.stringify({ scripts: {} }),
+      "NOTES.md": "# Notes\n",
       "docs/nested/new-guide.md": "# New guide\n",
+      ".github/ISSUE_TEMPLATE/bug_report.md": "# Bug report\n",
     });
 
-    expect(docs.findAgentDocumentPaths(root)).toContain("docs/nested/new-guide.md");
+    expect(docs.findAgentDocumentPaths(root)).toEqual(
+      expect.arrayContaining([
+        "NOTES.md",
+        "docs/nested/new-guide.md",
+        ".github/ISSUE_TEMPLATE/bug_report.md",
+      ]),
+    );
   });
 
   it("reports a checked document that is not linked from another document", () => {

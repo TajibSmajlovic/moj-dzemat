@@ -6,6 +6,7 @@ import path from "node:path";
 
 const projectRoot = path.resolve(import.meta.dirname, "../..");
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-pwa-tests-"));
+let succeeded = false;
 
 try {
   const port = await reserveLoopbackPort();
@@ -55,11 +56,16 @@ try {
     ["playwright", "test", "--config=playwright.pwa.config.ts"],
     testEnvironment,
   );
+  succeeded = true;
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
 } finally {
-  fs.rmSync(temporaryDirectory, { force: true, recursive: true });
+  if (succeeded || process.env.CI) {
+    fs.rmSync(temporaryDirectory, { force: true, recursive: true });
+  } else {
+    console.error(`PWA failure state retained at ${temporaryDirectory}`);
+  }
 }
 
 function run(

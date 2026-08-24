@@ -15,7 +15,8 @@ agent-critical document to navigation and mechanical checks.
 - `AGENTS.md` points to authoritative guidance without duplicating it.
 - Product, frontend, design, security, and reliability facts have clear owners.
 - Durable decisions and completed multi-session work are discoverable.
-- `npm run docs:check` validates every agent-critical document.
+- `npm run docs:check` validates local links, anchors, and npm commands in every
+  agent-critical document.
 - `npm run agent:gc` reports active plans not updated within 14 days.
 - The authoritative `npm run agent:verify` command passes.
 
@@ -61,7 +62,8 @@ application failure was involved.
 
 ## Validation evidence
 
-- `npm run docs:check` passed for every agent-critical document.
+- `npm run docs:check` passed for local links, anchors, and npm commands in every
+  agent-critical document.
 - Focused documentation and maintenance tests passed: 2 files, 7 tests.
 - `npm run agent:gc` passed and reported no changes.
 - `npm run agent:verify` passed outside the loopback-restricted sandbox:

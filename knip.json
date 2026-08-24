@@ -12,16 +12,11 @@
     "tests/e2e/**/*.spec.ts"
   ],
   "project": [
-    "app/**/*.{ts,tsx}",
+    "app/**/*.{ts,tsx,css}",
     "server/**/*.ts",
     "scripts/**/*.ts",
     "tests/**/*.{ts,tsx}",
-    "prisma/**/*.ts"
+    "prisma/**/*.{ts,prisma}"
   ],
-  "ignoreDependencies": [
-    "@prisma/client",
-    "@tailwindcss/typography",
-    "tailwindcss",
-    "tw-animate-css"
-  ]
+  "ignoreDependencies": ["@prisma/client"]
 }

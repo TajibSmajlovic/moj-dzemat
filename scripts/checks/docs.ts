@@ -3,8 +3,11 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const requiredDocuments = [
+  ".github/SECURITY.md",
+  ".github/pull_request_template.md",
   "AGENTS.md",
   "ARCHITECTURE.md",
+  "CODE_OF_CONDUCT.md",
   "README.md",
   "CONTRIBUTING.md",
   "docs/DESIGN.md",
@@ -37,7 +40,6 @@ type NpmCommand = { name: string; index: number };
 
 export function findAgentDocumentPaths(rootDir: string): string[] {
   const documents = new Set(requiredDocuments);
-  const docsDirectory = path.join(rootDir, "docs");
 
   function walk(directory: string): void {
     if (!fs.existsSync(directory)) return;
@@ -52,7 +54,13 @@ export function findAgentDocumentPaths(rootDir: string): string[] {
     }
   }
 
-  walk(docsDirectory);
+  for (const entry of fs.readdirSync(rootDir, { withFileTypes: true })) {
+    if (entry.isFile() && path.extname(entry.name).toLocaleLowerCase() === ".md") {
+      documents.add(entry.name);
+    }
+  }
+  walk(path.join(rootDir, "docs"));
+  walk(path.join(rootDir, ".github"));
 
   return [...documents];
 }
