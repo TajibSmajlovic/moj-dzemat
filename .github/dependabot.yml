@@ -4,8 +4,8 @@ version: 2
 
 updates:
   # npm dependencies (root package.json).
-  # Minor + patch bumps are grouped into a single PR per ecosystem to keep
-  # review noise low; major bumps stay separate so they get proper attention.
+  # Minor + patch bumps are grouped by related stack, with one catch-all PR
+  # for everything else. Major bumps stay separate for deliberate review.
   - package-ecosystem: npm
     directory: "/"
     schedule:
@@ -165,13 +165,11 @@ updates:
         update-types:
           - minor
           - patch
-      production-minor-and-patch:
-        dependency-type: production
-        update-types:
-          - minor
-          - patch
-      development-minor-and-patch:
-        dependency-type: development
+      # Keep this explicit wildcard catch-all after the stack-specific groups.
+      # Dependabot's specificity rules let the narrower patterns above win.
+      remaining-minor-and-patch:
+        patterns:
+          - "*"
         update-types:
           - minor
           - patch
