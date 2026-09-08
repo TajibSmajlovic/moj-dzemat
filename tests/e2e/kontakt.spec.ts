@@ -8,7 +8,7 @@ test.describe("kontakt", () => {
   test.afterEach(async ({ page }) => {
     // Authenticated tests clear the singleton through its action so the
     // server-side public cache is invalidated for subsequent specs.
-    await page.context().request.post(href("/admin/kontakt"), {
+    const response = await page.context().request.post(href("/admin/kontakt"), {
       form: {
         intent: "save",
         showAbout: "on",
@@ -19,6 +19,12 @@ test.describe("kontakt", () => {
         showLocation: "on",
       },
     });
+
+    // Pathname and ok(), together: an unauthenticated POST follows through to
+    // a 2xx login page, and a 400 save stays on this path with ok() false.
+    // Either miss would skip the cache reset and leak into a later spec.
+    expect(response.ok()).toBe(true);
+    expect(new URL(response.url()).pathname).toBe(href("/admin/kontakt"));
   });
 
   test("admin can save contact info and it appears on the public page", async ({ page }) => {

@@ -3,6 +3,7 @@ import path from "node:path";
 import { afterAll, afterEach } from "vitest";
 
 import { PROJECT_ROOT, TEST_DB_URL } from "./db";
+import { truncateAllTables } from "./truncate";
 
 // Load environment variables from .env file before any other code runs.
 // This ensures secrets and configuration are available for all modules.
@@ -31,33 +32,17 @@ if (!process.env.DATABASE_URL_OVERRIDDEN) {
 }
 
 afterEach(async () => {
-  const [{ invalidateActiveAnnouncement }, { invalidateCommunityInfo }, { prisma }] =
-    await Promise.all([
-      import("#app/features/announcements/site-announcement.server"),
-      import("#app/features/contact/contact.server"),
-      import("#app/server/db.server"),
-    ]);
+  const [{ invalidateActiveAnnouncement }, { invalidateCommunityInfo }] = await Promise.all([
+    import("#app/features/announcements/site-announcement.server"),
+    import("#app/features/contact/contact.server"),
+  ]);
 
-  // Order matters: children first so FK cascades don't surprise us.
-  await prisma.pushDelivery.deleteMany();
-  await prisma.postNotification.deleteMany();
-  await prisma.pushSubscription.deleteMany();
-  await prisma.postImage.deleteMany();
-  await prisma.postVideo.deleteMany();
-  await prisma.post.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.password.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.siteAnnouncement.deleteMany();
-  await prisma.question.deleteMany();
-  await prisma.importantDate.deleteMany();
-  await prisma.communityInfo.deleteMany();
+  await truncateAllTables();
 
   // Both singletons are memoised in module scope with a TTL, and only the
-  // server's own write paths invalidate them. Truncating the tables above
-  // is not enough: any test that rendered a public or auth loader leaves a
-  // populated cache behind, and the next test would read a row that no
-  // longer exists.
+  // server's own write paths invalidate them. Empty tables are not enough:
+  // a public or auth loader leaves a cache that would serve a row the next
+  // test already deleted.
   invalidateActiveAnnouncement();
   invalidateCommunityInfo();
 });
