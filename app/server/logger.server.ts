@@ -4,8 +4,16 @@ import { env } from "#app/server/env.server";
 
 const environment = env();
 
+function resolveLogLevel(): LoggerOptions["level"] {
+  // Vitest prints its run summary on stdout. Pino debug would bury it.
+  // Spies still see logger method calls when the level is silent.
+  if (process.env.VITEST) return "silent";
+
+  return environment.NODE_ENV === "production" ? "info" : "debug";
+}
+
 const loggerOptions: LoggerOptions = {
-  level: environment.NODE_ENV === "production" ? "info" : "debug",
+  level: resolveLogLevel(),
   // Strip secrets and direct personal identifiers from every log line.
   // Keep operational ids (requestId/userId) so incidents remain traceable.
   redact: {

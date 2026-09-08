@@ -49,14 +49,13 @@ test.describe("admin / obavijesna traka", () => {
     await expect(newRow.getByText("Neaktivna")).toBeVisible();
 
     // 4. Delete the test row through the confirm dialog (Odustani branch
-    //    is already covered by the post-delete test in admin.spec.ts).
+    //    is already covered by the post-delete test in posts.spec.ts).
     await newRow.getByRole("button", { name: "Obriši" }).click();
     const confirm = page.getByRole("alertdialog");
     await expect(confirm.getByRole("heading", { name: "Obrisati poruku na traci?" })).toBeVisible();
     await confirm.getByRole("button", { name: "Obriši poruku" }).click();
 
-    // 5. State is back to where globalSetup left it: only the seed row,
-    //    active. This guarantees smoke.spec runs unaffected.
+    // Back to the seed: one active row, so public.spec's bar assertion holds.
     await expect(page.getByRole("row").filter({ hasText: uniqueMessage })).toHaveCount(0);
     await expect(seedRow.getByText("Aktivna", { exact: true })).toBeVisible();
   });

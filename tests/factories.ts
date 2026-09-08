@@ -75,7 +75,6 @@ type CreateSiteAnnouncementOptions = {
   isActive?: boolean;
 };
 
-/** @public - factory used by future e2e + integration tests */
 export async function createSiteAnnouncement(options: CreateSiteAnnouncementOptions = {}) {
   return prisma.siteAnnouncement.create({
     data: {

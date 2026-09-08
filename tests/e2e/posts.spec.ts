@@ -9,7 +9,7 @@ import {
 } from "../../app/features/posts/post-routes";
 import { ADMIN_POSTS_PAGE_SIZE } from "../../app/lib/pagination";
 import { prisma } from "../../app/server/db.server";
-import { POSTS_TITLES, ensurePosts } from "./fixtures/seed-posts";
+import { POSTS_TITLES, SEEDED_POSTS, ensurePosts } from "./fixtures/seed-posts";
 import { loginAsAdmin } from "./utils/admin";
 import { fillPostForm, uploadTinyPng } from "./utils/post-form";
 import {
@@ -25,12 +25,14 @@ import {
 
 const PAGINATION_PAGE_TWO_TITLES = POSTS_TITLES.slice(ADMIN_POSTS_PAGE_SIZE);
 const FIRST_PAGE_NEWEST_TITLE = POSTS_TITLES[0];
+const SEEDED_SLUGS = SEEDED_POSTS.map((post) => post.slug);
 
 test.describe("posts", () => {
   // The deletion test empties the seeded second page, and specs in other
   // files assert against the full seed. Restoring here keeps the fixture
   // whole no matter which test ran, or which one failed part way through.
   test.afterEach(async () => {
+    await deleteUnseededPosts();
     await ensurePosts();
   });
 
@@ -353,3 +355,14 @@ test.describe("posts", () => {
     );
   });
 });
+
+/**
+ * Drop posts this spec created. They are dated "now", so they sort ahead of
+ * the seed and would hide it from later specs. `ensurePosts` only owns seeded
+ * slugs: it restores missing rows and never removes extras.
+ */
+async function deleteUnseededPosts() {
+  await prisma.post.deleteMany({
+    where: { slug: { notIn: SEEDED_SLUGS } },
+  });
+}

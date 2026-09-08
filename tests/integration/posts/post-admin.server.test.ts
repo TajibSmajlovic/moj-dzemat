@@ -368,7 +368,11 @@ describe("createOrUpdatePostFromForm", () => {
       });
 
       expect(statusOf(result)).toBe(302);
-      await expect(prisma.postVideo.count()).resolves.toBe(0);
+      const post = await prisma.post.findUnique({
+        where: { slug: "bez-videa" },
+        include: { videos: true },
+      });
+      expect(post?.videos).toEqual([]);
     });
 
     it("rejects creates with more than MAX_IMAGES_PER_POST in one go", async () => {
