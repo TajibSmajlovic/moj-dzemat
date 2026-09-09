@@ -25,7 +25,7 @@ import {
   getPublicAnsweredQuestions,
 } from "#app/features/qa/qa.server";
 import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
-import { sectionReveal, softFade } from "#app/lib/motion";
+import { sectionReveal, softFade, useEntranceMotion } from "#app/lib/motion";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
@@ -115,6 +115,8 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
   const { questions, pagination } = loaderData;
   const [mobileFormOpen, setMobileFormOpen] = useState(false);
   const suppressRouteMotion = useSuppressPublicRouteMotion();
+  const softFadeMotion = useEntranceMotion(softFade, suppressRouteMotion);
+  const sectionRevealMotion = useEntranceMotion(sectionReveal, suppressRouteMotion);
 
   useEffect(() => {
     const shouldOpen =
@@ -133,11 +135,7 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
 
       <PageMain>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,380px)] lg:items-start">
-          <motion.section
-            {...softFade}
-            initial={suppressRouteMotion ? false : softFade.initial}
-            className="space-y-6"
-          >
+          <motion.section {...softFadeMotion} className="space-y-6">
             <div className="space-y-5">
               <div className="space-y-2">
                 <p className="text-secondary text-xs font-semibold tracking-[0.14em] uppercase">
@@ -207,8 +205,7 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
           </motion.section>
 
           <motion.aside
-            {...sectionReveal}
-            initial={suppressRouteMotion ? false : sectionReveal.initial}
+            {...sectionRevealMotion}
             id={QA_ASK_HASH}
             className="border-border/70 bg-card hidden max-h-[calc(100svh-7rem)] scroll-mt-24 overflow-y-auto rounded-lg border p-4 shadow-sm sm:p-5 lg:sticky lg:top-24 lg:block"
           >

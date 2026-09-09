@@ -15,7 +15,7 @@ import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { requireId } from "#app/lib/id";
 import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
-import { sectionReveal } from "#app/lib/motion";
+import { sectionReveal, useEntranceMotion } from "#app/lib/motion";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
 import { prisma } from "#app/server/db.server";
@@ -91,6 +91,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 }
 
 export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
+  const entrance = useEntranceMotion(sectionReveal);
   const { post, siteUrl } = loaderData;
   const siteName = useRootSiteName();
   const navigation = useNavigation();
@@ -104,7 +105,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
       </div>
 
       <motion.div
-        {...sectionReveal}
+        {...entrance}
         className="border-border bg-card mb-8 rounded-2xl border p-4 shadow-sm"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">

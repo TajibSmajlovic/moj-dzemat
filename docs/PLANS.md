@@ -61,4 +61,5 @@ Do not mark a plan complete because time or context ran out.
 
 ## Completed plans
 
+- [Maintenance, authentication, accessibility, and server rendering](exec-plans/completed/2026-09-08-maintenance-and-accessibility.md)
 - [Agent knowledge system](exec-plans/completed/2026-08-16-agent-knowledge-system.md)

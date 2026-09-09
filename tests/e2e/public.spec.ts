@@ -27,10 +27,37 @@ test.describe("public", () => {
     await expect(page.getByText(SEEDED_ANNOUNCEMENT_MESSAGE)).toBeVisible();
     await expect(page.getByRole("link", { name: "Pogledaj sve objave" })).toBeVisible();
 
-    // First 6 post cards can be seen in the viewport, the rest can be seen by scrolling.
     for (const title of POSTS_TITLES.slice(0, 6)) {
       await expect(page.getByRole("heading", { level: 3, name: title })).toBeVisible();
     }
+  });
+
+  test("mobile home keeps community information within reach and links to older posts", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(href("/"));
+
+    const cards = page.getByRole("region", { name: "Lista objava" }).locator("article");
+    await expect(cards).toHaveCount(6);
+    const firstCard = await cards.first().boundingBox();
+    expect(firstCard?.height).toBeLessThan(300);
+
+    const dates = await page
+      .getByRole("heading", { name: "Važni datumi", exact: true })
+      .boundingBox();
+    const questions = await page
+      .getByRole("heading", { name: "Pitanja i odgovori", exact: true })
+      .boundingBox();
+    expect(dates?.y).toBeLessThan(questions!.y);
+    expect(questions?.y).toBeLessThan(3 * 844);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+    ).toBe(false);
+
+    await page.getByRole("link", { name: "Pogledaj sve objave" }).click();
+    await expect(page).toHaveURL(href("/objave"));
+    await expect(page.getByRole("heading", { name: POSTS_TITLES[6], exact: true })).toBeVisible();
   });
 
   test("desktop navigation exposes primary links and secondary actions", async ({ page }) => {

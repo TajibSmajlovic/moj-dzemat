@@ -71,7 +71,6 @@
     "@prisma/adapter-better-sqlite3": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@react-router/express": "8.3.1",
-    "@react-router/fs-routes": "8.3.1",
     "@react-router/node": "8.3.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-link": "^3.31.3",
@@ -114,6 +113,7 @@
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.62.1",
     "@react-router/dev": "8.3.1",
+    "@react-router/fs-routes": "8.3.1",
     "@tailwindcss/vite": "^4.3.0",
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
@@ -148,12 +148,12 @@
     "vitest": "^4.1.11"
   },
   "allowScripts": {
-    "@prisma/engines@7.9.1": true,
+    "@prisma/engines@7.10.0": true,
     "better-sqlite3@12.11.1": true,
     "better-sqlite3@13.0.3": true,
     "esbuild@0.28.2": true,
     "fsevents@2.3.2": true,
     "fsevents@2.3.3": true,
-    "prisma@7.9.1": true
+    "prisma@7.10.0": true
   }
 }

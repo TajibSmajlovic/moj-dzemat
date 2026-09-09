@@ -13,6 +13,8 @@ There is no public registration or role hierarchy.
   addresses.
 - A valid reset sets the password, revokes all older sessions, creates a new
   session, and redirects to the posts admin area.
+- Authentication forms and their server validation feedback remain visible before
+  JavaScript loads.
 - Every `/admin` route is protected by server middleware. Admin and auth pages
   are not indexed by search engines.
 
@@ -48,6 +50,7 @@ One singleton record owns about, imam, board, contact, bank, office-hour, and
 visibility fields. Editors can independently show or hide each public section.
 Bank supporting details require an account, and an account requires a
 beneficiary. Public loaders receive only fields for enabled sections.
+Enabled contact and payment information remains readable before JavaScript loads.
 
 ### Announcement bar
 
@@ -70,3 +73,6 @@ the process-local read cache.
 Admin integration tests own middleware, loaders, actions, not-found behavior,
 and database invariants. The Playwright suites for auth, posts, Q&A, important
 dates, contact, and announcements own the rendered editorial workflows.
+`tests/e2e/server-rendering.spec.ts` checks authentication forms before JavaScript;
+`tests/e2e/kontakt.spec.ts` checks saved public contact and payment information
+with JavaScript disabled.

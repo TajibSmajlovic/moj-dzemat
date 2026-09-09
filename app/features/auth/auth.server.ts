@@ -39,6 +39,8 @@ async function rotateUserSession(request: Request, userId: string): Promise<Head
  */
 
 const BCRYPT_COST = 10;
+// A valid precomputed hash keeps unknown-account checks at the real password cost.
+const DUMMY_PASSWORD_HASH = "$2b$10$xLxKKuZF82nR5F4Shfs5bu9HpjqWhjA1vZ0MH3fVEuJsXyLxPzYiW";
 const HIBP_URL = "https://api.pwnedpasswords.com/range/";
 const HIBP_TIMEOUT_MS = 2000;
 
@@ -174,18 +176,9 @@ export async function login({
     select: { id: true, password: { select: { hash: true } } },
   });
 
-  if (!user?.password) {
-    // Run a dummy bcrypt compare anyway so attackers can't differentiate
-    // "user does not exist" from "password wrong" via timing.
-    await bcrypt.compare(password, "$2a$10$invalidinvalidinvalidinvalid.");
-    logger.warn({ email: normalizedEmail }, "login failed");
-
-    return { ok: false, reason: "invalid-credentials" };
-  }
-
-  const match = await verifyPassword(password, user.password.hash);
-  if (!match) {
-    logger.warn({ email: normalizedEmail, userId: user.id }, "login failed");
+  const match = await verifyPassword(password, user?.password?.hash ?? DUMMY_PASSWORD_HASH);
+  if (!user?.password || !match) {
+    logger.warn({ email: normalizedEmail, userId: user?.id }, "login failed");
 
     return { ok: false, reason: "invalid-credentials" };
   }

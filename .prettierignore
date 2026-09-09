@@ -4,6 +4,7 @@ build/
 .react-router/
 dist/
 .vite/
+.backpass/
 generated/
 
 coverage/

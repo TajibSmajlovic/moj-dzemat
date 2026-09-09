@@ -9,7 +9,7 @@ import type { PostCardData } from "#app/features/posts/post-card-data";
 import { postHref, postImageHref } from "#app/features/posts/post-routes";
 import { cn } from "#app/lib/cn";
 import { formatDateLong, toIsoDate } from "#app/lib/date";
-import { cardReveal } from "#app/lib/motion";
+import { cardReveal, useEntranceMotion } from "#app/lib/motion";
 import { shareOnFacebook } from "#app/lib/share";
 import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
@@ -26,15 +26,15 @@ export function PostCard({ post, priority }: PostCardProps) {
   const navigationType = useNavigationType();
   const suppressRouteMotion = useSuppressPublicRouteMotion();
   const skipEntrance = navigationType === NavigationType.Pop || suppressRouteMotion;
+  const entrance = useEntranceMotion(cardReveal, skipEntrance);
 
   return (
     <motion.article
-      {...(skipEntrance ? {} : cardReveal)}
+      {...entrance}
       className={cn(
         "group border-border bg-card relative flex h-full min-w-0 flex-col overflow-visible rounded-xl border shadow-sm",
         "transition-shadow duration-200 ease-out hover:shadow-md hover:will-change-transform",
         "motion-reduce:transition-none",
-        !thumbnail && "min-h-92 sm:min-h-0",
       )}
     >
       {post.pinned && (

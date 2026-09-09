@@ -1,5 +1,6 @@
 import { href } from "react-router";
 
+import bcrypt from "bcryptjs";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -90,7 +91,35 @@ describe("auth.server", () => {
       }
     });
 
-    it("rejects unknown emails without leaking existence", async () => {
+    it.each(["unknown account", "account without a password"])(
+      "performs a full-cost bcrypt check for an %s",
+      async (account) => {
+        const email = "nobody@dzemat.ba";
+        if (account === "account without a password") {
+          await createUser({ email, password: null });
+        }
+        const realHash = await hashPassword("SyntheticPasswordForCostCheck");
+        const compare = vi.spyOn(bcrypt, "compare");
+        try {
+          const result = await login({
+            request: makeRequest(),
+            email,
+            password: "whatever123",
+          });
+
+          expect(result).toEqual({ ok: false, reason: "invalid-credentials" });
+          expect(compare).toHaveBeenCalledTimes(1);
+          const comparedHash = compare.mock.calls[0]![1];
+          expect(comparedHash).toMatch(/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/);
+          expect(bcrypt.getRounds(comparedHash)).toBe(bcrypt.getRounds(realHash));
+          expect(await prisma.session.count()).toBe(0);
+        } finally {
+          compare.mockRestore();
+        }
+      },
+    );
+
+    it("rejects unknown emails", async () => {
       const result = await login({
         request: makeRequest(),
         email: "nobody@dzemat.ba",

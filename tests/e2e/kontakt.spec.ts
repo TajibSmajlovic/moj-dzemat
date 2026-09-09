@@ -27,7 +27,11 @@ test.describe("kontakt", () => {
     expect(new URL(response.url()).pathname).toBe(href("/admin/kontakt"));
   });
 
-  test("admin can save contact info and it appears on the public page", async ({ page }) => {
+  test("admin can save contact info and it appears on the public page", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
     await loginAsAdmin(page);
 
     await page.goto(href("/admin/kontakt"));
@@ -51,6 +55,32 @@ test.describe("kontakt", () => {
     await expect(page.getByText(uniqueAbout)).toBeVisible();
     await expect(page.getByRole("link", { name: uniquePhone })).toBeVisible();
     await expect(page.getByText("BA39 1290 0794 0102 8494")).toBeVisible();
+
+    for (const width of [390, 1440]) {
+      const context = await browser.newContext({
+        baseURL,
+        viewport: { width, height: 1000 },
+        javaScriptEnabled: false,
+        serviceWorkers: "block",
+      });
+      try {
+        const reader = await context.newPage();
+        await reader.goto(href("/kontakt"));
+        await expect(reader.getByRole("link", { name: uniquePhone })).toBeVisible();
+        await expect(reader.getByText("BA39 1290 0794 0102 8494")).toBeVisible();
+        await expect(reader.locator("main header")).toHaveCSS("opacity", "1");
+        await expect(reader.getByRole("region", { name: "Kontaktirajte nas" })).toHaveCSS(
+          "opacity",
+          "1",
+        );
+        await expect(reader.getByRole("region", { name: "Podaci za uplatu" })).toHaveCSS(
+          "opacity",
+          "1",
+        );
+      } finally {
+        await context.close();
+      }
+    }
 
     await page.goto(href("/"));
     await expect(page.getByRole("heading", { name: "Informacije o džematu" })).toBeVisible();
