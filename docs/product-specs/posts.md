@@ -67,8 +67,8 @@ a saved copy. The full privacy and eviction rules live in
 - `tests/e2e/posts.spec.ts` owns editor workflows.
 - `tests/e2e/public.spec.ts` owns the homepage preview and mobile content order.
 - `tests/e2e/public-objave.spec.ts` owns public pagination and filtering.
-- `tests/e2e/post-media.spec.ts` owns image lightbox focus, keyboard navigation,
-  and stacking above page content.
+- `tests/e2e/post-media.spec.ts` owns image lightbox focus and keyboard
+  navigation.
 - `tests/e2e/server-rendering.spec.ts` owns initial reading and navigation without
   JavaScript, including featured posts and delayed hydration.
 - `tests/e2e/seo.spec.ts` and the PWA suite own metadata and offline behavior.

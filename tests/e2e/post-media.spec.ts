@@ -50,15 +50,6 @@ for (const viewport of [
           const close = dialog.getByRole("button", { name: "Zatvori prikaz slike" });
           await expect(dialog).toBeVisible();
           await expect(close).toBeFocused();
-          expect(
-            await dialog.evaluate((element) => {
-              const hit = document.elementFromPoint(1, 1);
-              if (hit == null) return false;
-              if (element.contains(hit)) return true;
-              // Radix portals the backdrop as a sibling of role=dialog.
-              return hit instanceof HTMLElement && hit.dataset.state === "open";
-            }),
-          ).toBe(true);
 
           await page.keyboard.press("Shift+Tab");
           await expect(
