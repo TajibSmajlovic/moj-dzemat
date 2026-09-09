@@ -41,7 +41,7 @@ import {
   useRootSiteUrl,
 } from "#app/lib/branding";
 import { getDzematLocation } from "#app/lib/maps";
-import { softFade } from "#app/lib/motion";
+import { softFade, useEntranceMotion } from "#app/lib/motion";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
@@ -116,6 +116,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
   const siteUrl = useRootSiteUrl();
   const socialProfileUrls = useRootSocialProfileUrls();
   const suppressRouteMotion = useSuppressPublicRouteMotion();
+  const softFadeMotion = useEntranceMotion(softFade, suppressRouteMotion);
   const latestTitle = formatLatestPostsTitle(activeType);
 
   return (
@@ -149,11 +150,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
             ))}
           </section>
         ) : (
-          <motion.div
-            {...softFade}
-            initial={suppressRouteMotion ? false : softFade.initial}
-            className="py-20 text-center"
-          >
+          <motion.div {...softFadeMotion} className="py-20 text-center">
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>
@@ -169,9 +166,9 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
           </Button>
         </div>
 
-        <QaHomePreview questions={qaPreview} />
-
         <ImportantDatesHomeSection dates={importantDates} />
+
+        <QaHomePreview questions={qaPreview} />
 
         <ContactHomeTeaser info={communityInfo} />
 

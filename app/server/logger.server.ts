@@ -14,6 +14,7 @@ function resolveLogLevel(): LoggerOptions["level"] {
 
 const loggerOptions: LoggerOptions = {
   level: resolveLogLevel(),
+  serializers: { path: redactLogPath },
   // Strip secrets and direct personal identifiers from every log line.
   // Keep operational ids (requestId/userId) so incidents remain traceable.
   redact: {
@@ -55,3 +56,20 @@ export const logger = environment.AGENT_LOG_PATH
       pino.destination({ dest: environment.AGENT_LOG_PATH, append: true, sync: false }),
     )
   : pino(loggerOptions);
+
+function redactLogPath(value: unknown): string {
+  if (typeof value !== "string") return "[REDACTED]";
+
+  const pathname = value.split(/[?#]/, 1)[0] ?? "";
+  const firstSegment = pathname.split("/").find(Boolean) ?? "";
+
+  try {
+    // Route parameters can hold credentials even when their log key is just "path".
+    const decoded = decodeURIComponent(firstSegment);
+    if (/^\/*nova-lozinka(?:\/|$)/i.test(decoded)) return "/nova-lozinka/:token";
+  } catch {
+    return "[REDACTED]";
+  }
+
+  return pathname;
+}

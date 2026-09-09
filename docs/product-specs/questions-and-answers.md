@@ -37,6 +37,11 @@ Public questions sort by latest answer and then id. The list shows 10 at a time
 through progressive "Učitaj još" links. A non-public or unknown detail id
 returns not found and must not leak the stored question or answer.
 
+Answer lists use native disclosures. Visitors can open an answer with a pointer
+or keyboard and follow its detail link before JavaScript loads. Opening another
+answer closes the previous one in the same list on browsers that support grouped
+disclosures. Hydration preserves an answer the visitor already opened.
+
 ## Acceptance evidence
 
 - `tests/unit/qa/qa-schema.test.ts` owns input limits.
@@ -45,3 +50,5 @@ returns not found and must not leak the stored question or answer.
 - `tests/e2e/qa.spec.ts` owns the rendered desktop and mobile visitor/editor
   workflows.
 - `tests/e2e/seo.spec.ts` owns public metadata and structured-data behavior.
+- `tests/e2e/server-rendering.spec.ts` owns reading without JavaScript and delayed
+  hydration.

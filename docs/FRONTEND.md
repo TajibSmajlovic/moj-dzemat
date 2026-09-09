@@ -22,7 +22,8 @@ in [architecture boundaries](architecture/boundaries.md).
 
 - Tailwind CSS v4 utilities consume semantic project tokens defined in
   [`app/styles/tailwind.css`](../app/styles/tailwind.css).
-- Reusable Radix-based primitives live in `app/components/ui/`.
+- Reusable primitives live in `app/components/ui/`. Dialogs and sheets use Radix;
+  the accordion uses native `details` and `summary` elements.
 - Form field and action composition lives in `app/components/forms/`.
 - Public and admin shell composition lives in `app/components/layout/`.
 - `cn()` in `app/lib/cn.ts` is the standard class-composition helper.
@@ -52,9 +53,19 @@ All animation must respect the OS reduced-motion preference. The global motion
 policy is configured in `app/root.tsx`, while CSS fallbacks and transition
 timings live in `app/styles/view-transitions.css`.
 
+Content entrance animations use `useEntranceMotion()` from `app/lib/motion.ts`.
+It keeps server HTML visible through hydration and permits entrances on later
+client mounts. Do not apply a hidden initial animation state directly to reading
+content or forms. Animations for browser-only interactions, such as opening the
+media lightbox, can still define their own initial state.
+
 ## Rendering, SEO, and offline behavior
 
 - Essential pages and metadata render on the server.
+- Public reading content and authentication forms remain visible before
+  JavaScript runs. Q&A disclosures and ordinary content links work in server HTML.
+  The mobile menu, question-submission sheet, sharing, theme toggle, media
+  lightbox, and featured carousel controls require JavaScript.
 - Public index and detail routes own canonical URLs, social metadata, and
   structured data appropriate to their content.
 - Admin and authentication pages remain out of search indexing.
@@ -82,3 +93,10 @@ Use unit tests for pure presentation and state helpers, integration tests for
 loader/action contracts, and Playwright for rendered behavior. Run
 `npm run architecture:check` after dependency changes and
 `npm run agent:verify` before declaring an agent-driven change complete.
+
+`tests/e2e/server-rendering.spec.ts` checks mobile and desktop reading with
+JavaScript disabled and scripts delayed, including preservation of an opened Q&A
+answer during hydration. Use opacity checks through content ancestors as well as
+visibility assertions; Playwright considers zero-opacity elements visible.
+`tests/e2e/kontakt.spec.ts` also checks populated contact and payment sections
+without JavaScript.

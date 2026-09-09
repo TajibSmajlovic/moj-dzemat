@@ -5,7 +5,7 @@ import { plainExcerpt } from "#app/features/posts/post-excerpt";
 import { isPostType, type PostTypeValue } from "#app/features/posts/post-type";
 import { prisma } from "#app/server/db.server";
 
-export const HOME_POST_LIMIT = 20;
+export const HOME_POST_LIMIT = 6;
 const FEATURED_POST_LIMIT = 5;
 
 const publicPostCardSelect = {

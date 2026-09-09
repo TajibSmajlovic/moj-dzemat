@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react";
+
 import type { MotionProps } from "motion/react";
 
 type MotionTransition = NonNullable<MotionProps["transition"]>;
@@ -6,11 +8,32 @@ type MotionPreset = Pick<
   "animate" | "exit" | "initial" | "transition" | "variants" | "viewport" | "whileInView"
 >;
 
+export function useEntranceMotion(preset: MotionPreset, disabled = false): MotionPreset {
+  const hydrated = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
+
+  // Keep server HTML visible through hydration; only later mounts get an entrance.
+  return { ...preset, initial: hydrated && !disabled ? preset.initial : false };
+}
+
+const unsubscribe = () => undefined;
+
+function subscribe() {
+  return unsubscribe;
+}
+
+function clientSnapshot() {
+  return true;
+}
+
+function serverSnapshot() {
+  return false;
+}
+
 // Easing curves tuned per motion intent
-const easeOut = [0.22, 1, 0.36, 1] as [number, number, number, number]; // entrances — fast start, gentle land
-const easeInOut = [0.4, 0, 0.2, 1] as [number, number, number, number]; // modal/reversible — symmetric, smooth
-const easeSnap = [0.2, 0, 0, 1] as [number, number, number, number]; // interactive — responsive press/hover
-const easeEditorial = [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]; // staggered text — soft, editorial feel
+const easeOut = [0.22, 1, 0.36, 1] as [number, number, number, number]; // entrances - fast start, gentle land
+const easeInOut = [0.4, 0, 0.2, 1] as [number, number, number, number]; // modal/reversible - symmetric, smooth
+const easeSnap = [0.2, 0, 0, 1] as [number, number, number, number]; // interactive - responsive press/hover
+const easeEditorial = [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]; // staggered text - soft, editorial feel
 
 export const motionTransitions = {
   page: { duration: 0.24, ease: easeOut },

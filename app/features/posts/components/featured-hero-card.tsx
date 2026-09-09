@@ -11,6 +11,7 @@ import {
   featuredHeroMetaReveal,
   featuredHeroReveal,
   featuredHeroTitleReveal,
+  useEntranceMotion,
 } from "#app/lib/motion";
 import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
@@ -28,11 +29,11 @@ type FeaturedHeroCardProps = {
 export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
   const targetUrl = postHref(post.slug);
   const suppressRouteMotion = useSuppressPublicRouteMotion();
+  const entrance = useEntranceMotion(featuredHeroReveal, suppressRouteMotion);
 
   return (
     <motion.div
-      {...featuredHeroReveal}
-      initial={suppressRouteMotion ? false : featuredHeroReveal.initial}
+      {...entrance}
       className={["relative h-full overflow-hidden rounded-2xl", className]
         .filter(Boolean)
         .join(" ")}

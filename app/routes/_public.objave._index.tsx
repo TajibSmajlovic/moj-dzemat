@@ -22,7 +22,7 @@ import {
   getRootSiteUrl,
   useRootSiteUrl,
 } from "#app/lib/branding";
-import { softFade } from "#app/lib/motion";
+import { softFade, useEntranceMotion } from "#app/lib/motion";
 import {
   getLoadMorePaginationState,
   parsePageParam,
@@ -85,6 +85,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
   const { activeType, posts, pagination } = loaderData;
   const archiveTitle = formatPostArchiveTitle(activeType);
   const suppressRouteMotion = useSuppressPublicRouteMotion();
+  const softFadeMotion = useEntranceMotion(softFade, suppressRouteMotion);
 
   const siteUrl = useRootSiteUrl();
   const breadcrumbItems = siteUrl
@@ -145,11 +146,7 @@ export default function ObjavePage({ loaderData }: Route.ComponentProps) {
             ) : null}
           </>
         ) : (
-          <motion.div
-            {...softFade}
-            initial={suppressRouteMotion ? false : softFade.initial}
-            className="py-20 text-center"
-          >
+          <motion.div {...softFadeMotion} className="py-20 text-center">
             <p className="text-muted-foreground text-lg text-pretty hyphens-auto">
               Nema objava u ovoj kategoriji.
             </p>

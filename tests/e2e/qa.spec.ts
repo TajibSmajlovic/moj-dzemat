@@ -100,7 +100,7 @@ test.describe("Q&A", () => {
 
     await page.goto(href("/"));
     await expect(page.locator("#qa-home-preview-heading")).toBeVisible();
-    await expect(page.getByRole("button", { name: question })).toBeVisible();
+    await expect(page.locator("summary").filter({ hasText: question })).toBeVisible();
   });
 
   test("admin can hide and unhide an answered question", async ({ page }) => {
@@ -118,7 +118,9 @@ test.describe("Q&A", () => {
 
     await page.context().clearCookies();
     await page.goto(href("/pitanja-i-odgovori"));
-    await expect(page.getByRole("button", { name: seededQuestion.question })).toHaveCount(0);
+    await expect(page.locator("summary").filter({ hasText: seededQuestion.question })).toHaveCount(
+      0,
+    );
 
     const hiddenDetail = await page.goto(qaQuestionHref(questionId));
     expect(hiddenDetail?.status()).toBe(404);
@@ -135,20 +137,22 @@ test.describe("Q&A", () => {
 
     await page.context().clearCookies();
     await page.goto(href("/pitanja-i-odgovori"));
-    await expect(page.getByRole("button", { name: seededQuestion.question })).toBeVisible();
+    await expect(
+      page.locator("summary").filter({ hasText: seededQuestion.question }),
+    ).toBeVisible();
   });
 
   test("load-more page preserves the visible Q&A progress after refresh", async ({ page }) => {
     await page.goto(`${href("/pitanja-i-odgovori")}?page=2`);
 
     const answeredQuestions = page.getByRole("region", { name: "Odgovorena pitanja" });
-    await expect(answeredQuestions.locator("article")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
+    await expect(answeredQuestions.locator("details")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
     await expect(page.getByRole("link", { name: "Učitaj još" })).toBeVisible();
 
     await page.reload();
 
     await expect(page).toHaveURL(exactPath(`${href("/pitanja-i-odgovori")}?page=2`));
-    await expect(answeredQuestions.locator("article")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
+    await expect(answeredQuestions.locator("details")).toHaveCount(QA_PAGE_TWO_VISIBLE_COUNT);
   });
 
   test("question detail exposes FAQPage JSON-LD and sitemap entries", async ({ page, request }) => {
@@ -183,7 +187,7 @@ async function submitPublicQuestion(page: Page, question: string) {
 }
 
 async function openAccordionQuestion(page: Page, question: string) {
-  const button = page.getByRole("button", { name: question });
+  const button = page.locator("summary").filter({ hasText: question });
 
   await expect(button).toBeVisible();
   await button.click();

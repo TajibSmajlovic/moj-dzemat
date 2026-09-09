@@ -28,10 +28,18 @@ reporting instructions.
 - Sessions last at most 30 days. Password changes delete all existing sessions
   before creating the replacement login session.
 - Password-reset links last 10 minutes, use a rotating secret keyring, and bind
-  to the current password-row version so a successful reset invalidates older
-  links.
+  to the current password-row version. A completed reset invalidates older links
+  on subsequent verification. Verification and consumption are not atomic;
+  concurrent submissions can both succeed, as tracked in
+  [TD-005](exec-plans/tech-debt-tracker.md#td-005-concurrent-password-resets-can-reuse-one-link).
 - Passwords must have at least 10 characters and are rejected when the existing
-  password validation identifies them as publicly breached.
+  password validation identifies them as publicly breached. Hashing uses bcrypt
+  with cost 10. The app does not yet reject passwords beyond bcrypt's 72-byte
+  limit; see
+  [TD-006](exec-plans/tech-debt-tracker.md#td-006-passwords-can-exceed-bcrypts-byte-limit).
+- Unknown and passwordless accounts perform a valid dummy bcrypt comparison at
+  the same cost as password verification before returning the generic credential
+  error. This avoids a fast failure caused by a missing password hash.
 
 Admin state-changing forms rely on same-site cookies, the production
 `form-action 'self'` policy, and same-origin routes. Do not loosen cookie or CSP
@@ -54,8 +62,10 @@ test-only flags. Environment validation rejects them when enabled in production.
 
 ## Content and upload safety
 
-- Express rejects declared request bodies larger than 20 MB.
-- Each uploaded image is limited to 15 MB, checked by content signature,
+- Express rejects request bodies whose `Content-Length` exceeds 20 MiB. It does
+  not yet enforce that limit on the incoming stream; see
+  [TD-004](exec-plans/tech-debt-tracker.md#td-004-request-body-limits-rely-on-content-length).
+- Each uploaded image is limited to 15 MiB, checked by content signature,
   decoded with Sharp, orientation-normalized, metadata-stripped, resized to a
   2000 pixel maximum edge, and re-encoded as WebP.
 - Post bodies are sanitized on write. Only the editor's supported tags,
@@ -77,6 +87,8 @@ test-only flags. Environment validation rejects them when enabled in production.
 - Pino redacts credentials, tokens, cookies, email addresses, recipients, IP
   addresses, and common nested forms of those values. Keep operational ids only
   when they are needed to diagnose a request or domain event.
+- Logged request paths omit query strings and replace password-reset tokens
+  with a route placeholder, including route-data requests.
 - Offline post snapshots exclude sessions, admin state, author and media ids,
   announcements, contact information, and donation details. See
   [the PWA data boundary](design-docs/pwa-runtime-and-recovery.md#runtime-and-offline-data-boundaries).

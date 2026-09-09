@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { SiteFooter } from "#app/components/layout/site-footer";
 import { SiteHeader } from "#app/components/layout/site-header";
 import { AnnouncementBar } from "#app/features/announcements/components/announcement-bar";
-import { sectionReveal, softFade } from "#app/lib/motion";
+import { sectionReveal, softFade, useEntranceMotion } from "#app/lib/motion";
 
 type PublicAuthShellProps = {
   announcement: { message: string } | null;
@@ -32,6 +32,9 @@ export function PublicAuthShell({
   details = [],
   children,
 }: PublicAuthShellProps) {
+  const headingMotion = useEntranceMotion(softFade);
+  const formMotion = useEntranceMotion(sectionReveal);
+
   return (
     <div className="bg-background text-foreground relative flex min-h-screen flex-col">
       <AnnouncementBar announcement={announcement} />
@@ -40,7 +43,7 @@ export function PublicAuthShell({
       <main className="flex flex-1 flex-col">
         <section className="from-cream-dark/45 via-background to-background sm:from-cream-dark/55 flex flex-1 bg-linear-to-b">
           <div className="mx-auto grid w-full max-w-5xl content-start gap-4 px-4 py-5 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,440px)] lg:items-center lg:py-16">
-            <motion.div {...softFade} className="space-y-4 self-start sm:space-y-6">
+            <motion.div {...headingMotion} className="space-y-4 self-start sm:space-y-6">
               <div className="max-w-2xl space-y-2.5 sm:space-y-4">
                 <p className="text-secondary text-[0.68rem] font-semibold tracking-[0.14em] uppercase sm:text-xs">
                   {eyebrow}
@@ -76,7 +79,7 @@ export function PublicAuthShell({
             </motion.div>
 
             <motion.div
-              {...sectionReveal}
+              {...formMotion}
               className="border-border/70 bg-card self-start rounded-lg border p-4 shadow-lg sm:p-6"
             >
               <div className="mb-4 space-y-1.5 sm:mb-6 sm:space-y-2">

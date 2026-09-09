@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type MouseEventHandler, useState } from "react";
 
 import { Maximize2, Play } from "lucide-react";
 
@@ -11,7 +11,7 @@ export function YouTubeFacade({
 }: {
   videoId: string;
   title: string;
-  onExpand?: () => void;
+  onExpand?: MouseEventHandler<HTMLButtonElement>;
 }) {
   const [playing, setPlaying] = useState(false);
 

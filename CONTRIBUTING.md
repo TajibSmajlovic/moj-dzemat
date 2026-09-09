@@ -42,6 +42,18 @@ Open [http://localhost:3000](http://localhost:3000).
 and React Router types. Client generation does not require `DATABASE_URL`, but
 database migration, seed, and application commands do.
 
+Install-script approvals in `package.json` are tied to exact package versions.
+After dependency updates, use `npm install-scripts ls` to review scripts and
+`npm explain <package>` to check why a package is present before changing its
+approval. Multiple versions of `fsevents` and `better-sqlite3` are intentional
+while their dependency parents require different releases; keep an approval for
+each installed version that needs its script.
+
+Known upstream Prisma advisories and the `prebuild-install` deprecation are
+tracked in
+[TD-003](docs/exec-plans/tech-debt-tracker.md#td-003-upstream-prisma-dependency-warnings).
+Keep these warnings visible until compatible upstream releases resolve them.
+
 ### Development-only routes
 
 `ENABLE_TEST_ROUTES` and `OMIT_DEV_ROUTES` intentionally control different
