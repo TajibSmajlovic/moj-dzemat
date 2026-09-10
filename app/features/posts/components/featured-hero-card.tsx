@@ -44,7 +44,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
         state={{ fromList: true }}
         className="focus-visible:ring-ring block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
-        <div className="bg-primary relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14 dark:bg-[hsl(162_63%_28%)]">
+        <div className="bg-featured-background relative flex h-full min-h-76 flex-col px-5 py-7 sm:min-h-85 sm:px-10 sm:py-14">
           <div
             aria-hidden="true"
             className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[hsl(var(--secondary)/0.3)] blur-3xl sm:h-40 sm:w-40 dark:bg-[hsl(var(--emerald-glow)/0.16)]"
@@ -63,7 +63,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
                 className="fill-secondary text-secondary h-4 w-4 sm:h-5 sm:w-5"
                 aria-hidden="true"
               />
-              <span className="text-secondary text-xs font-semibold tracking-wider uppercase sm:text-sm">
+              <span className="text-primary-foreground dark:text-foreground text-xs font-semibold tracking-wider uppercase sm:text-sm">
                 Istaknuto
               </span>
             </motion.div>
@@ -77,7 +77,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
 
             <motion.p
               {...featuredHeroExcerptReveal}
-              className="text-primary-foreground/90 dark:text-foreground/85 mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
+              className="text-primary-foreground dark:text-foreground mb-4 line-clamp-4 max-w-2xl text-sm leading-relaxed text-pretty hyphens-auto sm:mb-5 sm:line-clamp-6 sm:text-base"
             >
               {post.excerpt}
             </motion.p>
@@ -93,7 +93,7 @@ export function FeaturedHeroCard({ post, className }: FeaturedHeroCardProps) {
               />
               <time
                 dateTime={toIsoDate(post.publishedAt)}
-                className="text-primary-foreground/85 dark:text-foreground/80 text-xs sm:text-sm"
+                className="text-primary-foreground dark:text-foreground text-xs sm:text-sm"
               >
                 {formatDateLong(post.publishedAt)}
               </time>

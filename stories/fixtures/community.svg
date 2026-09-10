@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#f6f0e3"/>
+  <circle cx="980" cy="150" r="75" fill="#d19f47"/>
+  <path d="M0 550Q200 440 420 560T850 540T1200 540V800H0Z" fill="#cad9ce"/>
+  <path d="M410 560V380Q600 170 790 380V560Z" fill="#1a7459"/>
+  <path d="M600 470Q660 410 720 470V560H600Z" fill="#f6f0e3"/>
+  <path d="M320 560V220L350 130L380 220V560Z" fill="#1a7459"/>
+  <path d="M210 600H970" stroke="#d19f47" stroke-width="8"/>
+  <text x="600" y="695" text-anchor="middle" fill="#244137" font-family="sans-serif" font-size="26">Ilustracija za primjer</text>
+</svg>

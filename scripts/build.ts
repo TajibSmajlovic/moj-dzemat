@@ -89,3 +89,10 @@ run("seed", "esbuild", [
   "--packages=external",
   "--tsconfig=tsconfig.server.json",
 ]);
+
+run("component catalogue", "storybook", [
+  "build",
+  "--output-dir",
+  "build/storybook",
+  "--disable-telemetry",
+]);

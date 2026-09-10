@@ -26,7 +26,7 @@ export function ContactHomeTeaser({ info }: Props) {
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="text-secondary block text-xs font-semibold tracking-[0.14em] uppercase">
+          <span className="text-gold-foreground block text-xs font-semibold tracking-[0.14em] uppercase">
             Kontakt
           </span>
           <span

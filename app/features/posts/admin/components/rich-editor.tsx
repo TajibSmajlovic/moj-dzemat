@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useLayoutEffect } from "react";
 
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -59,6 +59,8 @@ export function RichEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
+        link: false,
+        underline: false,
       }),
       Underline,
       Link.configure({
@@ -90,12 +92,12 @@ export function RichEditor({
     },
   });
 
-  // Sync external value changes (e.g. form reset).
-  useEffect(() => {
+  // Apply external resets before the next keystroke can make this value stale.
+  useLayoutEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
+      editor.commands.setContent(value, { emitUpdate: false });
     }
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editor, value]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -111,16 +113,22 @@ export function RichEditor({
     }
   }, [editor]);
 
+  useEffect(() => {
+    editor?.setEditable(!disabled);
+  }, [editor, disabled]);
+
   if (!editor) return null;
 
   return (
     <div
       className={cn(
         "border-input bg-background focus-within:ring-ring overflow-hidden rounded-lg border shadow-sm transition-shadow focus-within:ring-2 focus-within:ring-offset-2",
-        disabled && "opacity-60",
+        disabled && "bg-muted/30",
       )}
     >
-      <Toolbar editor={editor} onSetLink={setLink} />
+      <fieldset disabled={disabled} aria-label="Uređivanje teksta" className="min-w-0">
+        <Toolbar editor={editor} onSetLink={setLink} />
+      </fieldset>
       <EditorContent editor={editor} />
     </div>
   );

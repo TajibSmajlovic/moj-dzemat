@@ -53,7 +53,8 @@ Use the isolated runtime instead of sharing the normal developer database:
 npm run agent:start
 ```
 
-The command prints a manifest path and a loopback URL. Pass that exact manifest
+The command prints a manifest path during startup and a loopback URL when ready.
+Wait for the ready message before browser inspection. Pass that exact manifest
 to the inspection and cleanup commands:
 
 ```bash
@@ -61,9 +62,14 @@ npm run agent:logs -- --manifest /path/from/start/manifest.json
 npm run agent:stop -- --manifest /path/from/start/manifest.json
 ```
 
-Each run owns its port, temporary SQLite database, Vite cache, process, and
-structured NDJSON log. Do not kill processes by name or port. The stop command
-verifies the runtime identity before terminating anything.
+Each run owns its HTTP and Vite WebSocket port, temporary SQLite database, Vite
+cache, process, and structured NDJSON log. Cancelling startup stops the owned
+child and cleans its state. Do not kill processes by name or port. The stop
+command verifies the runtime identity before terminating anything.
+
+Readiness confirms server and database health, not browser hydration. Follow
+[runtime inspection and troubleshooting](CONTRIBUTING.md#runtime-inspection-and-troubleshooting)
+for first-load Vite errors, browser verification, and sandbox permission failures.
 
 `AGENT_RUN_ID`, `AGENT_LOG_PATH`, and `AGENT_STATE_DIR` are internal runtime
 metadata set by `npm run agent:start`. Do not add them to `.env` or configure
@@ -89,6 +95,7 @@ npm run docs:check
 npm run check
 npm run knip
 npm run test:run
+npm run agent:smoke
 npm run test:e2e
 npm run test:pwa
 ```

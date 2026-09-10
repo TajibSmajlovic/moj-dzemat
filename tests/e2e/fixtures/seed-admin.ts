@@ -1,9 +1,8 @@
+export { ADMIN_EMAIL, ADMIN_PASSWORD } from "./admin-credentials";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "../../../app/server/db.server";
-
-export const ADMIN_EMAIL = "admin@dzemat.ba";
-export const ADMIN_PASSWORD = "#tajnaLozinkaZaE2ETestove2024";
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from "./admin-credentials";
 
 /**
    Restores the admin every spec signs in with: the user exists and its

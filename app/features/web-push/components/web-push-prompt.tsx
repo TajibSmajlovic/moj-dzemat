@@ -75,6 +75,10 @@ export function WebPushPrompt() {
     setVisible(false);
   };
 
+  return <WebPushPromptView onDismiss={dismiss} />;
+}
+
+export function WebPushPromptView({ onDismiss }: { onDismiss: () => void }) {
   return (
     <aside className="fixed right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-3 z-40 sm:right-auto sm:left-4 sm:w-[23rem]">
       <div className="relative">
@@ -82,7 +86,7 @@ export function WebPushPrompt() {
           type="button"
           variant="ghost"
           size="icon"
-          onClick={dismiss}
+          onClick={onDismiss}
           className="bg-background/80 absolute top-2 right-2 z-10 size-11 rounded-full"
           aria-label="Zatvori ponudu za obavijesti"
         >
@@ -91,9 +95,9 @@ export function WebPushPrompt() {
         <WebPushCard
           compact
           onPrimaryAction={(currentState) => {
-            if (currentState === "ready") dismiss();
+            if (currentState === "ready") onDismiss();
           }}
-          onDismiss={dismiss}
+          onDismiss={onDismiss}
         />
       </div>
     </aside>

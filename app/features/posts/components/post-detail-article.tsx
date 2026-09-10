@@ -83,7 +83,7 @@ export function PostDetailArticle({
             <PostTypeBadge type={post.type} />
 
             {post.pinned && showPinnedBadge ? (
-              <span className="text-secondary inline-flex items-center gap-1">
+              <span className="text-gold-foreground inline-flex items-center gap-1">
                 <Pin className="fill-secondary h-4 w-4" aria-hidden="true" />
                 <span className="text-xs font-semibold tracking-wide uppercase">Na vrhu</span>
               </span>

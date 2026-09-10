@@ -12,10 +12,9 @@ import { parseWithZod } from "@conform-to/zod/v4";
 
 import { Field } from "#app/components/forms/field";
 import { FormActions } from "#app/components/forms/form-actions";
+import { TextareaField } from "#app/components/forms/textarea-field";
 import { Button } from "#app/components/ui/button";
 import { Checkbox } from "#app/components/ui/checkbox";
-import { Label } from "#app/components/ui/label";
-import { Textarea } from "#app/components/ui/textarea";
 import { ContactIntents } from "#app/features/contact/admin/contact-intents";
 import type { CommunityInfoRecord } from "#app/features/contact/contact";
 import {
@@ -32,7 +31,6 @@ import {
   OFFICE_HOURS_MAX,
   PHONE_MAX,
 } from "#app/features/contact/contact-schema";
-import { cn } from "#app/lib/cn";
 import { IntentInput } from "#app/lib/intent";
 
 type Props = {
@@ -40,51 +38,6 @@ type Props = {
   lastResult: SubmissionResult<string[]> | null;
   submitting: boolean;
 };
-
-function TextareaField({
-  label,
-  hint,
-  field,
-  maxLength,
-  rows,
-  placeholder,
-}: {
-  label: string;
-  hint?: string;
-  field: FieldMetadata<string | null>;
-  maxLength: number;
-  rows: number;
-  placeholder: string;
-}) {
-  const hintId = hint ? `${field.id}-hint` : undefined;
-  const errorId = field.errors?.length ? `${field.id}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
-
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={field.id}>{label}</Label>
-      <Textarea
-        {...getTextareaProps(field)}
-        maxLength={maxLength}
-        rows={rows}
-        placeholder={placeholder}
-        aria-invalid={errorId ? true : undefined}
-        aria-describedby={describedBy}
-        className={cn(errorId && "border-destructive")}
-      />
-      {hint ? (
-        <p id={hintId} className="text-muted-foreground text-xs">
-          {hint}
-        </p>
-      ) : null}
-      {errorId ? (
-        <p id={errorId} className="text-destructive text-xs">
-          {field.errors?.[0]}
-        </p>
-      ) : null}
-    </div>
-  );
-}
 
 function VisibilityToggle({
   field,
@@ -174,10 +127,14 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
 
         <TextareaField
           label="Tekst o džematu"
-          field={fields.aboutText}
-          maxLength={ABOUT_TEXT_MAX}
-          rows={5}
-          placeholder="Npr. Džemat okuplja vjernike ovog kraja i radi na vjerskom i društvenom životu zajednice…"
+          errors={fields.aboutText.errors}
+          textareaProps={{
+            ...getTextareaProps(fields.aboutText),
+            maxLength: ABOUT_TEXT_MAX,
+            rows: 5,
+            placeholder:
+              "Npr. Džemat okuplja vjernike ovog kraja i radi na vjerskom i društvenom životu zajednice…",
+          }}
         />
       </section>
 
@@ -214,10 +171,13 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
         <TextareaField
           label="Radno / prijemno vrijeme"
           hint="Kratko — npr. radnim danima od 9 do 14 sati ili nakon namaza."
-          field={fields.officeHours}
-          maxLength={OFFICE_HOURS_MAX}
-          rows={3}
-          placeholder="Radnim danima od 9 do 14 sati"
+          errors={fields.officeHours.errors}
+          textareaProps={{
+            ...getTextareaProps(fields.officeHours),
+            maxLength: OFFICE_HOURS_MAX,
+            rows: 3,
+            placeholder: "Radnim danima od 9 do 14 sati",
+          }}
         />
       </section>
 
@@ -271,10 +231,13 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
         <TextareaField
           label="Džematski odbor / mutevelija (nije obavezno)"
           hint="Navedite samo javne informacije, npr. ime predsjednika odbora ili mutevelije."
-          field={fields.boardNote}
-          maxLength={BOARD_NOTE_MAX}
-          rows={3}
-          placeholder="Npr. Predsjednik odbora: …"
+          errors={fields.boardNote.errors}
+          textareaProps={{
+            ...getTextareaProps(fields.boardNote),
+            maxLength: BOARD_NOTE_MAX,
+            rows: 3,
+            placeholder: "Npr. Predsjednik odbora: …",
+          }}
         />
       </section>
 
@@ -335,10 +298,13 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
 
         <TextareaField
           label="Napomena uz uplatu"
-          field={fields.bankNote}
-          maxLength={BANK_NOTE_MAX}
-          rows={3}
-          placeholder="npr. U svrhu uplate navedite: članarina / sadaka"
+          errors={fields.bankNote.errors}
+          textareaProps={{
+            ...getTextareaProps(fields.bankNote),
+            maxLength: BANK_NOTE_MAX,
+            rows: 3,
+            placeholder: "npr. U svrhu uplate navedite: članarina / sadaka",
+          }}
         />
       </section>
 

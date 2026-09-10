@@ -62,6 +62,10 @@ describe("service worker request routing", () => {
       "/sitemap.xml",
       "/offline.html",
       "/sw.js",
+      "/storybook",
+      "/storybook/",
+      "/storybook/iframe.html",
+      "/storybook/nested/example",
     ]) {
       expect(shouldHandleNavigationRequest(request(pathname), ORIGIN), pathname).toBe(false);
     }

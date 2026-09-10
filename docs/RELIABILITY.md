@@ -55,9 +55,17 @@ correct content when SQLite is unavailable.
 - The service worker is an optional enhancement. Normal routing remains
   network-first, and the dedicated cleanup-worker procedure lives in
   [the PWA recovery guide](design-docs/pwa-runtime-and-recovery.md).
-- Agent runtimes own separate ports, SQLite files, Vite caches, logs, and
-  manifests. E2E runs own separate ports, SQLite files, and test-output
+- Agent runtimes own separate ports (including Vite WebSocket connections),
+  SQLite files, Vite caches, logs, and manifests. E2E runs own separate ports, SQLite files, and test-output
   directories, so neither mutates the normal developer database.
+
+An agent startup writes its manifest before waiting for health and database
+readiness, then marks it ready. Startup cancellation or failure stops the owned
+child before removing state; failed cleanup retains evidence. The readiness
+deadline defaults to 120 seconds and can be set with `--timeout-ms`. The
+`agent:smoke` command exercises cold browser interactions, concurrent runtime
+isolation, request-log redaction, and interrupted/failed startup cleanup. See
+[the agent workflow](../CONTRIBUTING.md#agent-workflow) for commands and artifacts.
 
 ## Observability
 

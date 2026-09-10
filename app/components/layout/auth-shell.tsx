@@ -45,7 +45,7 @@ export function PublicAuthShell({
           <div className="mx-auto grid w-full max-w-5xl content-start gap-4 px-4 py-5 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,440px)] lg:items-center lg:py-16">
             <motion.div {...headingMotion} className="space-y-4 self-start sm:space-y-6">
               <div className="max-w-2xl space-y-2.5 sm:space-y-4">
-                <p className="text-secondary text-[0.68rem] font-semibold tracking-[0.14em] uppercase sm:text-xs">
+                <p className="text-gold-foreground text-[0.68rem] font-semibold tracking-[0.14em] uppercase sm:text-xs">
                   {eyebrow}
                 </p>
                 <h1 className="font-display text-foreground max-w-2xl text-[1.75rem] leading-[1.08] font-semibold text-balance sm:text-5xl sm:leading-tight">

@@ -5,6 +5,7 @@ import { DeleteRecordButton } from "#app/components/admin/delete-record-button";
 import { EmptyState } from "#app/components/admin/empty-state";
 import { IconActionButton } from "#app/components/admin/icon-action-button";
 import { OptimisticToggleIconButton } from "#app/components/admin/optimistic-toggle-button";
+import { Badge } from "#app/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -140,16 +141,15 @@ function AnnouncementStatusBadge({ active, className }: { active: boolean; class
   const Icon = active ? Eye : EyeOff;
 
   return (
-    <span
+    <Badge
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap",
         active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
         className,
       )}
     >
       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       {active ? "Aktivna" : "Neaktivna"}
-    </span>
+    </Badge>
   );
 }
 

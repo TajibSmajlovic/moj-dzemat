@@ -43,10 +43,18 @@ Feature-specific values enter through the platform API.
 
 ## Client server boundary
 
-Reusable components, platform modules, and feature components are browser-capable.
-They must not runtime-import `app/server/` or a `.server` module. Load server data
-in a route and pass serializable values into the component. Type-only imports are
-allowed when TypeScript erases the edge.
+Reusable components, shared browser helpers, platform modules, feature components,
+and `.client` modules are browser-capable. They must not reach `app/server/`,
+`.server` modules, generated Prisma code, or Node built-ins through runtime
+imports. The checker follows local helpers and re-export chains, including
+configured TypeScript aliases; moving an import into a helper does not remove
+the browser boundary.
+
+Load server data in a route and pass serializable values into the component.
+Type-only imports and re-exports are allowed when TypeScript erases the edge.
+Route loaders and server modules may use server dependencies. The checker does
+not model React Router's client/server export splitting or third-party package
+internals, so build and browser checks remain necessary.
 
 ## Production dependency
 
@@ -67,3 +75,20 @@ valid remediation, and a link to the relevant section above. Do not add a blanke
 exception or weaken a rule to make a new edge pass. If product architecture truly
 changes, update this document, the single checker rule model, and its allow/reject
 fixtures in the same change.
+
+For an indirect browser dependency, the diagnostic also shows the import path
+from a browser-capable module to the offending helper.
+
+## Storybook tooling
+
+`stories/` owns examples, fixtures, decorators and browser mocks. `.storybook/`
+owns its separate Vite configuration and preview. Neither belongs in the
+production app import graph: the production-dependency rule rejects imports of
+`stories/` and `.storybook/` from `app/` or `server/`.
+
+All story modules and the Storybook preview/manager are browser entries. Their
+runtime import chains cannot reach server modules or Node built-ins. Node-only
+Storybook build configuration can use Node APIs. Stories may import visual
+feature components directly and use type-only contracts; they must not import
+route loaders or database-backed fixtures. The Express catalogue router serves
+only generated files and does not import story source.

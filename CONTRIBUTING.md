@@ -147,18 +147,20 @@ Important details:
 
 ### Agent workflow
 
-| Command                      | What it does                                                                        |
-| ---------------------------- | ----------------------------------------------------------------------------------- |
-| `npm run agent:start`        | Starts an isolated app with its own port, database, cache, seed, log, and manifest. |
-| `npm run agent:logs`         | Filters structured logs for the exact manifest passed with `--manifest`.            |
-| `npm run agent:stop`         | Verifies runtime identity, stops its process, and removes only its temporary state. |
-| `npm run agent:verify`       | Runs the complete harness, static, test, E2E, and PWA verification.                 |
-| `npm run agent:gc`           | Reports documentation, architecture, unused-code, and stale-runtime findings.       |
-| `npm run architecture:check` | Enforces dependency boundaries with the TypeScript parser.                          |
-| `npm run docs:check`         | Checks agent-critical local links, anchors, and documented npm scripts.             |
+| Command                      | What it does                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `npm run agent:start`        | Starts an isolated app with its own port, database, cache, seed, log, and manifest.         |
+| `npm run agent:logs`         | Filters structured logs for the exact manifest passed with `--manifest`.                    |
+| `npm run agent:stop`         | Verifies runtime identity, stops its process, and removes only its temporary state.         |
+| `npm run agent:smoke`        | Checks cold browser interactions, parallel runtime isolation, logging, and startup cleanup. |
+| `npm run agent:verify`       | Runs the complete harness, static, test, E2E, and PWA verification.                         |
+| `npm run agent:gc`           | Reports documentation, architecture, unused-code, and stale-runtime findings.               |
+| `npm run architecture:check` | Enforces dependency boundaries with the TypeScript parser.                                  |
+| `npm run docs:check`         | Checks agent-critical local links, anchors, and documented npm scripts.                     |
 
-`npm run agent:start` prints an `AGENT_RUNTIME_MANIFEST` path. Use the exact path
-for later commands:
+`npm run agent:start` prints an `AGENT_RUNTIME_MANIFEST` path before waiting for
+readiness. The manifest's status changes from `starting` to `ready`; wait for
+the ready message before browser inspection. Use the exact path for later commands:
 
 ```bash
 npm run agent:logs -- --manifest /path/from/start/manifest.json --request-id request-123
@@ -168,6 +170,71 @@ npm run agent:stop -- --manifest /path/from/start/manifest.json
 The manifest contains process and local connection metadata but no secret values.
 Use a separate Git worktree for each parallel code change because build output is
 still shared within one checkout.
+
+Cancelling startup with `SIGINT` or `SIGTERM`, or reaching the readiness timeout,
+stops the owned child before deleting its temporary state. The readiness timeout
+defaults to 120 seconds; override it with `--timeout-ms <milliseconds>` when
+diagnosing startup. Use `--keep-state-on-failure` with `agent:start`, or
+`--keep-state` with `agent:stop`, to preserve evidence. A cleanup failure always
+retains state and reports its location.
+
+`npm run agent:smoke` uses the installed Playwright Chromium and runs as part of
+`agent:verify` and CI. It starts two fresh runtimes, exercises public and admin
+controls without a recovery reload, checks each Vite connection uses its own
+port, correlates a redacted request log, and verifies stop, cancellation, and
+readiness-failure cleanup. It uses fictional fixtures and omits external embeds.
+Successful runs remove artifacts; failures retain logs, browser evidence, and
+screenshots in the printed temporary directory, or `test-results/agent` in CI.
+
+#### Runtime inspection and troubleshooting
+
+`npm run agent:start` runs the development server with a fresh, isolated Vite
+cache. Vite scans root and route entries for dependencies before browser use;
+its WebSocket shares the runtime's HTTP port. The ready message means `/resources/healthcheck` and
+`/resources/readiness` responded successfully with the expected runtime identity.
+It does not confirm that browser dependencies have finished optimizing or that
+the page has hydrated.
+
+Follow the available browser tooling's instructions. If no browser integration
+is available, use the repository's installed Playwright and record that fallback
+in the verification evidence. Temporary inspection scripts and screenshots
+belong outside committed source; repeatable regression tests belong in the
+existing test suite.
+
+For browser inspection:
+
+1. Open the target route at the printed runtime URL and capture console errors
+   and failed requests from the first load.
+2. Confirm the expected page content and exercise a relevant control. Successful
+   HTTP responses, network idle, or a fixed delay alone do not prove hydration.
+   To verify hydration, exercise a control that requires client JavaScript, such
+   as theme switching. Native links and the `details` accordion can work before
+   hydration.
+3. If the first load reports Vite dependency optimization errors, inspect the
+   runtime's logs. `npm run agent:logs` reads the structured app log; Vite and
+   process output is in `process_log_path` from the same manifest. After
+   optimization finishes, reload once and repeat the interaction. Record both
+   attempts; a successful reload is diagnostic evidence, not proof that the
+   first-load failure is fixed or production is correct.
+4. If the error persists, investigate it before accepting the browser result.
+   Use the existing build-based `npm run test:e2e` suite for repeatable regression
+   checks, and `npm run test:pwa` for production PWA behavior.
+
+Before cleanup, preserve a redacted summary of failures, attempted recovery,
+interaction results, and screenshot or trace locations in the active plan or
+task handoff. `npm run agent:stop` normally deletes the runtime's logs and
+database. Keep unexplained failures marked unresolved even if a reload succeeds;
+verifying a cold-start fix requires repeating the failing route sequence in a
+fresh isolated runtime. Built-server tests do not exercise Vite optimization.
+
+Execution sandboxes may reject loopback listeners, Chromium startup, or process
+signals with errors such as `EPERM` or `Operation not permitted`. Check the failed
+operation before treating it as an application failure. Use the execution
+environment's permission mechanism for that exact operation, including
+`npm run agent:stop` with the original manifest when cleanup needs permission.
+Repository instructions do not grant host permissions. If the operation remains
+blocked, report the command and reason; do not switch to an unidentified server,
+disable checks, or kill processes by name or port.
 
 ### Database
 
@@ -214,7 +281,13 @@ the retained artifact path for diagnosis.
 `npm run test:pwa` builds the production application, applies migrations to a
 temporary SQLite database, seeds deterministic published posts, and runs the
 focused Chromium suite against `npm start`. It uses production-safe runtime
-flags and removes its temporary local state when the command finishes.
+flags. Successful runs remove temporary state; failed local runs retain it and
+print its path for diagnosis, just like the main E2E runner.
+
+A successful retry uses a new temporary directory and does not clean a previous
+failed run. Preserve useful evidence, then remove only that run's exact retained
+directory after confirming its processes have stopped. These test directories
+have no agent runtime manifest; `npm run agent:stop` is for `agent:start` runs.
 
 ## Branches
 
@@ -287,9 +360,11 @@ A few implementation details that help when debugging:
 - Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
   and `DISABLE_RATE_LIMITING`
 - `npm run test:e2e` builds first and serves that artifact under `NODE_ENV=test`.
-  The Vite dev server is reserved for `npm run dev`, because its on-demand
-  dependency optimisation reloads the page mid-test the first time a heavy route
-  such as the Tiptap editor is opened.
+  `npm run dev` and `npm run agent:start` use the Vite dev server; its on-demand
+  dependencies are scanned up front, and `npm run agent:smoke` verifies cold
+  public and editor interactions without recovery reloads. See
+  [runtime inspection and troubleshooting](#runtime-inspection-and-troubleshooting)
+  for manual browser checks.
 - the main suite blocks service workers; `tests/e2e/pwa` owns that behaviour
 - the isolated production PWA e2e suite lives in `tests/e2e/pwa` and runs via
   `npm run test:pwa`
@@ -313,6 +388,21 @@ command.
 Run `npm run test:e2e` for UI, routing, auth, editor, upload, or admin workflow changes.
 Run `npm run test:pwa` for changes to the manifest, service worker, offline
 shell, post snapshots, PWA build pipeline, or production PWA asset serving.
+
+## Component catalogue
+
+Run `npm run storybook` for a standalone local catalogue on port 6006. It needs
+no app database or credentials. `npm run build:storybook` writes the static
+catalogue; normal application builds include it at `/storybook/` in the same
+Fly image. The public URL after deployment is
+`https://mojdzematdonjemostre.ba/storybook/`.
+
+Add stories for new reusable UI and meaningful component states. Use fictional
+fixtures, real components, and local browser effects. Run `npm run test:storybook`
+for interaction and accessibility checks in both themes. This check is included
+in CI and `npm run agent:verify`. Static hosting and worker coexistence checks
+run in `npm run test:pwa`. See the [authoring guide](stories/README.md) and
+[component coverage](stories/coverage.md) for examples and provider requirements.
 
 ## Pull Requests
 

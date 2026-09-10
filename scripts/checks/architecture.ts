@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { isBuiltin } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
@@ -29,6 +30,7 @@ export type ArchitectureViolation = ImportEdge & {
   why: string;
   fix: string;
   docsAnchor: string;
+  browserPath?: string[];
 };
 
 const CROSS_FEATURE_CONTRACTS = new Map<string, Set<string>>([
@@ -69,7 +71,22 @@ function ownerOf(file: string): Owner {
   return { kind: "other" };
 }
 
-function resolveInternalTarget(rootDir: string, source: string, specifier: string): string | null {
+function resolveInternalTarget(
+  rootDir: string,
+  source: string,
+  specifier: string,
+  compilerOptions: ts.CompilerOptions,
+): string | null {
+  if (isBuiltin(specifier)) return specifier;
+  const resolved = ts.resolveModuleName(
+    specifier,
+    path.join(rootDir, source),
+    compilerOptions,
+    ts.sys,
+  ).resolvedModule;
+  if (resolved && !resolved.isExternalLibraryImport) {
+    return stripSourceExtension(toPosix(path.relative(rootDir, resolved.resolvedFileName)));
+  }
   let absoluteTarget: string;
 
   if (specifier.startsWith("#app/")) {
@@ -104,7 +121,12 @@ function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
   );
 }
 
-function collectEdges(rootDir: string, source: string, contents: string): ImportEdge[] {
+function collectEdges(
+  rootDir: string,
+  source: string,
+  contents: string,
+  compilerOptions: ts.CompilerOptions,
+): ImportEdge[] {
   const sourceFile = ts.createSourceFile(
     source,
     contents,
@@ -115,7 +137,7 @@ function collectEdges(rootDir: string, source: string, contents: string): Import
   const edges: ImportEdge[] = [];
 
   function addEdge(specifier: string, node: ts.Node, typeOnly: boolean): void {
-    const target = resolveInternalTarget(rootDir, source, specifier);
+    const target = resolveInternalTarget(rootDir, source, specifier, compilerOptions);
     if (!target) return;
 
     edges.push({
@@ -132,18 +154,35 @@ function collectEdges(rootDir: string, source: string, contents: string): Import
       addEdge(node.moduleSpecifier.text, node, isTypeOnlyImport(node));
     } else if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
       if (ts.isStringLiteral(node.moduleSpecifier)) {
-        addEdge(node.moduleSpecifier.text, node, node.isTypeOnly);
+        const typeOnly =
+          node.isTypeOnly ||
+          Boolean(
+            node.exportClause &&
+            ts.isNamedExports(node.exportClause) &&
+            node.exportClause.elements.length > 0 &&
+            node.exportClause.elements.every((element) => element.isTypeOnly),
+          );
+        addEdge(node.moduleSpecifier.text, node, typeOnly);
       }
     } else if (
       ts.isCallExpression(node) &&
-      node.arguments.length === 1 &&
-      ts.isStringLiteral(node.arguments[0]!) &&
+      node.arguments.length >= 1 &&
+      (ts.isStringLiteral(node.arguments[0]!) ||
+        ts.isNoSubstitutionTemplateLiteral(node.arguments[0]!)) &&
       (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
         (ts.isIdentifier(node.expression) && node.expression.text === "require"))
     ) {
       addEdge(node.arguments[0].text, node, false);
     }
 
+    if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      node.moduleReference.expression &&
+      ts.isStringLiteral(node.moduleReference.expression)
+    ) {
+      addEdge(node.moduleReference.expression.text, node, node.isTypeOnly);
+    }
     ts.forEachChild(node, visit);
   }
 
@@ -151,7 +190,7 @@ function collectEdges(rootDir: string, source: string, contents: string): Import
   return edges;
 }
 
-function violationFor(edge: ImportEdge): ArchitectureViolation | null {
+function violationFor(edge: ImportEdge, browserPath?: string[]): ArchitectureViolation | null {
   const sourceOwner = ownerOf(edge.source);
   const targetOwner = ownerOf(edge.target);
 
@@ -200,19 +239,16 @@ function violationFor(edge: ImportEdge): ArchitectureViolation | null {
     };
   }
 
-  const isBrowserOwned =
-    edge.source.startsWith("app/components/") ||
-    edge.source.startsWith("app/lib/") ||
-    edge.source.startsWith("app/platform/") ||
-    /^app\/features\/[^/]+\/(?:[^/]+\/)*components\//.test(edge.source);
   const isServerTarget =
+    isBuiltin(edge.target) ||
     edge.target.startsWith("app/server/") ||
     edge.target.startsWith("generated/") ||
     edge.target.startsWith("prisma/") ||
     /\.server(?:\/|$)/.test(edge.target);
-  if (!edge.typeOnly && isBrowserOwned && isServerTarget) {
+  if (!edge.typeOnly && browserPath && isServerTarget) {
     return {
       ...edge,
+      browserPath,
       rule: "client-server-boundary",
       why: "Browser-capable modules must not pull server code, secrets, filesystem access, or database clients into their runtime graph.",
       fix: "Load server data in a route, pass serializable values into the component, or change the import to an explicit type-only import.",
@@ -223,13 +259,16 @@ function violationFor(edge: ImportEdge): ArchitectureViolation | null {
   if (
     !edge.typeOnly &&
     (edge.source.startsWith("app/") || edge.source.startsWith("server/")) &&
-    (edge.target.startsWith("tests/") || edge.target.startsWith("scripts/"))
+    (edge.target.startsWith("tests/") ||
+      edge.target.startsWith("scripts/") ||
+      edge.target.startsWith("stories/") ||
+      edge.target.startsWith(".storybook/"))
   ) {
     return {
       ...edge,
       rule: "production-dependency",
-      why: "Production code cannot depend on test fixtures or repository maintenance scripts.",
-      fix: "Move the reusable implementation into app/lib or app/server and keep test or script adapters outside production code.",
+      why: "Production code cannot depend on tests, stories, or repository tooling.",
+      fix: "Move reusable code into its owning app module and keep test, story, or script adapters outside production code.",
       docsAnchor: "production-dependency",
     };
   }
@@ -258,6 +297,8 @@ function sourceFiles(rootDir: string): string[] {
 
   walk(path.join(rootDir, "app"));
   walk(path.join(rootDir, "server"));
+  walk(path.join(rootDir, "stories"));
+  walk(path.join(rootDir, ".storybook"));
 
   // The repository targets ES2022, so Array.prototype.toSorted is unavailable.
   // eslint-disable-next-line unicorn/no-array-sort
@@ -265,20 +306,78 @@ function sourceFiles(rootDir: string): string[] {
 }
 
 export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
-  return sourceFiles(rootDir).flatMap((source) => {
-    const contents = fs.readFileSync(path.join(rootDir, source), "utf8");
+  const configPath = path.join(rootDir, "tsconfig.base.json");
+  const config: unknown = fs.existsSync(configPath)
+    ? ts.readConfigFile(configPath, (file) => ts.sys.readFile(file)).config
+    : {};
+  const configuredOptions =
+    config && typeof config === "object" && "compilerOptions" in config
+      ? config.compilerOptions
+      : undefined;
+  const compilerOptions = ts.parseJsonConfigFileContent(
+    {
+      compilerOptions: {
+        moduleResolution: "bundler",
+        module: "esnext",
+        ...(configuredOptions && typeof configuredOptions === "object" ? configuredOptions : {}),
+      },
+      files: [],
+      include: [],
+    },
+    ts.sys,
+    rootDir,
+    undefined,
+    configPath,
+  ).options;
+  const graph = new Map<string, ImportEdge[]>();
+  const browserPaths = new Map<string, string[]>();
+  for (const source of sourceFiles(rootDir)) {
+    const key = stripSourceExtension(source);
+    graph.set(
+      key,
+      collectEdges(
+        rootDir,
+        source,
+        fs.readFileSync(path.join(rootDir, source), "utf8"),
+        compilerOptions,
+      ),
+    );
+    if (isBrowserEntry(source)) browserPaths.set(key, [source]);
+  }
 
-    return collectEdges(rootDir, source, contents).flatMap((edge) => {
-      const violation = violationFor(edge);
+  // Follow runtime edges through helpers and barrels; a directory name alone
+  // cannot establish that a module stays on the server.
+  for (const [source, trail] of browserPaths) {
+    for (const edge of graph.get(source) ?? []) {
+      if (edge.typeOnly || !graph.has(edge.target) || browserPaths.has(edge.target)) continue;
+      if (edge.target.startsWith("app/server/") || /\.server(?:\/|$)/.test(edge.target)) continue;
+      browserPaths.set(edge.target, [...trail, edge.target]);
+    }
+  }
+  return [...graph.entries()].flatMap(([source, edges]) =>
+    edges.flatMap((edge) => {
+      const violation = violationFor(edge, browserPaths.get(source));
       return violation ? [violation] : [];
-    });
-  });
+    }),
+  );
+}
+
+function isBrowserEntry(source: string): boolean {
+  return (
+    source.startsWith("stories/") ||
+    /^\.storybook\/(?:preview|manager)\.[cm]?tsx?$/.test(source) ||
+    source.startsWith("app/components/") ||
+    source.startsWith("app/lib/") ||
+    source.startsWith("app/platform/") ||
+    /\.client\.[cm]?tsx?$/.test(source) ||
+    /^app\/features\/[^/]+\/(?:[^/]+\/)*components\//.test(source)
+  );
 }
 
 export function formatViolation(violation: ArchitectureViolation): string {
   return [
     `ARCHITECTURE ${violation.rule}: ${violation.source}:${violation.line} imports ${violation.target}`,
-    `Why: ${violation.why}`,
+    `Why: ${violation.why}${violation.browserPath ? ` Browser path: ${violation.browserPath.join(" -> ")}.` : ""}`,
     `Fix: ${violation.fix}`,
     `Docs: ${DOCS_PATH}#${violation.docsAnchor}`,
   ].join("\n");

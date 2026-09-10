@@ -59,7 +59,7 @@ jobs:
       - run: npm run test:run
 
   e2e:
-    name: Playwright e2e
+    name: Storybook · Playwright e2e
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -77,6 +77,12 @@ jobs:
       - run: npm install --global npm@11.18.0
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:storybook
+        env:
+          CI: "true"
+      - run: npm run agent:smoke
+        env:
+          CI: "true"
       - run: npm run test:e2e
         env:
           CI: "true"

@@ -58,6 +58,7 @@ export function selectPwaOwnedCacheNames(cacheNames: readonly string[]): string[
 }
 
 function isResourcePath(pathname: string): boolean {
+  if (pathname === "/storybook" || pathname.startsWith("/storybook/")) return true;
   if (pathname === PWA_SERVICE_WORKER_PATH || pathname === PWA_OFFLINE_SHELL_PATH) return true;
   if (pathname.endsWith(".data") || STATIC_FILE_EXTENSION_RE.test(pathname)) return true;
 

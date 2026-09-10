@@ -52,7 +52,8 @@ test.describe("seo", () => {
   test("homepage exposes canonical metadata, social image and structured data", async ({
     page,
   }) => {
-    await page.goto(href("/"));
+    // SEO assertions need the server document, not completion of embedded maps.
+    await page.goto(href("/"), { waitUntil: "domcontentloaded" });
 
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${APP_ORIGIN}/`);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(

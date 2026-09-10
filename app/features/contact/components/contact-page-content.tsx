@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { Button } from "#app/components/ui/button";
 import type { CommunityInfoRecord } from "#app/features/contact/contact";
 import { sectionReveal, softFade, useEntranceMotion } from "#app/lib/motion";
+import { copyText } from "#app/platform/clipboard";
 import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
 
 type ContactPageContentProps = {
@@ -60,7 +61,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
         />
 
         <div className="relative max-w-3xl min-w-0">
-          <p className="text-secondary text-xs font-semibold tracking-[0.14em] uppercase">
+          <p className="text-gold-foreground text-xs font-semibold tracking-[0.14em] uppercase">
             O džematu
           </p>
           <h1 className="font-display text-foreground mt-2 text-3xl font-semibold text-balance sm:text-4xl">
@@ -168,7 +169,9 @@ function SectionHeading({
 }) {
   return (
     <div className="min-w-0">
-      <p className="text-secondary text-xs font-semibold tracking-[0.12em] uppercase">{eyebrow}</p>
+      <p className="text-gold-foreground text-xs font-semibold tracking-[0.12em] uppercase">
+        {eyebrow}
+      </p>
       <h2 id={id} className="font-display text-foreground mt-1 text-xl font-semibold sm:text-2xl">
         {title}
       </h2>
@@ -339,7 +342,7 @@ function BankAccountCopy({ account }: { account: string }) {
   );
 
   function copyAccount() {
-    void navigator.clipboard.writeText(account).then(
+    void copyText(account).then(
       () => {
         setCopyState("copied");
         if (resetTimerRef.current) globalThis.clearTimeout(resetTimerRef.current);
