@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
+
+import { runTasks } from "../checks/runner";
 
 const projectRoot = path.resolve(import.meta.dirname, "../..");
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-pwa-tests-"));
@@ -42,24 +43,30 @@ try {
     DISABLE_RATE_LIMITING: "false",
   };
 
-  run("production build", "npm", ["run", "build"], testEnvironment);
-  run("temporary database migrations", "npx", ["prisma", "migrate", "deploy"], testEnvironment);
-  run(
+  await run("production build", "npm", ["run", "build"], testEnvironment);
+  await run(
+    "temporary database migrations",
+    "npx",
+    ["prisma", "migrate", "deploy"],
+    testEnvironment,
+  );
+  await run(
     "deterministic temporary database seed",
     process.execPath,
     ["--import", "tsx", "scripts/pwa/seed-tests.ts"],
     testEnvironment,
   );
-  run(
+  await run(
     "focused production PWA browser suite",
-    "npx",
-    ["playwright", "test", "--config=playwright.pwa.config.ts"],
+    process.execPath,
+    ["node_modules/@playwright/test/cli.js", "test", "--config=playwright.pwa.config.ts"],
     testEnvironment,
+    true,
   );
   succeeded = true;
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
+  process.exitCode ??= 1;
 } finally {
   if (succeeded || process.env.CI) {
     fs.rmSync(temporaryDirectory, { force: true, recursive: true });
@@ -68,25 +75,18 @@ try {
   }
 }
 
-function run(
+async function run(
   stepName: string,
   command: string,
   args: readonly string[],
   environment: NodeJS.ProcessEnv,
-): void {
+  graceful = false,
+): Promise<void> {
   console.log(`[pwa-test] ${stepName}`);
 
-  const result = spawnSync(command, args, {
-    cwd: projectRoot,
-    env: environment,
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`${stepName} failed${result.signal ? ` with signal ${result.signal}` : ""}.`);
-  }
+  await runTasks([
+    { name: stepName, command, args: [...args], cwd: projectRoot, env: environment, graceful },
+  ]);
 }
 
 function reserveLoopbackPort(): Promise<number> {

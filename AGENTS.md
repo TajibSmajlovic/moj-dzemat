@@ -93,12 +93,24 @@ Useful focused commands:
 npm run architecture:check
 npm run docs:check
 npm run check
+npm run check:staged
+npm run check:push
 npm run knip
 npm run test:run
 npm run agent:smoke
 npm run test:e2e
 npm run test:pwa
 ```
+
+Pre-commit checks staged formatting and lint plus repository documentation and
+architecture. Pre-push runs full static checks, Knip, and unit/integration tests.
+`agent:verify` starts those checks, Storybook, runtime smoke, E2E, and production
+PWA checks together. It isolates static/unit/integration checks and each browser
+build in temporary source copies; Storybook tests and runtime smoke use the checkout.
+Static checks use bounded parallelism after route type generation. Run only one
+verification workflow per checkout; individually invoked commands still share
+generated types, builds, and the integration database. See
+[Commit Hygiene](CONTRIBUTING.md#commit-hygiene) for details.
 
 `npm run agent:gc` is report-only. It checks documentation, architecture,
 unused code, and abandoned runtime state without deleting or rewriting files.

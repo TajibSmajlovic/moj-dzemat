@@ -29,6 +29,9 @@ const cancellation = new AbortController();
 function cancel(signal: NodeJS.Signals): void {
   process.exitCode = signal === "SIGINT" ? 130 : 143;
   cancellation.abort(new Error(`Smoke check cancelled by ${signal}.`));
+  void browser?.close().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+  });
 }
 process.on("SIGINT", cancel);
 process.on("SIGTERM", cancel);
@@ -46,7 +49,9 @@ async function main(): Promise<void> {
   assert.equal(first.manifest.status, "ready");
   assert.equal(second.manifest.status, "ready");
 
-  browser = await chromium.launch();
+  // Playwright's signal handlers can exit before our detached runtimes are stopped.
+  browser = await chromium.launch({ handleSIGINT: false, handleSIGTERM: false });
+  cancellation.signal.throwIfAborted();
   console.log("[agent-smoke] cold public/admin interactions and WebSocket isolation");
   await inspectBrowser(first, false);
   await inspectBrowser(second, true);

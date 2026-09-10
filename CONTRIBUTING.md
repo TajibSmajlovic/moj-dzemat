@@ -76,6 +76,8 @@ the Playwright suite can drive the password-reset flow through
 `/dev/last-email`. Runtime access still depends on `ENABLE_TEST_ROUTES`, so the
 resulting artifact returns 404 for that route unless the server opts in as well.
 Never deploy it; production images build with plain `npm run build`.
+The test-only build omits and removes any previous `build/storybook` catalogue.
+Catalogue hosting is verified against the complete production build in the PWA suite.
 
 ## Local Environment
 
@@ -136,14 +138,16 @@ Important details:
 
 ### App
 
-| Command             | What it does                                                |
-| ------------------- | ----------------------------------------------------------- |
-| `npm run dev`       | Starts the local SSR dev server from `server/index.ts`.     |
-| `npm run build`     | Builds the production client and server bundles.            |
-| `npm run start`     | Starts the production build from `build/server-entry.mjs`.  |
-| `npm run check`     | Runs harness, typecheck, ESLint, and Prettier checks.       |
-| `npm run knip`      | Checks for unused files, exports, and dependencies.         |
-| `npm run pwa:icons` | Regenerates the committed PWA icons from `public/logo.png`. |
+| Command                | What it does                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`          | Starts the local SSR dev server from `server/index.ts`.                      |
+| `npm run build`        | Builds the production client and server bundles.                             |
+| `npm run start`        | Starts the production build from `build/server-entry.mjs`.                   |
+| `npm run check`        | Runs harness, typecheck, ESLint, and Prettier checks.                        |
+| `npm run check:staged` | Checks staged file formatting and lint, then documentation and architecture. |
+| `npm run check:push`   | Runs full static checks, Knip, and all unit/integration tests.               |
+| `npm run knip`         | Checks for unused files, exports, and dependencies.                          |
+| `npm run pwa:icons`    | Regenerates the committed PWA icons from `public/logo.png`.                  |
 
 ### Agent workflow
 
@@ -277,6 +281,8 @@ npx playwright install --with-deps chromium
 temporary SQLite database, seeds all browser fixtures, and refuses to reuse an
 existing server. Successful runs remove temporary state; failed local runs print
 the retained artifact path for diagnosis.
+This suite omits the static Storybook build; `npm run test:storybook` checks
+stories directly and `npm run test:pwa` builds and verifies the deployed catalogue.
 
 `npm run test:pwa` builds the production application, applies migrations to a
 temporary SQLite database, seeds deterministic published posts, and runs the
@@ -376,9 +382,7 @@ A few implementation details that help when debugging:
 Fast local verification before opening a PR:
 
 ```bash
-npm run check
-npm run knip
-npm run test:run
+npm run check:push
 npm run build
 ```
 
@@ -421,11 +425,48 @@ Run the authoritative final verification for an agent-driven change:
 npm run agent:verify
 ```
 
+After preparing temporary source copies, this starts five groups together:
+`check:push`, Storybook interaction/accessibility tests, runtime smoke, E2E, and
+production PWA tests. E2E and PWA each build their own application while the other
+groups run. No group waits for static checks to pass before starting.
+
+Static/unit/integration checks, E2E, and PWA run in separate temporary copies of
+the current working files, including staged, unstaged, and non-ignored untracked
+changes. Generated Prisma code and local `.env` files are copied too; local
+databases and previous build output are excluded. Installed dependencies are
+linked, while build output, route types, caches, and test databases remain separate.
+Storybook tests and runtime smoke stay in the checkout: they use separate caches,
+and only smoke generates route types there. This avoids changing the application's
+production build paths or copying the dependency installation.
+
+The command waits for every started group and fails if any group fails. On
+cancellation, browser tools and runtime smoke finish shutting down their owned
+servers before the temporary source copies are removed. Failed browser runs print
+their evidence locations; reports written inside a temporary copy are preserved
+under `test-results/verify/`. The source copies, including their `.env` files, are
+removed on both success and failure.
+
 If a check cannot run, record the exact skipped command and reason in the pull
 request. CI does not replace missing local verification evidence.
 
 ## Commit Hygiene
 
+- Pre-commit runs `npm run check:staged`: ESLint and Prettier inspect staged file
+  contents without modifying files, stashing changes, or updating the index.
+  They use the checkout's configuration and dependencies. TypeScript files also
+  trigger route type generation before typed lint. Documentation and architecture
+  checks still inspect the full working tree.
+- Pre-push runs `npm run check:push`: full repository formatting, lint, type,
+  documentation, architecture, unused-code, and unit/integration checks. Storybook,
+  runtime smoke, E2E, and production PWA checks run in `npm run agent:verify` and CI.
+- `npm run check`, `npm run check:push`, and `npm run typecheck` generate route types
+  first, then run at most two check processes at once. Individual test tools retain
+  their own worker settings. A failure stops queued checks and waits for active
+  checks to finish; cancellation stops the processes owned by the check runner.
+- Run one verification workflow at a time per checkout. `agent:verify` isolates its
+  groups for concurrent execution. Individually invoked commands still share
+  generated types, `build/`, and the integration SQLite database. Use separate
+  worktrees for simultaneous verification workflows.
 - Keep commits understandable and scoped.
 - Do not mix unrelated cleanup with behavior changes.
 - Do not commit generated local data, logs, uploaded test images, `.env`, or SQLite database files.
