@@ -14,6 +14,14 @@ processing, and Fly.io deployment.
 - Do not commit secrets, `.env` files, database files, session cookies, reset
   links, API keys, or production data.
 
+## Detailed guides
+
+| Guide                                                      | Use it for                                                                                 |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [Local development](docs/development/local-development.md) | Environment variables, database commands, dependency updates, and development-only routes. |
+| [Testing and verification](docs/development/testing.md)    | Test selection, fixtures, Git hooks, parallel checks, and failure artifacts.               |
+| [Agent runtime](docs/development/agent-runtime.md)         | Isolated servers, logs, browser inspection, and troubleshooting.                           |
+
 ## Local Setup
 
 Use Node `24.x` (`.nvmrc` is included), plus npm `11.18.0`.
@@ -42,80 +50,9 @@ Open [http://localhost:3000](http://localhost:3000).
 and React Router types. Client generation does not require `DATABASE_URL`, but
 database migration, seed, and application commands do.
 
-Install-script approvals in `package.json` are tied to exact package versions.
-After dependency updates, use `npm install-scripts ls` to review scripts and
-`npm explain <package>` to check why a package is present before changing its
-approval. Multiple versions of `fsevents` and `better-sqlite3` are intentional
-while their dependency parents require different releases; keep an approval for
-each installed version that needs its script.
-
-Known upstream Prisma advisories and the `prebuild-install` deprecation are
-tracked in
-[TD-003](docs/exec-plans/tech-debt-tracker.md#td-003-upstream-prisma-dependency-warnings).
-Keep these warnings visible until compatible upstream releases resolve them.
-
-### Development-only routes
-
-`ENABLE_TEST_ROUTES` and `OMIT_DEV_ROUTES` intentionally control different
-parts of the development-route lifecycle:
-
-- `ENABLE_TEST_ROUTES` is runtime configuration. Setting it to `true` allows
-  local and E2E access to `/dev/last-email`; otherwise its loader returns 404.
-- `OMIT_DEV_ROUTES` is an internal build-only flag. `npm run build` sets it to
-  `true` so React Router excludes `dev.last-email.tsx` from the production route
-  manifest and client/server bundles.
-
-Standalone React Router type generation leaves `OMIT_DEV_ROUTES` unset. It must
-see the route even when runtime access is disabled because TypeScript still
-checks the source file and its generated route types. Do not add
-`OMIT_DEV_ROUTES` to `.env`, deployment configuration, or secrets; use the
-repository's `npm run build` command for production builds.
-
-`npm run build:e2e` is the one exception. It passes `--include-dev-routes` so
-the Playwright suite can drive the password-reset flow through
-`/dev/last-email`. Runtime access still depends on `ENABLE_TEST_ROUTES`, so the
-resulting artifact returns 404 for that route unless the server opts in as well.
-Never deploy it; production images build with plain `npm run build`.
-The test-only build omits and removes any previous `build/storybook` catalogue.
-Catalogue hosting is verified against the complete production build in the PWA suite.
-
-## Local Environment
-
-The app reads runtime environment variables from
-[`app/server/env.server.ts`](app/server/env.server.ts). The template lives in
-[`.env.example`](.env.example).
-
-These are the variables that matter most for local development:
-
-| Variable                         | Local guidance                                                                                                                       |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `DATABASE_URL`                   | Keep the default unless you want the SQLite file somewhere other than `prisma/data.db`.                                              |
-| `ADMIN_SEED_EMAILS`              | Set this to your local admin email(s). `npm run db:seed` provisions only the user rows, not passwords.                               |
-| `SESSION_SECRET`                 | Replace the sample value. Can be comma-separated for key rotation; the first value signs, all values verify.                         |
-| `PASSWORD_RESET_SECRET`          | Replace the sample value. Same rotation rules as `SESSION_SECRET`.                                                                   |
-| `HONEYPOT_SECRET`                | Replace the sample value. Must be at least 16 characters.                                                                            |
-| `EMAIL_FROM`                     | Required even in local dev. Use a provider-compatible `From` value; keep the display name ASCII if your provider rejects diacritics. |
-| `APP_URL`                        | Keep `http://localhost:3000` unless you change the port or run through a tunnel/proxy.                                               |
-| `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email`. Leave `false` outside local/test work.                                  |
-| `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
-| `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
-| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                             |
-| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                            |
-| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
-| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |
-| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                             |
-| `YOUTUBE_CHANNEL_URL`            | Optional official YouTube channel URL. Header YouTube links are hidden when empty.                                                   |
-| `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.                 |
-| `PORT`                           | Defaults to `3000`.                                                                                                                  |
-
-Useful secret generator:
-
-```sh
-node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
-```
-
-Never enable `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`, or
-`DISABLE_RATE_LIMITING` in production.
+Before running with your own settings, review the
+[environment reference](docs/development/local-development.md#environment),
+including local secrets and email configuration.
 
 ## First Admin Login
 
@@ -136,176 +73,34 @@ Important details:
 
 ## Common Commands
 
-### App
+| Command               | What it does                                                     |
+| --------------------- | ---------------------------------------------------------------- |
+| `npm run dev`         | Starts the local SSR dev server.                                 |
+| `npm run build`       | Builds the production app and Storybook catalogue.               |
+| `npm run start`       | Starts the production build.                                     |
+| `npm run agent:start` | Starts an isolated app for browser inspection.                   |
+| `npm run storybook`   | Starts the component catalogue on port 6006.                     |
+| `npm run check`       | Checks documentation, architecture, types, lint, and formatting. |
+| `npm run test:run`    | Runs unit and integration tests once.                            |
+| `npm run pwa:icons`   | Regenerates committed PWA icons from `public/logo.png`.          |
 
-| Command                | What it does                                                                 |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `npm run dev`          | Starts the local SSR dev server from `server/index.ts`.                      |
-| `npm run build`        | Builds the production client and server bundles.                             |
-| `npm run start`        | Starts the production build from `build/server-entry.mjs`.                   |
-| `npm run check`        | Runs harness, typecheck, ESLint, and Prettier checks.                        |
-| `npm run check:staged` | Checks staged file formatting and lint, then documentation and architecture. |
-| `npm run check:push`   | Runs full static checks, Knip, and all unit/integration tests.               |
-| `npm run knip`         | Checks for unused files, exports, and dependencies.                          |
-| `npm run pwa:icons`    | Regenerates the committed PWA icons from `public/logo.png`.                  |
+## Verification
 
-### Agent workflow
+| When                     | Command                | Coverage                                                                                       |
+| ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Pre-commit               | `npm run check:staged` | Staged formatting and lint, plus repository documentation and architecture.                    |
+| Pre-push                 | `npm run check:push`   | Full static checks, Knip, and unit/integration tests.                                          |
+| Final agent verification | `npm run agent:verify` | Pre-push checks, Storybook, runtime smoke, E2E, and production PWA tests, running in parallel. |
 
-| Command                      | What it does                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `npm run agent:start`        | Starts an isolated app with its own port, database, cache, seed, log, and manifest.         |
-| `npm run agent:logs`         | Filters structured logs for the exact manifest passed with `--manifest`.                    |
-| `npm run agent:stop`         | Verifies runtime identity, stops its process, and removes only its temporary state.         |
-| `npm run agent:smoke`        | Checks cold browser interactions, parallel runtime isolation, logging, and startup cleanup. |
-| `npm run agent:verify`       | Runs the complete harness, static, test, E2E, and PWA verification.                         |
-| `npm run agent:gc`           | Reports documentation, architecture, unused-code, and stale-runtime findings.               |
-| `npm run architecture:check` | Enforces dependency boundaries with the TypeScript parser.                                  |
-| `npm run docs:check`         | Checks agent-critical local links, anchors, and documented npm scripts.                     |
-
-`npm run agent:start` prints an `AGENT_RUNTIME_MANIFEST` path before waiting for
-readiness. The manifest's status changes from `starting` to `ready`; wait for
-the ready message before browser inspection. Use the exact path for later commands:
-
-```bash
-npm run agent:logs -- --manifest /path/from/start/manifest.json --request-id request-123
-npm run agent:stop -- --manifest /path/from/start/manifest.json
-```
-
-The manifest contains process and local connection metadata but no secret values.
-Use a separate Git worktree for each parallel code change because build output is
-still shared within one checkout.
-
-Cancelling startup with `SIGINT` or `SIGTERM`, or reaching the readiness timeout,
-stops the owned child before deleting its temporary state. The readiness timeout
-defaults to 120 seconds; override it with `--timeout-ms <milliseconds>` when
-diagnosing startup. Use `--keep-state-on-failure` with `agent:start`, or
-`--keep-state` with `agent:stop`, to preserve evidence. A cleanup failure always
-retains state and reports its location.
-
-`npm run agent:smoke` uses the installed Playwright Chromium and runs as part of
-`agent:verify` and CI. It starts two fresh runtimes, exercises public and admin
-controls without a recovery reload, checks each Vite connection uses its own
-port, correlates a redacted request log, and verifies stop, cancellation, and
-readiness-failure cleanup. It uses fictional fixtures and omits external embeds.
-Successful runs remove artifacts; failures retain logs, browser evidence, and
-screenshots in the printed temporary directory, or `test-results/agent` in CI.
-
-#### Runtime inspection and troubleshooting
-
-`npm run agent:start` runs the development server with a fresh, isolated Vite
-cache. Vite scans root and route entries for dependencies before browser use;
-its WebSocket shares the runtime's HTTP port. The ready message means `/resources/healthcheck` and
-`/resources/readiness` responded successfully with the expected runtime identity.
-It does not confirm that browser dependencies have finished optimizing or that
-the page has hydrated.
-
-Follow the available browser tooling's instructions. If no browser integration
-is available, use the repository's installed Playwright and record that fallback
-in the verification evidence. Temporary inspection scripts and screenshots
-belong outside committed source; repeatable regression tests belong in the
-existing test suite.
-
-For browser inspection:
-
-1. Open the target route at the printed runtime URL and capture console errors
-   and failed requests from the first load.
-2. Confirm the expected page content and exercise a relevant control. Successful
-   HTTP responses, network idle, or a fixed delay alone do not prove hydration.
-   To verify hydration, exercise a control that requires client JavaScript, such
-   as theme switching. Native links and the `details` accordion can work before
-   hydration.
-3. If the first load reports Vite dependency optimization errors, inspect the
-   runtime's logs. `npm run agent:logs` reads the structured app log; Vite and
-   process output is in `process_log_path` from the same manifest. After
-   optimization finishes, reload once and repeat the interaction. Record both
-   attempts; a successful reload is diagnostic evidence, not proof that the
-   first-load failure is fixed or production is correct.
-4. If the error persists, investigate it before accepting the browser result.
-   Use the existing build-based `npm run test:e2e` suite for repeatable regression
-   checks, and `npm run test:pwa` for production PWA behavior.
-
-Before cleanup, preserve a redacted summary of failures, attempted recovery,
-interaction results, and screenshot or trace locations in the active plan or
-task handoff. `npm run agent:stop` normally deletes the runtime's logs and
-database. Keep unexplained failures marked unresolved even if a reload succeeds;
-verifying a cold-start fix requires repeating the failing route sequence in a
-fresh isolated runtime. Built-server tests do not exercise Vite optimization.
-
-Execution sandboxes may reject loopback listeners, Chromium startup, or process
-signals with errors such as `EPERM` or `Operation not permitted`. Check the failed
-operation before treating it as an application failure. Use the execution
-environment's permission mechanism for that exact operation, including
-`npm run agent:stop` with the original manifest when cleanup needs permission.
-Repository instructions do not grant host permissions. If the operation remains
-blocked, report the command and reason; do not switch to an unidentified server,
-disable checks, or kill processes by name or port.
-
-### Database
-
-| Command                     | What it does                                                                                                      |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `npm run db:migrate`        | Runs Prisma's development migration flow, then regenerates the client. Use this when changing the schema locally. |
-| `npm run db:migrate:deploy` | Applies committed migrations without creating new ones. Best for first local setup and production-style boots.    |
-| `npm run db:seed`           | Provisions admins from `ADMIN_SEED_EMAILS`.                                                                       |
-| `npm run db:setup`          | Runs the development migration flow, regenerates the client, and seeds the database.                              |
-| `npm run db:reset`          | Drops and recreates the local database, regenerates the client, then reruns seed.                                 |
-| `npm run db:studio`         | Opens Prisma Studio.                                                                                              |
-| `npm run db:generate`       | Regenerates Prisma client code.                                                                                   |
-| `npm run db:push`           | Pushes schema changes without a migration and regenerates the client. Useful for quick experiments only.          |
-
-### Tests
-
-| Command                                   | What it does                                     |
-| ----------------------------------------- | ------------------------------------------------ |
-| `npm run test:run`                        | Runs the Vitest suite once (unit + integration). |
-| `npm test -- --run --project unit`        | Runs only unit tests.                            |
-| `npm test -- --run --project integration` | Runs only integration tests.                     |
-| `npm run test:cov`                        | Runs Vitest with coverage.                       |
-| `npm run test:e2e`                        | Runs Playwright end-to-end tests.                |
-| `npm run test:e2e:ui`                     | Runs Playwright in headed mode.                  |
-| `npm run test:pwa`                        | Runs the isolated production PWA browser suite.  |
-
-Before your first e2e run, install the Playwright browser once:
-
-```bash
-npx playwright install chromium
-```
-
-On Linux CI or bare Linux machines you may need:
-
-```bash
-npx playwright install --with-deps chromium
-```
-
-`npm run test:e2e` builds the application, creates a dynamic loopback port and
-temporary SQLite database, seeds all browser fixtures, and refuses to reuse an
-existing server. Successful runs remove temporary state; failed local runs print
-the retained artifact path for diagnosis.
-This suite omits the static Storybook build; `npm run test:storybook` checks
-stories directly and `npm run test:pwa` builds and verifies the deployed catalogue.
-
-`npm run test:pwa` builds the production application, applies migrations to a
-temporary SQLite database, seeds deterministic published posts, and runs the
-focused Chromium suite against `npm start`. It uses production-safe runtime
-flags. Successful runs remove temporary state; failed local runs retain it and
-print its path for diagnosis, just like the main E2E runner.
-
-A successful retry uses a new temporary directory and does not clean a previous
-failed run. Preserve useful evidence, then remove only that run's exact retained
-directory after confirming its processes have stopped. These test directories
-have no agent runtime manifest; `npm run agent:stop` is for `agent:start` runs.
+Use focused checks while iterating. Run one verification workflow at a time per
+checkout; use separate worktrees for simultaneous workflows. The
+[testing guide](docs/development/testing.md) explains which tests to run,
+how parallel verification isolates its work, and where failures retain evidence.
 
 ## Branches
 
-Branch from `master` unless there is a clear reason not to.
-
-Use this branch format:
-
-```text
-<type>/<issue-id>_<short-description>
-```
-
-Examples:
+Branch from `master` unless there is a clear reason not to. Use
+`<type>/<issue-id>_<short-description>`, for example:
 
 ```text
 feat/123_add-admin-post-filters
@@ -313,15 +108,7 @@ fix/124_prevent-empty-image-upload
 docs/125_add-security-policy
 ```
 
-Common types:
-
-- `feat`
-- `fix`
-- `chore`
-- `docs`
-- `test`
-- `refactor`
-- `ci`
+Common types are `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, and `ci`.
 
 ## Development Guidelines
 
@@ -337,76 +124,18 @@ Common types:
 - Add migrations for schema changes and keep seeds idempotent.
 - Avoid broad refactors inside feature or bug-fix PRs.
 
-## Testing
-
-Choose tests based on the risk of the change:
-
-- Unit tests for pure helpers, formatting, validation, security checks, and small business rules.
-- Integration tests for Prisma, server actions, auth behavior, post visibility,
-  and database-backed flows.
-- Playwright e2e tests for public browsing, admin publishing, auth, routing, SEO,
-  uploads, editor flows, and visible UI behavior.
-
-Keep new tests under `tests/unit`, `tests/integration`, or `tests/e2e` unless
-there is a strong reason to colocate a tiny file-specific unit test next to
-source code. Group related unit and integration tests in a shallow domain
-subfolder such as `tests/unit/pwa` or `tests/integration/pwa`; keep one-off
-shared tests at the existing directory root.
-
-A few implementation details that help when debugging:
-
-- unit and integration tests run through Vitest projects
-- integration tests should use `tests/factories.ts` for database rows instead of
-  hand-written `prisma.create` setup when a factory exists
-- route integration tests should use `tests/helpers/route.ts` to call loaders
-  and actions, plus `tests/helpers/action-result.ts` for `data()`/`Response`
-  assertions
-- admin route tests can use `tests/helpers/auth.ts` to create an admin session
-- Playwright starts the app itself with a temporary database and dynamic port
-- Playwright automatically enables `ENABLE_TEST_ROUTES`, `HONEYPOT_SKIP_MIN_AGE`,
-  and `DISABLE_RATE_LIMITING`
-- `npm run test:e2e` builds first and serves that artifact under `NODE_ENV=test`.
-  `npm run dev` and `npm run agent:start` use the Vite dev server; its on-demand
-  dependencies are scanned up front, and `npm run agent:smoke` verifies cold
-  public and editor interactions without recovery reloads. See
-  [runtime inspection and troubleshooting](#runtime-inspection-and-troubleshooting)
-  for manual browser checks.
-- the main suite blocks service workers; `tests/e2e/pwa` owns that behaviour
-- the isolated production PWA e2e suite lives in `tests/e2e/pwa` and runs via
-  `npm run test:pwa`
-- e2e fixture definitions are aggregated by `tests/e2e/fixtures/index.ts`
-- e2e global setup reuses shared factories, then seeds a deterministic admin,
-  posts across all public post types, Q&A rows, one announcement, and important
-  dates
-
-Fast local verification before opening a PR:
-
-```bash
-npm run check:push
-npm run build
-```
-
-For an agent-driven change, use `npm run agent:verify` as the authoritative final
-command.
-
-Run `npm run test:e2e` for UI, routing, auth, editor, upload, or admin workflow changes.
-Run `npm run test:pwa` for changes to the manifest, service worker, offline
-shell, post snapshots, PWA build pipeline, or production PWA asset serving.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the system map and
+[dependency boundaries](docs/architecture/boundaries.md) before changing imports
+between features and shared code.
 
 ## Component catalogue
 
-Run `npm run storybook` for a standalone local catalogue on port 6006. It needs
-no app database or credentials. `npm run build:storybook` writes the static
-catalogue; normal application builds include it at `/storybook/` in the same
-Fly image. The public URL after deployment is
-`https://mojdzematdonjemostre.ba/storybook/`.
-
-Add stories for new reusable UI and meaningful component states. Use fictional
-fixtures, real components, and local browser effects. Run `npm run test:storybook`
-for interaction and accessibility checks in both themes. This check is included
-in CI and `npm run agent:verify`. Static hosting and worker coexistence checks
-run in `npm run test:pwa`. See the [authoring guide](stories/README.md) and
-[component coverage](stories/coverage.md) for examples and provider requirements.
+Run `npm run storybook` locally. Production builds serve the catalogue at
+`/storybook/`; its public URL after deployment is
+[mojdzematdonjemostre.ba/storybook/](https://mojdzematdonjemostre.ba/storybook/).
+Add stories for new reusable UI and meaningful states. The
+[authoring guide](stories/README.md) covers fixtures, providers, builds, hosting,
+and verification; update [component coverage](stories/coverage.md) when adding stories.
 
 ## Pull Requests
 
@@ -419,54 +148,12 @@ Before opening a PR:
 - explain skipped checks or known caveats
 - verify production-only safety for auth, email, test routes, rate limiting, and secrets
 
-Run the authoritative final verification for an agent-driven change:
-
-```bash
-npm run agent:verify
-```
-
-After preparing temporary source copies, this starts five groups together:
-`check:push`, Storybook interaction/accessibility tests, runtime smoke, E2E, and
-production PWA tests. E2E and PWA each build their own application while the other
-groups run. No group waits for static checks to pass before starting.
-
-Static/unit/integration checks, E2E, and PWA run in separate temporary copies of
-the current working files, including staged, unstaged, and non-ignored untracked
-changes. Generated Prisma code and local `.env` files are copied too; local
-databases and previous build output are excluded. Installed dependencies are
-linked, while build output, route types, caches, and test databases remain separate.
-Storybook tests and runtime smoke stay in the checkout: they use separate caches,
-and only smoke generates route types there. This avoids changing the application's
-production build paths or copying the dependency installation.
-
-The command waits for every started group and fails if any group fails. On
-cancellation, browser tools and runtime smoke finish shutting down their owned
-servers before the temporary source copies are removed. Failed browser runs print
-their evidence locations; reports written inside a temporary copy are preserved
-under `test-results/verify/`. The source copies, including their `.env` files, are
-removed on both success and failure.
-
-If a check cannot run, record the exact skipped command and reason in the pull
-request. CI does not replace missing local verification evidence.
+Use the [verification workflow](#verification) before declaring an agent-driven
+change complete. If a check cannot run, record the exact skipped command and
+reason in the pull request. CI does not replace missing local verification evidence.
 
 ## Commit Hygiene
 
-- Pre-commit runs `npm run check:staged`: ESLint and Prettier inspect staged file
-  contents without modifying files, stashing changes, or updating the index.
-  They use the checkout's configuration and dependencies. TypeScript files also
-  trigger route type generation before typed lint. Documentation and architecture
-  checks still inspect the full working tree.
-- Pre-push runs `npm run check:push`: full repository formatting, lint, type,
-  documentation, architecture, unused-code, and unit/integration checks. Storybook,
-  runtime smoke, E2E, and production PWA checks run in `npm run agent:verify` and CI.
-- `npm run check`, `npm run check:push`, and `npm run typecheck` generate route types
-  first, then run at most two check processes at once. Individual test tools retain
-  their own worker settings. A failure stops queued checks and waits for active
-  checks to finish; cancellation stops the processes owned by the check runner.
-- Run one verification workflow at a time per checkout. `agent:verify` isolates its
-  groups for concurrent execution. Individually invoked commands still share
-  generated types, `build/`, and the integration SQLite database. Use separate
-  worktrees for simultaneous verification workflows.
 - Keep commits understandable and scoped.
 - Do not mix unrelated cleanup with behavior changes.
 - Do not commit generated local data, logs, uploaded test images, `.env`, or SQLite database files.

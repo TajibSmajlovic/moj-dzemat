@@ -65,7 +65,7 @@ child before removing state; failed cleanup retains evidence. The readiness
 deadline defaults to 120 seconds and can be set with `--timeout-ms`. The
 `agent:smoke` command exercises cold browser interactions, concurrent runtime
 isolation, request-log redaction, and interrupted/failed startup cleanup. See
-[the agent workflow](../CONTRIBUTING.md#agent-workflow) for commands and artifacts.
+[the agent runtime guide](development/agent-runtime.md) for commands and artifacts.
 
 ## Observability
 

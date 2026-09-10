@@ -68,7 +68,7 @@ child and cleans its state. Do not kill processes by name or port. The stop
 command verifies the runtime identity before terminating anything.
 
 Readiness confirms server and database health, not browser hydration. Follow
-[runtime inspection and troubleshooting](CONTRIBUTING.md#runtime-inspection-and-troubleshooting)
+[runtime inspection and troubleshooting](docs/development/agent-runtime.md#runtime-inspection-and-troubleshooting)
 for first-load Vite errors, browser verification, and sandbox permission failures.
 
 `AGENT_RUN_ID`, `AGENT_LOG_PATH`, and `AGENT_STATE_DIR` are internal runtime
@@ -105,12 +105,10 @@ npm run test:pwa
 Pre-commit checks staged formatting and lint plus repository documentation and
 architecture. Pre-push runs full static checks, Knip, and unit/integration tests.
 `agent:verify` starts those checks, Storybook, runtime smoke, E2E, and production
-PWA checks together. It isolates static/unit/integration checks and each browser
-build in temporary source copies; Storybook tests and runtime smoke use the checkout.
-Static checks use bounded parallelism after route type generation. Run only one
-verification workflow per checkout; individually invoked commands still share
-generated types, builds, and the integration database. See
-[Commit Hygiene](CONTRIBUTING.md#commit-hygiene) for details.
+PWA checks together. Run only one verification workflow per checkout; use separate
+worktrees for simultaneous workflows. See the
+[testing guide](docs/development/testing.md) for Git hook behavior, test selection,
+parallel verification, isolation, and failure artifacts.
 
 `npm run agent:gc` is report-only. It checks documentation, architecture,
 unused code, and abandoned runtime state without deleting or rewriting files.
