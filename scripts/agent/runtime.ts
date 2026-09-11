@@ -1,5 +1,6 @@
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import crypto from "node:crypto";
+import { once } from "node:events";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -31,6 +32,7 @@ type RuntimeManifest = {
   log_path: string;
   process_log_path: string;
   started_at: string;
+  status?: "starting" | "ready";
 };
 
 type LogFilters = {
@@ -122,7 +124,11 @@ export function loadOwnedManifest(manifestPath: string): {
   return { manifest: checkedManifest, manifestPath: absoluteManifest };
 }
 
-async function startRuntime(options: { keepStateOnFailure: boolean }): Promise<void> {
+async function startRuntime(options: {
+  keepStateOnFailure: boolean;
+  signal: AbortSignal;
+  timeoutMs: number;
+}): Promise<void> {
   const statePath = fs.mkdtempSync(path.join(runtimeParent, runtimePrefix));
   const runId = `agent-${path.basename(statePath).slice(runtimePrefix.length)}`;
   const databasePath = path.join(statePath, "runtime.db");
@@ -145,18 +151,36 @@ async function startRuntime(options: { keepStateOnFailure: boolean }): Promise<v
       url,
     });
 
-    runStep(
-      "database migrations",
-      process.execPath,
-      [path.join(projectRoot, "node_modules", "prisma", "build", "index.js"), "migrate", "deploy"],
-      environment,
-    );
-    runStep(
-      "deterministic seed",
-      process.execPath,
-      ["--import", "tsx", path.join(projectRoot, "scripts", "agent", "seed.ts")],
-      environment,
-    );
+    const steps = [
+      [
+        "database migrations",
+        [
+          path.join(projectRoot, "node_modules", "prisma", "build", "index.js"),
+          "migrate",
+          "deploy",
+        ],
+      ],
+      [
+        "deterministic seed",
+        ["--import", "tsx", path.join(projectRoot, "scripts", "agent", "seed.ts")],
+      ],
+    ] as const;
+    for (const [name, args] of steps) {
+      options.signal.throwIfAborted();
+      console.log(`[agent-runtime] ${name}`);
+      child = spawn(process.execPath, args, {
+        cwd: projectRoot,
+        env: environment,
+        stdio: "inherit",
+        detached: process.platform !== "win32",
+      });
+      await once(child, "spawn", { signal: options.signal });
+      await once(child, "exit", { signal: options.signal });
+      const code = child.exitCode;
+      if (code !== 0) throw new Error(`${name} failed with code ${String(code)}.`);
+      child = null;
+    }
+    options.signal.throwIfAborted();
 
     const processLog = fs.openSync(processLogPath, "wx");
     child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
@@ -166,16 +190,15 @@ async function startRuntime(options: { keepStateOnFailure: boolean }): Promise<v
       stdio: ["ignore", processLog, processLog],
     });
     fs.closeSync(processLog);
-    child.unref();
+    await once(child, "spawn", { signal: options.signal });
 
     if (child.pid === undefined) {
       throw new Error("Agent runtime process started without a pid.");
     }
 
-    await waitForRuntime({ child, runId, url, timeoutMs: 120_000 });
-
     const manifest = {
       version: 1,
+      status: "starting",
       run_id: runId,
       url,
       pid: child.pid,
@@ -188,12 +211,31 @@ async function startRuntime(options: { keepStateOnFailure: boolean }): Promise<v
     };
     fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600 });
 
-    console.log(`Agent runtime ready at ${url}`);
     console.log(`AGENT_RUNTIME_MANIFEST=${manifestPath}`);
+    await waitForRuntime({
+      child,
+      runId,
+      url,
+      timeoutMs: options.timeoutMs,
+      signal: options.signal,
+    });
+    options.signal.throwIfAborted();
+    manifest.status = "ready";
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600 });
+    child.unref();
+
+    console.log(`Agent runtime ready at ${url}`);
     console.log(`Logs: npm run agent:logs -- --manifest ${manifestPath}`);
     console.log(`Stop: ${manifest.stop_command}`);
   } catch (error) {
-    if (child?.pid) terminateKnownChild(child.pid);
+    if (child?.pid && child.exitCode === null && child.signalCode === null) {
+      try {
+        await stopProcess(child.pid);
+      } catch (cleanupError) {
+        console.error(`Startup cleanup failed. State retained at ${statePath}`);
+        throw new AggregateError([error, cleanupError], "Runtime startup and cleanup failed.");
+      }
+    }
     printStartupFailureLogs(processLogPath, logPath);
     if (options.keepStateOnFailure) {
       console.error(`Startup state retained at ${statePath}`);
@@ -246,47 +288,33 @@ function runtimeEnvironment({
   };
 }
 
-function runStep(
-  name: string,
-  command: string,
-  args: readonly string[],
-  environment: NodeJS.ProcessEnv,
-): void {
-  console.log(`[agent-runtime] ${name}`);
-  const result = spawnSync(command, args, {
-    cwd: projectRoot,
-    env: environment,
-    stdio: "inherit",
-  });
-
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`${name} failed${result.signal ? ` with signal ${result.signal}` : ""}.`);
-  }
-}
-
 async function waitForRuntime({
   child,
   runId,
   url,
   timeoutMs,
+  signal,
 }: {
   child: ChildProcess;
   runId: string;
   url: string;
   timeoutMs: number;
+  signal: AbortSignal;
 }): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   let lastProblem = "server has not responded";
 
   while (Date.now() < deadline) {
-    if (child.exitCode !== null) {
-      throw new Error(`Server exited before readiness with code ${child.exitCode}.`);
+    signal.throwIfAborted();
+    if (child.exitCode !== null || child.signalCode !== null) {
+      throw new Error(`Server exited before readiness: ${child.signalCode ?? child.exitCode}.`);
     }
 
     try {
       for (const endpoint of ["/resources/healthcheck", "/resources/readiness"]) {
-        const response = await fetch(`${url}${endpoint}`, { signal: AbortSignal.timeout(2000) });
+        const response = await fetch(`${url}${endpoint}`, {
+          signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]),
+        });
         if (!response.ok) throw new Error(`${endpoint} returned ${response.status}`);
         if (response.headers.get("x-agent-run-id") !== runId) {
           throw new Error(`${endpoint} returned the wrong runtime identity`);
@@ -294,6 +322,7 @@ async function waitForRuntime({
       }
       return;
     } catch (error) {
+      signal.throwIfAborted();
       lastProblem = error instanceof Error ? error.message : String(error);
       await delay(250);
     }
@@ -314,15 +343,7 @@ async function stopRuntime(manifestPath: string, keepState: boolean): Promise<vo
       );
     }
 
-    terminateKnownChild(manifest.pid);
-    await waitForExit(manifest.pid, 10_000);
-    if (processIsAlive(manifest.pid)) {
-      terminateKnownChild(manifest.pid, "SIGKILL");
-      await waitForExit(manifest.pid, 2000);
-    }
-    if (processIsAlive(manifest.pid)) {
-      throw new Error(`Owned runtime pid ${manifest.pid} did not stop.`);
-    }
+    await stopProcess(manifest.pid);
   }
 
   if (keepState) {
@@ -342,6 +363,16 @@ async function runtimeIdentity(url: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function stopProcess(pid: number): Promise<void> {
+  terminateKnownChild(pid);
+  await waitForExit(pid, 10_000);
+  if (processIsAlive(pid)) {
+    terminateKnownChild(pid, "SIGKILL");
+    await waitForExit(pid, 2000);
+  }
+  if (processIsAlive(pid)) throw new Error(`Owned runtime pid ${pid} did not stop.`);
 }
 
 function terminateKnownChild(pid: number, signal: NodeJS.Signals = "SIGTERM"): void {
@@ -462,7 +493,26 @@ async function main(): Promise<void> {
   const { command, options } = parseArguments(process.argv.slice(2));
 
   if (command === "start") {
-    await startRuntime({ keepStateOnFailure: Boolean(options.keep_state_on_failure) });
+    const timeoutMs = Number(textOption(options.timeout_ms) ?? 120_000);
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
+      throw new Error("--timeout-ms must be a positive integer.");
+    const controller = new AbortController();
+    const cancel = (signal: NodeJS.Signals) => {
+      process.exitCode = signal === "SIGINT" ? 130 : 143;
+      controller.abort(new Error(`Runtime startup cancelled by ${signal}.`));
+    };
+    process.on("SIGINT", cancel);
+    process.on("SIGTERM", cancel);
+    try {
+      await startRuntime({
+        keepStateOnFailure: Boolean(options.keep_state_on_failure),
+        signal: controller.signal,
+        timeoutMs,
+      });
+    } finally {
+      process.off("SIGINT", cancel);
+      process.off("SIGTERM", cancel);
+    }
     return;
   }
   const manifestPath = textOption(options.manifest);
@@ -489,6 +539,6 @@ const entrypoint = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])
 if (entrypoint === import.meta.url) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
+    process.exitCode ??= 1;
   });
 }

@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { withoutCodeFences } from "./markdown";
+import { checkPlanMetadata } from "./plan-metadata";
+
 const requiredDocuments = [
   ".github/SECURITY.md",
   ".github/pull_request_template.md",
@@ -61,6 +64,7 @@ export function findAgentDocumentPaths(rootDir: string): string[] {
   }
   walk(path.join(rootDir, "docs"));
   walk(path.join(rootDir, ".github"));
+  walk(path.join(rootDir, "stories"));
 
   return [...documents];
 }
@@ -70,7 +74,7 @@ export function checkAgentDocs(
   documentPaths: readonly string[] = findAgentDocumentPaths(rootDir),
 ): DocsFinding[] {
   const findings: DocsFinding[] = [];
-  const incomingDocuments = new Set<string>();
+  const linksByDocument = new Map<string, Set<string>>();
   const checkedDocuments = new Set(documentPaths.map((documentPath) => toPosix(documentPath)));
   const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8")) as {
     scripts?: Record<string, string>;
@@ -90,7 +94,9 @@ export function checkAgentDocs(
     }
 
     const contents = fs.readFileSync(absoluteDocument, "utf8");
-    const links = markdownLinks(contents);
+    const links = markdownLinks(withoutCodeFences(contents));
+    const targets = new Set<string>();
+    linksByDocument.set(toPosix(documentPath), targets);
 
     for (const link of links) {
       if (isExternalLink(link.target)) continue;
@@ -121,10 +127,10 @@ export function checkAgentDocs(
       }
       const normalizedTarget = toPosix(relativeTarget);
       if (normalizedTarget !== toPosix(documentPath) && checkedDocuments.has(normalizedTarget)) {
-        incomingDocuments.add(normalizedTarget);
+        targets.add(normalizedTarget);
       }
       if (rawAnchor && fs.statSync(targetFile).isFile()) {
-        const anchors = markdownAnchors(fs.readFileSync(targetFile, "utf8"));
+        const anchors = markdownAnchors(withoutCodeFences(fs.readFileSync(targetFile, "utf8")));
         if (!anchors.has(rawAnchor.toLocaleLowerCase())) {
           findings.push({
             file: documentPath,
@@ -148,21 +154,59 @@ export function checkAgentDocs(
     }
   }
 
+  const reachable = new Set<string>();
+  const entry = checkedDocuments.has("AGENTS.md") ? "AGENTS.md" : "README.md";
+  const pending = [entry];
+  for (const document of pending) {
+    if (reachable.has(document)) continue;
+    reachable.add(document);
+    pending.push(...(linksByDocument.get(document) ?? []));
+  }
   for (const documentPath of documentPaths) {
-    const normalizedDocument = toPosix(documentPath);
-    if (!normalizedDocument.startsWith("docs/") || incomingDocuments.has(normalizedDocument))
+    const normalized = toPosix(documentPath);
+    if (!normalized.startsWith("docs/") || !fs.existsSync(path.join(rootDir, documentPath)))
       continue;
-    if (!fs.existsSync(path.join(rootDir, documentPath))) continue;
-
-    findings.push({
-      file: normalizedDocument,
-      line: 1,
-      kind: "orphan-document",
-      detail: "Document is not linked from another checked document.",
-    });
+    if (!reachable.has(normalized)) {
+      findings.push({
+        file: normalized,
+        line: 1,
+        kind: "orphan-document",
+        detail: `Document is not reachable from ${entry}. Link it from the owning index reached by the agent guide.`,
+      });
+    }
+    const index = indexFor(normalized);
+    if (index && checkedDocuments.has(index) && !linksByDocument.get(index)?.has(normalized)) {
+      findings.push({
+        file: normalized,
+        line: 1,
+        kind: "unindexed-document",
+        detail: `Add a direct Markdown link from ${index} to this durable document.`,
+      });
+    }
+    if (normalized.startsWith("docs/exec-plans/active/")) {
+      for (const finding of checkPlanMetadata(
+        fs.readFileSync(path.join(rootDir, documentPath), "utf8"),
+      ).findings) {
+        findings.push({
+          file: normalized,
+          line: 1,
+          kind: finding.kind,
+          detail: `${finding.impact} ${finding.fix}`,
+        });
+      }
+    }
   }
 
   return findings;
+}
+
+function indexFor(document: string): string | null {
+  if (document.startsWith("docs/design-docs/") && document !== "docs/design-docs/index.md")
+    return "docs/design-docs/index.md";
+  if (document.startsWith("docs/product-specs/") && document !== "docs/product-specs/index.md")
+    return "docs/product-specs/index.md";
+  if (/^docs\/exec-plans\/(?:active|completed)\//.test(document)) return "docs/PLANS.md";
+  return null;
 }
 
 function toPosix(value: string): string {

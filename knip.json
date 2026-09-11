@@ -9,14 +9,17 @@
     "scripts/agent/seed.ts",
     "scripts/pwa/seed-tests.ts",
     "tests/**/*.test.{ts,tsx}",
-    "tests/e2e/**/*.spec.ts"
+    "tests/e2e/**/*.spec.ts",
+    "stories/mocks/*.{ts,tsx}"
   ],
   "project": [
     "app/**/*.{ts,tsx,css}",
     "server/**/*.ts",
     "scripts/**/*.ts",
     "tests/**/*.{ts,tsx}",
-    "prisma/**/*.{ts,prisma}"
+    "prisma/**/*.{ts,prisma}",
+    "stories/**/*.{ts,tsx,mdx}",
+    ".storybook/*.{ts,tsx}"
   ],
   "ignoreDependencies": ["@prisma/client"]
 }

@@ -193,7 +193,7 @@ function PostFlags({ featured, pinned }: { featured: boolean; pinned: boolean })
   return (
     <>
       {featured ? (
-        <span className="bg-secondary/10 text-secondary inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
+        <span className="bg-secondary/10 text-gold-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
           <Star className="h-3 w-3 fill-current" aria-hidden="true" />
           Istaknuto
         </span>

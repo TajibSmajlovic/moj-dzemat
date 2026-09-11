@@ -214,7 +214,7 @@ export default tseslint.config(
   // Client code runs in the browser — add DOM globals only here so
   // server files don't silently accept `window`, `document`, etc.
   {
-    files: ["app/**/*.{ts,tsx}"],
+    files: ["app/**/*.{ts,tsx}", "stories/**/*.{ts,tsx}", ".storybook/preview.tsx"],
     ignores: ["app/**/*.server.ts", "app/**/*.server.tsx"],
     languageOptions: {
       globals: {

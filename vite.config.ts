@@ -9,4 +9,7 @@ export default defineConfig({
     ? path.join(process.env.AGENT_STATE_DIR, "vite-cache")
     : undefined,
   plugins: [tailwindcss(), reactRouter()],
+  // SSR has no index.html for Vite to crawl. Scan routes before the first
+  // browser visit so newly discovered dependencies do not invalidate that page.
+  optimizeDeps: { entries: ["app/root.tsx", "app/routes/**/*.{ts,tsx}"] },
 });

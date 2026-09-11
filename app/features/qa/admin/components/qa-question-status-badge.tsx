@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Eye, EyeOff, MessageCircle } from "lucide-react";
 
+import { Badge } from "#app/components/ui/badge";
 import type { AdminQuestionRow } from "#app/features/qa/qa.server";
 import { cn } from "#app/lib/cn";
 
@@ -14,7 +15,7 @@ export function QaQuestionStatusBadge({ question }: { question: AdminQuestionRow
     pending: {
       label: "Na čekanju",
       icon: <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />,
-      className: "bg-secondary/10 text-secondary",
+      className: "bg-secondary/10 text-gold-foreground",
     },
     answered: {
       label: "Odgovoreno",
@@ -30,14 +31,9 @@ export function QaQuestionStatusBadge({ question }: { question: AdminQuestionRow
   const config = statusMap[status];
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap",
-        config.className,
-      )}
-    >
+    <Badge className={cn(config.className)}>
       {config.icon}
       {config.label}
-    </span>
+    </Badge>
   );
 }

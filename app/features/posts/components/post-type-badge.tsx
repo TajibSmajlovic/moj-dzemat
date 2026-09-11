@@ -14,13 +14,12 @@ type PostTypeBadgeProps = {
  */
 const TYPE_STYLES: Record<PostTypeValue, string> = {
   obavijest: "bg-primary/10 text-primary dark:bg-primary/15 dark:text-primary",
-  smrtovnica: "bg-foreground/8 text-foreground/60 dark:bg-muted dark:text-muted-foreground",
+  smrtovnica: "bg-foreground/8 text-muted-foreground dark:bg-muted dark:text-muted-foreground",
   sergija:
     "bg-[hsl(var(--emerald-glow)/0.18)] text-[hsl(var(--emerald-deep))] dark:bg-[hsl(var(--emerald-glow)/0.22)]",
   hutba:
     "bg-secondary/15 text-[hsl(var(--gold-foreground))] dark:bg-secondary/20 dark:text-secondary",
-  price:
-    "bg-[hsl(24_45%_90%)] text-[hsl(24_45%_28%)] dark:bg-[hsl(24_38%_22%)] dark:text-[hsl(28_65%_78%)]",
+  price: "bg-story-background text-story-foreground",
 };
 
 /**
@@ -29,10 +28,10 @@ const TYPE_STYLES: Record<PostTypeValue, string> = {
  */
 const TYPE_OVERLAY: Record<PostTypeValue, string> = {
   obavijest: "text-primary dark:text-primary-foreground",
-  smrtovnica: "text-foreground/60 dark:text-primary-foreground/70",
+  smrtovnica: "text-muted-foreground dark:text-primary-foreground/70",
   sergija: "text-[hsl(var(--emerald-deep))] dark:text-primary-foreground",
   hutba: "text-[hsl(var(--gold-foreground))] dark:text-secondary-foreground",
-  price: "text-[hsl(24_45%_28%)] dark:text-[hsl(24_45%_28%)]",
+  price: "text-story-overlay-foreground",
 };
 
 export function PostTypeBadge({ type, className, variant = "default" }: PostTypeBadgeProps) {

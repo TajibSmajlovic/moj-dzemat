@@ -8,8 +8,8 @@ reporting instructions.
 
 - Public visitors may read published content and submit anonymous questions or
   Web Push subscription changes.
-- Only seeded admin accounts may authenticate. There is no public registration
-  or account-management surface.
+- Authentication uses database user accounts provisioned by the admin seed.
+  There is no public registration or account-management surface.
 - Every route, form, upload, environment variable, database read, email request,
   and push-service response is an untrusted boundary until validated.
 - Browser storage, service workers, email providers, push services, proxies, and
@@ -17,8 +17,11 @@ reporting instructions.
 
 ## Authentication and authorization
 
-- `ADMIN_SEED_EMAILS` provisions allowed admin identities. Seeded users choose a
-  first password through the password-reset flow.
+- `ADMIN_SEED_EMAILS` adds missing admin accounts; it is not checked as an
+  allowlist during login. Removing an email and rerunning the seed does not
+  remove the account, password, sessions, or reset access. Revocation requires
+  an explicit database account change. Seeded users choose a first password
+  through the password-reset flow.
 - Admin routes use the middleware in
   [`app/features/auth/admin-auth-middleware.server.ts`](../app/features/auth/admin-auth-middleware.server.ts).
   Do not rely on hidden UI for authorization.
@@ -40,6 +43,10 @@ reporting instructions.
 - Unknown and passwordless accounts perform a valid dummy bcrypt comparison at
   the same cost as password verification before returning the generic credential
   error. This avoids a fast failure caused by a missing password hash.
+
+New-password checks send only the first five characters of a SHA-1 password hash
+to Have I Been Pwned. The lookup has a two-second timeout and fails open when the
+service is unavailable; the local minimum-length requirement still applies.
 
 Admin state-changing forms rely on same-site cookies, the production
 `form-action 'self'` policy, and same-origin routes. Do not loosen cookie or CSP
@@ -68,8 +75,9 @@ test-only flags. Environment validation rejects them when enabled in production.
 - Each uploaded image is limited to 15 MiB, checked by content signature,
   decoded with Sharp, orientation-normalized, metadata-stripped, resized to a
   2000 pixel maximum edge, and re-encoded as WebP.
-- Post bodies are sanitized on write. Only the editor's supported tags,
-  text-alignment styles, and explicit `http`, `https`, or `mailto` links survive.
+- Post bodies are sanitized on write to the editor's supported tags and
+  text-alignment styles. Links may be relative or use `http`, `https`, or
+  `mailto`; protocol-relative URLs and other explicit schemes are rejected.
 - Public queries select only published posts and answered, non-hidden questions.
 - Resource loaders must enforce the same publication and authorization rules as
   the page that references the resource.
@@ -99,6 +107,11 @@ Express applies baseline response headers to static assets, SSR, resource
 routes, and errors. Production adds HSTS and a restrictive CSP. The app disables
 the Express signature, redirects non-canonical production hosts, and never
 returns middleware stack traces to the client.
+
+The static `/storybook/` catalogue has its own CSP and permits same-origin
+framing through `X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`.
+App and admin responses retain `DENY` and `frame-ancestors 'none'`. See the
+[catalogue production policy](../stories/README.md#production-behavior).
 
 Production configuration and secrets live outside the repository. Do not deploy
 an E2E build, enable development routes, weaken TLS or canonical-host behavior,

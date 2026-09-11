@@ -14,9 +14,11 @@ continue to use the normal website.
 The normal worker caches only the self-contained offline shell. It does not
 cache SSR documents, React Router `.data` responses, route-specific responses,
 application assets, uploaded media, or cross-origin content. If a same-origin
-document navigation fails, the generic offline shell may be returned for any
-route, but admin, authentication, form, Q&A, announcement, and contact content
-is never stored for offline rendering.
+document navigation handled by the worker fails, it may return the generic
+offline shell. Resource paths, range requests, `/storybook`, and everything
+under `/storybook/` are excluded from navigation handling. The catalogue is not
+available offline. Admin, authentication, form, Q&A, announcement, and contact
+content is never stored for offline rendering.
 
 After a published post renders successfully, the browser may retain a
 normalized snapshot containing its public title, sanitized body markup, type,
@@ -56,8 +58,9 @@ an email-triggering form and must never use production credentials.
 Before deploying:
 
 1. Run the authoritative `npm run agent:verify` command.
-2. Confirm `build/client/sw.js` is the normal worker and does not contain
-   `skipWaiting`.
+2. Run `npm run build`, then confirm `build/client/sw.js` is the normal worker
+   and does not contain `skipWaiting`. Verification builds in temporary source
+   copies and does not refresh the checkout's `build/` directory.
 3. Exercise the recovery build locally as described below, then run
    `npm run build` again to restore the normal artifact.
 4. Deploy with the default Docker build:

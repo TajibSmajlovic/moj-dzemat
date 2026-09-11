@@ -5,8 +5,10 @@ import compression from "compression";
 import express from "express";
 import crypto from "node:crypto";
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import type { ViteDevServer } from "vite";
 
 import { pwaAssetHeaders } from "../app/features/pwa/pwa-assets.server";
 import { PWA_OFFLINE_SHELL_PATH, PWA_SERVICE_WORKER_PATH } from "../app/features/pwa/pwa-config";
@@ -16,6 +18,7 @@ import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
 import { logger } from "../app/server/logger.server";
 import { clientIpFromHeaders, staticFileLimiter } from "../app/server/rate-limit.server";
 import { securityHeaders } from "../app/server/security.server";
+import { storybookRouter } from "./storybook.server";
 
 // Attach a request-scoped child logger to every Express request. Declared
 // once here so downstream middleware and the Express error handler can read
@@ -32,11 +35,8 @@ declare module "express-serve-static-core" {
 
 const { AGENT_RUN_ID, APP_URL, NODE_ENV, PORT } = env();
 const isProd = NODE_ENV === "production";
-// Vite's dev server exists for `npm run dev` only. Every other environment,
-// including the `test` environment Playwright drives, serves the prebuilt
-// bundle. Test runs therefore exercise the same assets and module graph as
-// production rather than paying for on-demand dependency optimisation, which
-// reloads the page mid-test the first time a heavy route is opened.
+// Build-based tests must exercise the production module graph. Developer and
+// isolated agent runtimes use Vite so source edits remain inspectable.
 const useViteDevServer = NODE_ENV === "development";
 const serverBuildPath = path.join(process.cwd(), "build", "server", "index.js");
 // Express owns liveness directly; readiness is a registered React Router resource route.
@@ -68,8 +68,10 @@ function rateLimitStaticFiles(
   res.status(429).send("Too many requests");
 }
 
-async function createServer(): Promise<express.Express> {
+async function createServer(): Promise<{ server: http.Server; viteDevServer?: ViteDevServer }> {
   const app = express();
+  const server = http.createServer(app);
+  let viteDevServer: ViteDevServer | undefined;
   app.disable("x-powered-by");
   app.set("trust proxy", true);
 
@@ -185,11 +187,12 @@ async function createServer(): Promise<express.Express> {
 
   if (useViteDevServer) {
     const vite = await import("vite");
-    const viteDevServer = await vite.createServer({
+    viteDevServer = await vite.createServer({
       server: {
         middlewareMode: true,
-        // Agent runs use explicit browser reloads and do not own a Vite HMR socket.
-        ...(AGENT_RUN_ID ? { hmr: false } : {}),
+        // Keep Vite's browser connection on the run-owned HTTP port. HMR can
+        // stay disabled without leaving the client connected to a shared socket.
+        ...(AGENT_RUN_ID ? { hmr: false, ws: { server } } : {}),
       },
       appType: "custom",
     });
@@ -198,7 +201,7 @@ async function createServer(): Promise<express.Express> {
       "/{*splat}",
       createRequestHandler({
         build: () =>
-          viteDevServer.ssrLoadModule(
+          viteDevServer!.ssrLoadModule(
             "virtual:react-router/server-build",
           ) as unknown as Promise<ServerBuild>,
         mode: "development",
@@ -210,6 +213,8 @@ async function createServer(): Promise<express.Express> {
         `Missing ${serverBuildPath}. Run \`npm run build\` before starting the server with NODE_ENV=${NODE_ENV}.`,
       );
     }
+
+    app.use(/^\/storybook(?=\/|$)/, storybookRouter());
 
     // React Router's production assets live under `build/client`. Assets
     // are fingerprinted so we can set aggressive caching; HTML/other
@@ -263,35 +268,41 @@ async function createServer(): Promise<express.Express> {
     },
   );
 
-  return app;
+  return { server, viteDevServer };
 }
 
 async function startServer(): Promise<void> {
-  const app = await createServer();
-  const server = app.listen(PORT, () => {
+  const { server, viteDevServer } = await createServer();
+  server.listen(PORT, () => {
     logger.info({ port: PORT, env: NODE_ENV }, "server ready");
   });
 
   let shuttingDown = false;
 
-  function shutdown(signal: NodeJS.Signals) {
+  async function shutdown(signal: NodeJS.Signals) {
     if (shuttingDown) return;
     shuttingDown = true;
-
     logger.info({ signal }, "server shutdown started");
-    server.close((error) => {
-      if (error) {
-        logger.error({ err: error, signal }, "server shutdown failed");
-        process.exit(1);
-      }
-
+    try {
+      // Upgraded WebSockets would otherwise keep the HTTP close callback waiting.
+      await viteDevServer?.close();
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
       logger.info({ signal }, "server shutdown completed");
       process.exit(0);
-    });
+    } catch (error) {
+      logger.error({ err: error, signal }, "server shutdown failed");
+      process.exit(1);
+    }
   }
 
-  process.once("SIGTERM", () => shutdown("SIGTERM"));
-  process.once("SIGINT", () => shutdown("SIGINT"));
+  process.once("SIGTERM", () => {
+    void shutdown("SIGTERM");
+  });
+  process.once("SIGINT", () => {
+    void shutdown("SIGINT");
+  });
 }
 
 startServer().catch((error: unknown) => {

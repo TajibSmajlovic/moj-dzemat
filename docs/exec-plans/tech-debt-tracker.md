@@ -18,6 +18,9 @@ tracker.
 
 Status: accepted pending upstream releases.
 
+Rechecked with `npm audit --json` on 2026-09-11: four high-severity entries
+remain in `deepmerge-ts`, `mysql2`, `@prisma/config`, and `prisma`.
+
 Prisma 7.10.0 pins deepmerge-ts 7.1.5 and mysql2 3.15.3, which retain npm audit
 findings. The application uses SQLite and a checked-in Prisma configuration;
 it does not accept MySQL connections or public configuration objects. This

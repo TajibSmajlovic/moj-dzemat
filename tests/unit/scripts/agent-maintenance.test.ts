@@ -41,7 +41,7 @@ describe("active execution plan maintenance", () => {
   const now = new Date("2026-08-16T12:00:00.000Z");
 
   it("accepts a fresh active plan", () => {
-    const root = fixturePlan("# Plan\n\nStatus: active\nUpdated: 2026-08-16\n");
+    const root = fixturePlan("# Plan\n\nOwner: maintainer\nStatus: active\nUpdated: 2026-08-16\n");
 
     expect(maintenance.checkActivePlans(root, now)).toEqual([]);
   });
@@ -51,7 +51,7 @@ describe("active execution plan maintenance", () => {
   });
 
   it("reports stale active plans", () => {
-    const root = fixturePlan("# Plan\n\nStatus: active\nUpdated: 2026-07-31\n");
+    const root = fixturePlan("# Plan\n\nOwner: maintainer\nStatus: active\nUpdated: 2026-07-31\n");
     const [finding] = maintenance.checkActivePlans(root, now);
 
     expect(finding?.kind).toBe("stale-active-plan");
@@ -63,6 +63,18 @@ describe("active execution plan maintenance", () => {
 
     expect(findings.map((finding) => finding.kind)).toEqual([
       "invalid-active-plan-status",
+      "missing-active-plan-owner",
+      "missing-active-plan-date",
+    ]);
+  });
+
+  it("does not accept fenced examples as the active plan's metadata", () => {
+    const root = fixturePlan(
+      "# Plan\n```text\nStatus: active\nOwner: maintainer\nUpdated: 2026-08-16\n```\n",
+    );
+    expect(maintenance.checkActivePlans(root, now).map((finding) => finding.kind)).toEqual([
+      "invalid-active-plan-status",
+      "missing-active-plan-owner",
       "missing-active-plan-date",
     ]);
   });

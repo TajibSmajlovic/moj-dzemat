@@ -25,6 +25,13 @@ Small, atomic changes do not need a plan.
 Create the `active/` directory only when an active plan exists. Empty
 directories and placeholder plans are not retained.
 
+When creating a plan, add a Markdown link under this page's Active plans section
+in the same change. Run `npm run docs:check` to verify links, anchors, documented
+npm scripts, and active-plan metadata. Every document under `docs/` must be
+reachable by links from `AGENTS.md`. Design documents, product specifications,
+and execution plans also require a direct link from their designated index;
+links between otherwise disconnected documents do not make them discoverable.
+
 ## Required active-plan shape
 
 Start every active plan with:
@@ -42,9 +49,11 @@ current status, decisions and reasons, unexpected findings, validation
 evidence, recovery, and remaining work. Use facts and exact commands. Do not
 copy a task transcript.
 
-Update `Updated` after every meaningful work session. `npm run agent:gc` reports
-an active plan when the date is missing or invalid, or when it is more than 14
-calendar days old.
+Update `Updated` after every meaningful work session. `npm run docs:check`
+requires active status, a nonempty owner, and a real calendar date. These
+structural checks run in verification and CI. `npm run agent:gc` additionally
+reports future dates and plans more than 14 calendar days old; age alone does
+not fail CI.
 
 ## Completing a plan
 
@@ -54,12 +63,23 @@ When every acceptance criterion has evidence:
 2. Replace milestone state with the actual result.
 3. Record exact verification results and remaining limitations.
 4. Move the file from `active/` to `completed/` without staging it.
-5. Update the tech-debt tracker for accepted limitations that still require
+5. Move its index entry from Active plans to Completed plans on this page,
+   update any other links to its old path, and run `npm run docs:check`.
+6. Update the tech-debt tracker for accepted limitations that still require
    future work.
 
 Do not mark a plan complete because time or context ran out.
 
+## Active plans
+
 ## Completed plans
 
+Completed plans are dated historical records. Their starting state, test counts,
+and completion-time branch or deployment status describe that work session.
+Use the maintained guides linked from [AGENTS.md](../AGENTS.md) for current
+behavior and commands, and the [debt tracker](exec-plans/tech-debt-tracker.md) for
+unresolved limitations.
+
+- [Public Storybook component catalogue](exec-plans/completed/2026-09-09-storybook-component-catalogue.md)
 - [Maintenance, authentication, accessibility, and server rendering](exec-plans/completed/2026-09-08-maintenance-and-accessibility.md)
 - [Agent knowledge system](exec-plans/completed/2026-08-16-agent-knowledge-system.md)

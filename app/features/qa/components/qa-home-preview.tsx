@@ -19,7 +19,7 @@ export function QaHomePreview({ questions }: QaHomePreviewProps) {
     >
       <div className="grid gap-6 lg:grid-cols-[0.9fr_2fr] lg:gap-8">
         <div className="space-y-3">
-          <p className="text-secondary text-xs font-semibold tracking-[0.14em] uppercase">
+          <p className="text-gold-foreground text-xs font-semibold tracking-[0.14em] uppercase">
             Odgovori na vaša pitanja
           </p>
           <h2

@@ -4,7 +4,13 @@
   // type-checked by `tsconfig.server.json` so their `process`/node globals
   // don't bleed into browser bundles. React Router strips `.server.ts`
   // imports from the client bundle at build time.
-  "include": ["app/**/*", "tests/**/*", ".react-router/types/**/*"],
+  "include": [
+    "app/**/*",
+    "tests/**/*",
+    "stories/**/*",
+    ".storybook/preview.tsx",
+    ".react-router/types/**/*"
+  ],
   "exclude": [
     "node_modules",
     "build",

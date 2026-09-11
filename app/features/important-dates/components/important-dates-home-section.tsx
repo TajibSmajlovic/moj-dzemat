@@ -18,7 +18,7 @@ export function ImportantDatesHomeSection({ dates }: Props) {
     >
       <div className="grid gap-6 lg:grid-cols-[0.9fr_2fr] lg:gap-8">
         <div className="space-y-3">
-          <p className="text-secondary text-xs font-semibold tracking-[0.14em] uppercase">
+          <p className="text-gold-foreground text-xs font-semibold tracking-[0.14em] uppercase">
             Nadolazeći datumi
           </p>
           <h2
@@ -53,7 +53,7 @@ function ImportantDateRow({ entry }: { entry: PublicImportantDate }) {
           dateTime={ymd}
           className="bg-primary/10 flex w-16 shrink-0 flex-col items-center rounded-lg px-2 py-2 text-center"
         >
-          <span className="text-secondary text-[0.65rem] font-semibold tracking-[0.12em] uppercase">
+          <span className="text-gold-foreground text-[0.65rem] font-semibold tracking-[0.12em] uppercase">
             {badge.month}
           </span>
           <span className="text-primary text-2xl leading-none font-bold tabular-nums">

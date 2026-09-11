@@ -30,7 +30,7 @@
   --primary-foreground: 40 33% 97%;
 
   --secondary: 38 60% 55%;
-  --secondary-foreground: 40 33% 97%;
+  --secondary-foreground: 38 50% 20%;
 
   --muted: 40 20% 92%;
   --muted-foreground: 160 12% 38%;
@@ -38,7 +38,7 @@
   --accent: 162 40% 90%;
   --accent-foreground: 162 63% 22%;
 
-  --destructive: 0 72% 51%;
+  --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 100%;
 
   --border: 40 20% 88%;
@@ -55,6 +55,10 @@
   --emerald-glow: 162 50% 40%;
   --cream: 40 33% 97%;
   --cream-dark: 40 20% 92%;
+  --story-background: 24 45% 90%;
+  --story-foreground: 24 45% 28%;
+  --story-overlay-foreground: 24 45% 28%;
+  --featured-background: 162 63% 28%;
   --lightbox: 164 72% 3%;
   --lightbox-foreground: 42 36% 96%;
 
@@ -97,7 +101,7 @@
   --accent: 160 34% 18%;
   --accent-foreground: 42 34% 90%;
 
-  --destructive: 2 70% 61%;
+  --destructive: 2 70% 66%;
   --destructive-foreground: 42 36% 96%;
 
   --border: 160 18% 24%;
@@ -111,6 +115,10 @@
   --emerald-glow: 158 55% 43%;
   --cream: 164 42% 7%;
   --cream-dark: 164 34% 11%;
+  --story-background: 24 38% 22%;
+  --story-foreground: 28 65% 78%;
+  --story-overlay-foreground: 24 45% 28%;
+  --featured-background: 162 63% 28%;
   --lightbox: 164 72% 3%;
   --lightbox-foreground: 42 36% 96%;
 
@@ -125,6 +133,10 @@
 /* Register the semantic tokens with Tailwind v4 so utility classes such as
    `bg-background`, `text-primary`, `border-border`, `font-display` exist. */
 @theme inline {
+  --color-story-background: hsl(var(--story-background));
+  --color-story-foreground: hsl(var(--story-foreground));
+  --color-story-overlay-foreground: hsl(var(--story-overlay-foreground));
+  --color-featured-background: hsl(var(--featured-background));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
 

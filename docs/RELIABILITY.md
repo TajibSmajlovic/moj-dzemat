@@ -8,11 +8,16 @@ not a horizontally scalable design.
 
 ```text
 Fly proxy
-  -> LiteFS proxy and FUSE mount
-  -> Express and React Router
+  -> Express on port 3000 and React Router
   -> Prisma with better-sqlite3
-  -> SQLite data.db on the Fly volume
+  -> SQLite /litefs/data.db through the LiteFS FUSE mount
+  -> Fly volume at /var/lib/litefs
 ```
+
+`fly.toml` routes HTTP traffic directly to Express. The LiteFS HTTP proxy is
+configured on port 20203 but is not in that traffic path. Fly may suspend the
+Machine when idle and resume it on a request; no Machine is configured to stay
+running continuously.
 
 The static LiteFS lease, process-local caches and rate limits, and in-process
 Web Push dispatcher all assume a single application process. Before adding a
@@ -55,9 +60,17 @@ correct content when SQLite is unavailable.
 - The service worker is an optional enhancement. Normal routing remains
   network-first, and the dedicated cleanup-worker procedure lives in
   [the PWA recovery guide](design-docs/pwa-runtime-and-recovery.md).
-- Agent runtimes own separate ports, SQLite files, Vite caches, logs, and
-  manifests. E2E runs own separate ports, SQLite files, and test-output
+- Agent runtimes own separate ports (including Vite WebSocket connections),
+  SQLite files, Vite caches, logs, and manifests. E2E runs own separate ports, SQLite files, and test-output
   directories, so neither mutates the normal developer database.
+
+An agent startup writes its manifest before waiting for health and database
+readiness, then marks it ready. Startup cancellation or failure stops the owned
+child before removing state; failed cleanup retains evidence. The readiness
+deadline defaults to 120 seconds and can be set with `--timeout-ms`. The
+`agent:smoke` command exercises cold browser interactions, concurrent runtime
+isolation, request-log redaction, and interrupted/failed startup cleanup. See
+[the agent runtime guide](development/agent-runtime.md) for commands and artifacts.
 
 ## Observability
 

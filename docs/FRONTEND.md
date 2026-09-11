@@ -100,3 +100,20 @@ answer during hydration. Use opacity checks through content ancestors as well as
 visibility assertions; Playwright considers zero-opacity elements visible.
 `tests/e2e/kontakt.spec.ts` also checks populated contact and payment sections
 without JavaScript.
+
+## Component stories
+
+The public catalogue lives at `/storybook/` in production and on port 6006 via
+`npm run storybook` locally. It reuses the app CSS, bundled fonts and components.
+The preview supplies a memory router and narrowly mocked browser effects, so
+examples do not depend on app credentials or change real settings.
+
+New reusable UI and meaningful states should gain a story. Follow the
+[authoring guide](../stories/README.md) and update the
+[coverage matrix](../stories/coverage.md). Use `FieldFrame` through the shared
+field wrappers to preserve labels and external descriptions. Keep status labels
+in their features and use `Badge` for shared pill presentation.
+
+`npm run test:storybook` runs interaction and accessibility checks in both
+light and dark themes. Production URL, header, asset and worker behavior is
+covered by `npm run test:pwa`; both are part of `npm run agent:verify`.

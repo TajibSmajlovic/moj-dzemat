@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
+
+import { runTasks } from "./checks/runner";
 
 const projectRoot = path.resolve(import.meta.dirname, "..");
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-e2e-tests-"));
@@ -29,17 +30,18 @@ try {
     TZ: "Europe/Sarajevo",
   };
 
-  run("e2e production build", "npm", ["run", "build:e2e"], environment);
-  run(
+  await run("e2e production build", "npm", ["run", "build:e2e"], environment);
+  await run(
     "isolated browser suite",
-    "npx",
-    ["playwright", "test", ...process.argv.slice(2)],
+    process.execPath,
+    ["node_modules/@playwright/test/cli.js", "test", ...process.argv.slice(2)],
     environment,
+    true,
   );
   succeeded = true;
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
+  process.exitCode ??= 1;
 } finally {
   if (succeeded || process.env.CI) {
     fs.rmSync(temporaryDirectory, { force: true, recursive: true });
@@ -48,24 +50,17 @@ try {
   }
 }
 
-function run(
+async function run(
   stepName: string,
   command: string,
   args: readonly string[],
   environment: NodeJS.ProcessEnv,
-): void {
+  graceful = false,
+): Promise<void> {
   console.log(`[e2e] ${stepName}`);
-  const result = spawnSync(command, args, {
-    cwd: projectRoot,
-    env: environment,
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
-
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`${stepName} failed${result.signal ? ` with signal ${result.signal}` : ""}.`);
-  }
+  await runTasks([
+    { name: stepName, command, args: [...args], cwd: projectRoot, env: environment, graceful },
+  ]);
 }
 
 function reserveLoopbackPort(): Promise<number> {

@@ -7,6 +7,8 @@ There is no public registration or role hierarchy.
 
 - Admin identities are provisioned from `ADMIN_SEED_EMAILS` by the idempotent
   seed. A seeded user may exist without a password until the reset flow is used.
+  Removing an email from the seed configuration does not revoke an existing
+  account; access follows the database account and session state.
 - Login accepts email and password, applies honeypot and rate-limit checks, and
   returns the same credential error regardless of which credential was wrong.
 - Forgot-password returns the same visible result for known and unknown email

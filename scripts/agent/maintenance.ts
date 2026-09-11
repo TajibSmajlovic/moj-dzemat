@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { checkPlanMetadata } from "../checks/plan-metadata";
 import { loadOwnedManifest } from "./runtime";
 
 const projectRoot = path.resolve(import.meta.dirname, "../..");
@@ -31,36 +32,10 @@ export function checkActivePlans(rootDir: string, now = new Date()): PlanFinding
     const relativePath = path.relative(rootDir, absolutePath);
     const contents = fs.readFileSync(absolutePath, "utf8");
 
-    if (!/^Status:\s*active\s*$/mu.test(contents)) {
-      findings.push({
-        kind: "invalid-active-plan-status",
-        file: relativePath,
-        impact: "Active-plan ownership and completion state are ambiguous.",
-        fix: "Add an exact `Status: active` line or move a completed plan to completed/.",
-      });
-    }
-
-    const updated = /^Updated:\s*(\d{4}-\d{2}-\d{2})\s*$/mu.exec(contents)?.[1];
-    if (!updated) {
-      findings.push({
-        kind: "missing-active-plan-date",
-        file: relativePath,
-        impact: "Plan freshness cannot be determined.",
-        fix: "Add `Updated: YYYY-MM-DD` and refresh it after meaningful work sessions.",
-      });
-      continue;
-    }
-
-    const updatedAt = new Date(`${updated}T00:00:00.000Z`);
-    if (Number.isNaN(updatedAt.getTime()) || updatedAt.toISOString().slice(0, 10) !== updated) {
-      findings.push({
-        kind: "invalid-active-plan-date",
-        file: relativePath,
-        impact: `The Updated date is not a real calendar date: ${updated}.`,
-        fix: "Use a real UTC calendar date in YYYY-MM-DD form.",
-      });
-      continue;
-    }
+    const metadata = checkPlanMetadata(contents);
+    findings.push(...metadata.findings.map((finding) => ({ ...finding, file: relativePath })));
+    if (!metadata.updated) continue;
+    const updatedAt = new Date(`${metadata.updated}T00:00:00.000Z`);
 
     const ageDays = Math.floor((today - updatedAt.getTime()) / DAY_MS);
     if (ageDays < 0) {
@@ -74,7 +49,7 @@ export function checkActivePlans(rootDir: string, now = new Date()): PlanFinding
       findings.push({
         kind: "stale-active-plan",
         file: relativePath,
-        impact: `The plan has not been updated for ${ageDays} days.`,
+        impact: `Status: active; Updated: ${metadata.updated}; age: ${ageDays} days; limit: ${ACTIVE_PLAN_MAX_AGE_DAYS} days. The recorded work state may be stale.`,
         fix: "Verify the work state, update the plan, or complete and move it to completed/.",
       });
     }

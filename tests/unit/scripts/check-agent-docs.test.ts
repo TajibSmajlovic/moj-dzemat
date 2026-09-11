@@ -69,12 +69,13 @@ describe("agent documentation checker", () => {
     expect(finding?.detail).toContain("agent:verify");
   });
 
-  it("discovers Markdown documents at the root and under docs and .github", () => {
+  it("discovers Markdown documents at the root and under docs, .github, and stories", () => {
     const root = fixture({
       "package.json": JSON.stringify({ scripts: {} }),
       "NOTES.md": "# Notes\n",
       "docs/nested/new-guide.md": "# New guide\n",
       ".github/ISSUE_TEMPLATE/bug_report.md": "# Bug report\n",
+      "stories/nested/README.md": "# Story guide\n",
     });
 
     expect(docs.findAgentDocumentPaths(root)).toEqual(
@@ -82,6 +83,22 @@ describe("agent documentation checker", () => {
         "NOTES.md",
         "docs/nested/new-guide.md",
         ".github/ISSUE_TEMPLATE/bug_report.md",
+        "stories/nested/README.md",
+      ]),
+    );
+  });
+
+  it("reports broken links and missing npm commands in discovered Storybook guides", () => {
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "stories/README.md": "See [missing](missing.md).\n",
+      "stories/nested/guide.md": "Run `npm run missing-story-check`.\n",
+    });
+
+    expect(docs.checkAgentDocs(root)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ file: "stories/README.md", kind: "broken-link" }),
+        expect.objectContaining({ file: "stories/nested/guide.md", kind: "missing-script" }),
       ]),
     );
   });
@@ -102,5 +119,79 @@ describe("agent documentation checker", () => {
     expect(findings).not.toContainEqual(
       expect.objectContaining({ file: "docs/linked.md", kind: "orphan-document" }),
     );
+  });
+  it("rejects a disconnected document cycle even when both files have incoming links", () => {
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "AGENTS.md": "# Guide",
+      "docs/a.md": "[B](b.md)",
+      "docs/b.md": "[A](a.md)",
+    });
+    expect(
+      docs
+        .checkAgentDocs(root, ["AGENTS.md", "docs/a.md", "docs/b.md"])
+        .filter((f) => f.kind === "orphan-document")
+        .map((f) => f.file),
+    ).toEqual(["docs/a.md", "docs/b.md"]);
+  });
+
+  it("does not count example links in a fenced code block as navigation", () => {
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "AGENTS.md": "# Guide\n```md\n[Example](docs/a.md)\n```",
+      "docs/a.md": "# A",
+    });
+    expect(docs.checkAgentDocs(root, ["AGENTS.md", "docs/a.md"])).toContainEqual(
+      expect.objectContaining({ kind: "orphan-document" }),
+    );
+  });
+
+  it.each([
+    ["docs/PLANS.md", "docs/exec-plans/active/task.md"],
+    ["docs/design-docs/index.md", "docs/design-docs/decision.md"],
+    ["docs/product-specs/index.md", "docs/product-specs/feature.md"],
+  ])("requires durable documents to be linked from %s", (index, document) => {
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "AGENTS.md": `[Index](${index})\n[Document](${document})`,
+      [index]: "# Index",
+      [document]: "# Document\nStatus: active\nUpdated: 2026-09-09\nOwner: maintainer",
+    });
+    expect(docs.checkAgentDocs(root, ["AGENTS.md", index, document])).toEqual([
+      expect.objectContaining({ kind: "unindexed-document", file: document }),
+    ]);
+  });
+
+  it("checks active-plan structure without turning age into a CI failure", () => {
+    const document = "docs/exec-plans/active/task.md";
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "AGENTS.md": "[Plans](docs/PLANS.md)",
+      "docs/PLANS.md": "[Task](exec-plans/active/task.md)",
+      [document]: "# Task\nStatus: active\nUpdated: 2000-01-01\nOwner: maintainer",
+    });
+    const paths = ["AGENTS.md", "docs/PLANS.md", document];
+    expect(docs.checkAgentDocs(root, paths)).toEqual([]);
+    fs.writeFileSync(
+      path.join(root, document),
+      "# Task\nStatus: completed\nUpdated: 2026-02-30\nOwner: maintainer",
+    );
+    expect(docs.checkAgentDocs(root, paths).map((f) => f.kind)).toEqual([
+      "invalid-active-plan-status",
+      "invalid-active-plan-date",
+    ]);
+  });
+
+  it("does not use the next line or a later section as a blank metadata value", () => {
+    const document = "docs/exec-plans/active/task.md";
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "AGENTS.md": "[Plans](docs/PLANS.md)",
+      "docs/PLANS.md": "[Task](exec-plans/active/task.md)",
+      [document]: "# Task\nOwner: \nStatus: active\n## Example\nUpdated: 2026-09-09",
+    });
+    expect(
+      docs.checkAgentDocs(root, ["AGENTS.md", "docs/PLANS.md", document]).map((f) => f.kind),
+    ).toEqual(["missing-active-plan-owner", "missing-active-plan-date"]);
   });
 });

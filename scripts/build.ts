@@ -19,6 +19,8 @@ const includeDevRoutes = process.argv.includes("--include-dev-routes");
 
 if (includeDevRoutes) {
   console.warn("[build] Including development-only routes. Never deploy this artifact.");
+  // Catalogue hosting is checked by the production PWA suite. Remove any previous build too.
+  rmSync("build/storybook", { recursive: true, force: true });
 }
 
 function run(
@@ -89,3 +91,12 @@ run("seed", "esbuild", [
   "--packages=external",
   "--tsconfig=tsconfig.server.json",
 ]);
+
+if (!includeDevRoutes) {
+  run("component catalogue", "storybook", [
+    "build",
+    "--output-dir",
+    "build/storybook",
+    "--disable-telemetry",
+  ]);
+}
