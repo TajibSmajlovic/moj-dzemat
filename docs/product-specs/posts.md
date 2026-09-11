@@ -17,9 +17,10 @@ them; everyone can read published posts without an account.
 - Media lightboxes contain keyboard focus, support arrow-key navigation, and
   restore focus to the opener when closed. They lock background scrolling, stay
   above the announcement bar, and close with Escape or the close control.
-- Archive pagination uses progressive "Učitaj više" links. Invalid or excessive
-  pages redirect to a valid canonical page rather than presenting duplicate
-  content.
+- Archive pagination uses progressive "Učitaj više" links, revealing ten more
+  posts at a time. Invalid page values are treated as page one without a
+  redirect. A page beyond the end of a nonempty archive redirects to its last
+  page; an empty archive stays on the requested URL.
 - A missing, draft, or unpublished slug returns a not-found response.
 - An authenticated editor viewing a public detail page may see an edit action
   and editorial pinned status. Those controls never grant authorization by

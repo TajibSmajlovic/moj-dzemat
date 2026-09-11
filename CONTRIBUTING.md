@@ -61,7 +61,7 @@ Admin bootstrap is easy to miss if you are new to the project:
 1. Add your email to `ADMIN_SEED_EMAILS` in `.env`.
 2. Run `npm run db:seed`.
 3. Open `/zaboravljena-lozinka` and submit that email address.
-4. If `RESEND_API_KEY` is empty, the app captures the email in memory instead of sending it.
+4. In development and tests, the app captures the email in memory even if `RESEND_API_KEY` is set.
 5. If `ENABLE_TEST_ROUTES="true"`, open `/dev/last-email`, click the reset link, and choose your password.
 6. After setting the password, the app signs you in and redirects you to `/admin/objave`.
 
@@ -69,7 +69,9 @@ Important details:
 
 - seeded admins are created without passwords by design
 - there is no public signup flow
-- changing `ADMIN_SEED_EMAILS` later is safe; `npm run db:seed` is idempotent
+- `npm run db:seed` is idempotent and adds missing accounts; removing an email
+  from `ADMIN_SEED_EMAILS` does not revoke that account's access (see
+  [admin access rules](docs/SECURITY.md#authentication-and-authorization))
 
 ## Common Commands
 

@@ -11,6 +11,7 @@ Bosnian.
 - `npm run build:storybook`: static files in `build/storybook`.
 - `npm run test:storybook`: Chromium interaction and accessibility checks in both themes.
 - `npm run test:pwa`: built catalogue URLs, headers, assets and app worker coexistence.
+- `npm run docs:check`: documentation links, anchors and npm commands, including these guides.
 - `npm run agent:verify`: all required app and catalogue checks.
 
 Install Chromium with `npx playwright install chromium` if it is unavailable.

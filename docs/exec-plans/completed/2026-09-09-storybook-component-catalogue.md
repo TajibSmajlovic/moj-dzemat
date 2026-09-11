@@ -4,7 +4,11 @@ Status: completed
 Updated: 2026-09-10
 Owner: Codex, with product decisions from Tajib
 
-## Objective and current phase
+This is the implementation record as of 2026-09-10. Commit and deployment status
+below describe that completion session. Current usage and maintenance guidance
+live in the [catalogue authoring guide](../../../stories/README.md).
+
+## Objective and completion state
 
 Create a public Storybook at
 `https://mojdzematdonjemostre.ba/storybook/` that documents the app's actual

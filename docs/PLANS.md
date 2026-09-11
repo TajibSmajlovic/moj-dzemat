@@ -74,6 +74,12 @@ Do not mark a plan complete because time or context ran out.
 
 ## Completed plans
 
+Completed plans are dated historical records. Their starting state, test counts,
+and completion-time branch or deployment status describe that work session.
+Use the maintained guides linked from [AGENTS.md](../AGENTS.md) for current
+behavior and commands, and the [debt tracker](exec-plans/tech-debt-tracker.md) for
+unresolved limitations.
+
 - [Public Storybook component catalogue](exec-plans/completed/2026-09-09-storybook-component-catalogue.md)
 - [Maintenance, authentication, accessibility, and server rendering](exec-plans/completed/2026-09-08-maintenance-and-accessibility.md)
 - [Agent knowledge system](exec-plans/completed/2026-08-16-agent-knowledge-system.md)

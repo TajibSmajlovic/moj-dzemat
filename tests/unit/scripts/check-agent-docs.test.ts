@@ -69,12 +69,13 @@ describe("agent documentation checker", () => {
     expect(finding?.detail).toContain("agent:verify");
   });
 
-  it("discovers Markdown documents at the root and under docs and .github", () => {
+  it("discovers Markdown documents at the root and under docs, .github, and stories", () => {
     const root = fixture({
       "package.json": JSON.stringify({ scripts: {} }),
       "NOTES.md": "# Notes\n",
       "docs/nested/new-guide.md": "# New guide\n",
       ".github/ISSUE_TEMPLATE/bug_report.md": "# Bug report\n",
+      "stories/nested/README.md": "# Story guide\n",
     });
 
     expect(docs.findAgentDocumentPaths(root)).toEqual(
@@ -82,6 +83,22 @@ describe("agent documentation checker", () => {
         "NOTES.md",
         "docs/nested/new-guide.md",
         ".github/ISSUE_TEMPLATE/bug_report.md",
+        "stories/nested/README.md",
+      ]),
+    );
+  });
+
+  it("reports broken links and missing npm commands in discovered Storybook guides", () => {
+    const root = fixture({
+      "package.json": JSON.stringify({ scripts: {} }),
+      "stories/README.md": "See [missing](missing.md).\n",
+      "stories/nested/guide.md": "Run `npm run missing-story-check`.\n",
+    });
+
+    expect(docs.checkAgentDocs(root)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ file: "stories/README.md", kind: "broken-link" }),
+        expect.objectContaining({ file: "stories/nested/guide.md", kind: "missing-script" }),
       ]),
     );
   });

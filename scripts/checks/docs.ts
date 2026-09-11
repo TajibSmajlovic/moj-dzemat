@@ -64,6 +64,7 @@ export function findAgentDocumentPaths(rootDir: string): string[] {
   }
   walk(path.join(rootDir, "docs"));
   walk(path.join(rootDir, ".github"));
+  walk(path.join(rootDir, "stories"));
 
   return [...documents];
 }

@@ -24,7 +24,7 @@ These are the variables that matter most for local development:
 | `ENABLE_TEST_ROUTES`             | Set to `true` if you want local access to `/dev/last-email`. Leave `false` outside local/test work.                                  |
 | `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
 | `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
-| `RESEND_API_KEY`                 | Leave empty in local development unless you explicitly want real email delivery. Required in production.                             |
+| `RESEND_API_KEY`                 | Required in production. Development and tests always capture email in memory, even when this key is set.                             |
 | `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                            |
 | `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
 | `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |

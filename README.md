@@ -39,6 +39,10 @@ and image blobs normalized with `sharp`.
 Local setup, environment variables, admin bootstrap, common commands, testing,
 and pull request expectations live in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Run `npm run storybook` for the component catalogue on port 6006. It demonstrates
+the app's public and admin UI with fictional data and ships at `/storybook/` in
+production builds. See the [catalogue authoring guide](stories/README.md).
+
 ## Project Structure
 
 ```text
@@ -100,6 +104,11 @@ Production is designed for Fly.io with LiteFS:
 - the same startup flow reruns the Prisma seed so configured admins always exist
 - Fly routes traffic using the database-aware `/resources/readiness` check;
   `/resources/healthcheck` remains a shallow process diagnostic
+
+The [deployment workflow](.github/workflows/deploy.yml) automatically deploys a
+push to `master` after CI passes, if that commit is still the branch tip and its
+message does not contain `[skip deploy]`. Manual workflow dispatch is also
+available and does not require a preceding CI run.
 
 Deployment configuration lives in `Dockerfile`, `fly.toml`, `litefs.yml`, and
 `start.sh`. Environment-specific values stay outside the repo. Before

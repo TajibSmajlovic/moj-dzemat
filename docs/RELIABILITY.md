@@ -8,11 +8,16 @@ not a horizontally scalable design.
 
 ```text
 Fly proxy
-  -> LiteFS proxy and FUSE mount
-  -> Express and React Router
+  -> Express on port 3000 and React Router
   -> Prisma with better-sqlite3
-  -> SQLite data.db on the Fly volume
+  -> SQLite /litefs/data.db through the LiteFS FUSE mount
+  -> Fly volume at /var/lib/litefs
 ```
+
+`fly.toml` routes HTTP traffic directly to Express. The LiteFS HTTP proxy is
+configured on port 20203 but is not in that traffic path. Fly may suspend the
+Machine when idle and resume it on a request; no Machine is configured to stay
+running continuously.
 
 The static LiteFS lease, process-local caches and rate limits, and in-process
 Web Push dispatcher all assume a single application process. Before adding a

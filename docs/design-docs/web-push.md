@@ -7,10 +7,10 @@ Delivery runs inside the existing request-driven application process and does no
 
 The server stores the push endpoint, browser public key, and authentication secret together in a standard Compact JWE encrypted with AES-256-GCM.
 Only a versioned SHA-256 endpoint hash is stored in clear text for idempotent synchronization and deletion.
-The browser stores only the last successfully synchronized endpoint hash, its synchronization time, and at most one hash awaiting cleanup.
+Application-managed browser storage keeps the last successfully synchronized endpoint hash, its synchronization time, and at most one hash awaiting cleanup, plus the prompt-display and dismissal state described below. The browser's Push API manages the subscription itself.
 The application does not record notification opens, clicks, engagement, or device fingerprints.
-Active subscription data remains until the visitor unsubscribes, the browser expiration passes, or the push service reports that the subscription is invalid.
-Non-secret delivery history is retained for 30 days.
+Subscription data is removed when the visitor unsubscribes or the push service reports that it is invalid. Expired subscriptions are removed during request-driven maintenance.
+Terminal delivery rows become eligible for deletion 30 days after their last update. Request-driven maintenance removes them in batches, so quiet periods can extend retention beyond that cutoff.
 The permanent first-publication decision marker is retained so editing or republishing a post cannot send a second notification.
 
 ## Visitor behavior
@@ -70,6 +70,7 @@ Do not reduce the Machine to 256 MB without production-like measurement.
 Publication and Web Push delivery are separated by a durable database decision marker and delivery rows.
 A push-service failure never rolls back or delays a successful post publication.
 Normal public requests resume pending work at most once every 30 seconds per process, while a new publication bypasses that cooldown.
+Retries and maintenance depend on incoming application requests; there is no timer that wakes a suspended Machine. The retry delays below are earliest retry times, and unfinished notifications expire 24 hours after first publication.
 The publication transaction snapshots all currently active subscriptions into delivery rows with one SQLite `INSERT ... SELECT` statement.
 Each run has a 10-second work budget and sends at most 5 requests concurrently.
 Every outbound request has a 5-second timeout and is pinned to a DNS address that was verified as public while preserving the original TLS hostname.
@@ -100,7 +101,7 @@ If a key is removed too early, affected subscriptions are treated as invalid and
 
 ## Editorial rules
 
-Only the first transition from draft to published can create a pending notification.
+Only the first publication, including creating a post directly as published, can create a pending notification.
 Editing, unpublishing, deleting, or republishing cannot create another notification.
 The migration records every pre-existing post as skipped so legacy content cannot notify after republication.
 If Web Push is disabled or the checkbox was not selected at first publication, the permanent decision is recorded as skipped.
