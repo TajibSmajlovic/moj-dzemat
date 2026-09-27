@@ -52,8 +52,6 @@
     "agent:verify": "node --import tsx scripts/agent/verify.ts",
     "agent:gc": "node --import tsx scripts/agent/maintenance.ts",
     "knip": "knip --treat-config-hints-as-errors",
-    "db:backup": "node --import tsx scripts/database/snapshot-cli.ts backup",
-    "db:restore": "node --import tsx scripts/database/snapshot-cli.ts restore",
     "db:migrate": "prisma migrate dev && prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",

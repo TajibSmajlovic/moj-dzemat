@@ -87,10 +87,9 @@ signals and thresholds are actionable, not as speculative infrastructure.
 
 Prisma migrations and `prisma/schema.prisma` own database evolution. Production
 uses a persistent Fly volume through LiteFS. A volume is not a complete backup
-strategy. [Database backup and restore tooling](development/database-backups.md)
-provides local consistent snapshots, checksums, integrity checks, and isolated
-restores. Production off-machine storage, scheduling, retention enforcement,
-and a restore rehearsal from that destination remain open in
+strategy: the repository currently has no verified backup, off-machine
+retention, or restore rehearsal. Treat changes that can corrupt or delete
+content as high risk until that gap is closed in
 [the tech-debt tracker](exec-plans/tech-debt-tracker.md).
 
 ## Operational validation

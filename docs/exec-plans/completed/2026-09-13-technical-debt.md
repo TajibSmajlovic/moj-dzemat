@@ -1,13 +1,13 @@
 # Resolve actionable technical debt
 
 Status: completed
-Updated: 2026-09-14
+Updated: 2026-09-27
 Owner: Codex
 
 ## Acceptance criteria
 
 - Reproduce and fix TD-004, TD-005, and TD-006 with HTTP, database, and browser regressions.
-- Prepare backup and isolated restore tooling for TD-001; production storage and activation remain pending at the user's request.
+- Leave TD-001 open; backup and restore implementation is deferred at the user's request.
 - Recheck TD-003 against compatible stable upstream releases without overrides.
 - Assess TD-002 against the current single-Machine topology and document the scaling prerequisites.
 - Run `npm run agent:verify` and keep the tracker accurate about unresolved exit conditions.
@@ -23,12 +23,12 @@ no byte limit. Production uses one Fly Machine and a static LiteFS lease.
 
 1. Done: reproduced all three security bugs in an isolated runtime.
 2. Done: implemented security fixes; focused database and browser regressions passed.
-3. Done: prepared and rehearsed local backups and restores.
+3. Deferred: backup and restore implementation remains TD-001.
 4. Done: full verification passed and TD-004, TD-005, and TD-006 were removed from the tracker.
 
 ## Decisions and findings
 
-- Production backup setup is deferred by explicit user preference. Local tooling and rehearsals are authorized.
+- Backup and restore implementation is deferred by explicit user preference. Local tooling, scripts, and their tests were removed from the branch on 2026-09-27.
 - Keep single-process coordination debt open until a deployment topology is selected and verified.
 - Browser plugin not available; use installed Playwright for browser reproduction.
 - Local listener startup required sandbox escalation; the isolated runtime then started successfully.
@@ -39,8 +39,6 @@ no byte limit. Production uses one Fly Machine and a static LiteFS lease.
 - Before fixes, concurrent resets returned `[302, 302]`; changing a long password's suffix still authenticated; declared/chunked oversized requests returned `413/400`.
 - After fixes, unfinished declared and chunked oversized requests both returned 413; concurrent resets returned one 302 and one 400; replay returned 400.
 - `npx vitest run tests/integration/auth tests/unit/auth/validate-new-password.server.test.ts`: 61 tests passed.
-- `npx vitest run tests/integration/database-snapshots.test.ts`: 4 tests passed, including WAL snapshots, content/credential/blob preservation, and corruption/overwrite rejection.
-- `npm run db:backup` and `npm run db:restore` passed on the isolated seeded runtime database. This is synthetic local evidence, not a production recovery rehearsal.
 - Manual Playwright reset-form inspection at 1280x900 and 390x844: expected content, validation interaction, no framework overlay or page errors, no visible clipping. Screenshots: `/tmp/moj-password-limit-desktop.png` and `/tmp/moj-password-limit-mobile.png`. Browser plugin unavailable.
 - `npm run typecheck` passed. Initial full verification found two formatting issues, now corrected; 204 Storybook tests, runtime smoke, and the new auth browser regressions passed before the credit interruption. No active verification processes remained when work resumed.
 - The 2026-09-14 full run passed 574 unit/integration, 204 Storybook, 10 PWA, and 49 of 50 E2E tests. Smoke reproduced a React Router generated-types race (`ENOTEMPTY`) between concurrent dev-server starts; the contact test rendered the saved data but timed out waiting for Google Maps to finish loading.
@@ -74,11 +72,19 @@ logs in with a legacy credential and resets it to a valid 72-byte password.
 
 ## Recovery and remaining limitations
 
-Changes remain unstaged. No production changes, commits, or deployments are authorized.
+On 2026-09-27, the user removed backup tooling from this branch and excluded
+separate Windows runtime and test-runner fixes. Before those Windows fixes were
+excluded, a local `agent:verify` run passed 568 unit/integration tests (two Unix
+signal tests skipped), 50 E2E tests, 204 Storybook tests, 10 PWA tests, runtime
+smoke, and static checks. That run validates the retained application behavior,
+but does not establish that the final test tooling works on Windows. Confirm
+the final branch through the existing Linux CI jobs before merging.
+
+No production changes or deployments were made.
 All three owned reproduction runtimes were stopped and cleaned using their exact manifests.
 No schema migration was needed; password-row timestamps remain the reset-token version.
-TD-001 still needs production storage, scheduling, retention enforcement, and a
-restore from that destination. TD-002 remains accepted at one Machine. TD-003
+TD-001 still needs backup and restore tooling, production storage, scheduling,
+retention enforcement, and an isolated restore rehearsal. TD-002 remains accepted at one Machine. TD-003
 still reports four high-severity dependency findings; the 2026-09-14 registry
 check found only Prisma 8.0.0-rc.15 beyond stable 7.10.0. No dependency override
 or release-candidate migration was introduced.
