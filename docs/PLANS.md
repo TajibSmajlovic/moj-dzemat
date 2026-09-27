@@ -80,6 +80,7 @@ Use the maintained guides linked from [AGENTS.md](../AGENTS.md) for current
 behavior and commands, and the [debt tracker](exec-plans/tech-debt-tracker.md) for
 unresolved limitations.
 
+- [Resolve actionable technical debt](exec-plans/completed/2026-09-13-technical-debt.md)
 - [Public Storybook component catalogue](exec-plans/completed/2026-09-09-storybook-component-catalogue.md)
 - [Maintenance, authentication, accessibility, and server rendering](exec-plans/completed/2026-09-08-maintenance-and-accessibility.md)
 - [Agent knowledge system](exec-plans/completed/2026-08-16-agent-knowledge-system.md)

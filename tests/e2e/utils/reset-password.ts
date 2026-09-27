@@ -7,20 +7,8 @@ type ResetOptions = {
   newPassword: string;
 };
 
-/**
-   Drives the full forgot-password → dev-inbox → set-new-password flow
-   end-to-end. Polls `/dev/last-email` until the captured email arrives
-   (the server buffers the send asynchronously), follows the reset
-   link, sets the new password, and waits for the auto-login redirect
-   to the admin area.
-
-   The caller is responsible for any precondition such as logging out
-   before re-running this for state restoration. The success screen and
-   dev-inbox content strings mirror the production UI; if they change,
-   update them here in one place.
- */
-
-export async function resetPasswordViaDevInbox(page: Page, { email, newPassword }: ResetOptions) {
+/** Wait for the captured email because reset delivery runs asynchronously. */
+export async function openPasswordResetViaDevInbox(page: Page, email: string) {
   await page.goto(href("/zaboravljena-lozinka"));
   await page.getByLabel("E-mail").fill(email);
   await page.getByRole("button", { name: "Pošalji link" }).click();
@@ -42,7 +30,10 @@ export async function resetPasswordViaDevInbox(page: Page, { email, newPassword 
 
   await page.getByRole("link", { name: "Otvori reset link" }).click();
   await expect(page).toHaveURL(new RegExp("/nova-lozinka/"));
+}
 
+export async function resetPasswordViaDevInbox(page: Page, { email, newPassword }: ResetOptions) {
+  await openPasswordResetViaDevInbox(page, email);
   await page.getByLabel("Nova lozinka").fill(newPassword);
   await page.getByLabel("Potvrdite lozinku").fill(newPassword);
   await page.getByRole("button", { name: "Sačuvaj i prijavi se" }).click();

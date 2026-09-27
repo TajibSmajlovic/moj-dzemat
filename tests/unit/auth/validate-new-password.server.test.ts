@@ -36,6 +36,30 @@ afterEach(() => {
 });
 
 describe("validateNewPassword", () => {
+  it.each(["x".repeat(73), "č".repeat(37), "🔐".repeat(19)])(
+    "rejects oversized input before hashing or breach lookup",
+    async (password) => {
+      const { validateNewPassword, hashPassword } = await import("#app/features/auth/auth.server");
+      const lookup = vi.spyOn(globalThis, "fetch");
+      await expect(validateNewPassword(password)).resolves.toEqual({ kind: "too-long" });
+      await expect(hashPassword(password)).rejects.toThrow("72 bajta");
+      expect(lookup).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["x".repeat(71), "x".repeat(72), "č".repeat(36), "🔐".repeat(18)])(
+    "accepts passwords at or below the byte boundary",
+    async (password) => {
+      const { validateNewPassword, hashPassword, verifyPassword } =
+        await import("#app/features/auth/auth.server");
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("ABCDEF:1"));
+      await expect(validateNewPassword(password)).resolves.toBeNull();
+      const hash = await hashPassword(password);
+      expect(await verifyPassword(password, hash)).toBe(true);
+      expect(await verifyPassword(password.slice(0, -1), hash)).toBe(false);
+    },
+  );
+
   it("rejects passwords shorter than the shared minimum length", async () => {
     const { validateNewPassword } = await import("#app/features/auth/auth.server");
 

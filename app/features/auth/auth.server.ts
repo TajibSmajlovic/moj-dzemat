@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
 import type { CurrentUser } from "#app/features/auth/auth-context";
-import { MIN_PASSWORD_LENGTH } from "#app/features/auth/auth-policy";
+import { MAX_PASSWORD_BYTES_MESSAGE, MIN_PASSWORD_LENGTH } from "#app/features/auth/auth-policy";
 import { commitSession, destroySession, getSession } from "#app/features/auth/session.server";
 import { prisma } from "#app/server/db.server";
 import { logger } from "#app/server/logger.server";
@@ -47,6 +47,7 @@ const HIBP_TIMEOUT_MS = 2000;
 // ---- Password hashing / validation -------------------------------------
 
 export async function hashPassword(plain: string): Promise<string> {
+  if (bcrypt.truncates(plain)) throw new Error(MAX_PASSWORD_BYTES_MESSAGE);
   return bcrypt.hash(plain, BCRYPT_COST);
 }
 
@@ -54,15 +55,19 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcrypt.compare(plain, hash);
 }
 
-type PasswordProblem = { kind: "too-short" } | { kind: "breached" };
+type PasswordProblem = { kind: "too-short" } | { kind: "too-long" } | { kind: "breached" };
 
 /**
-   Enforces the minimum length and checks HIBP k-anonymity. We never send
+   Enforces password length limits and checks HIBP k-anonymity. We never send
    the full password to HIBP - only the first 5 chars of the SHA-1 hash.
  */
 export async function validateNewPassword(password: string): Promise<PasswordProblem | null> {
   if (password.length < MIN_PASSWORD_LENGTH) {
     return { kind: "too-short" };
+  }
+
+  if (bcrypt.truncates(password)) {
+    return { kind: "too-long" };
   }
 
   try {

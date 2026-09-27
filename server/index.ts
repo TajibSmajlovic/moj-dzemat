@@ -14,10 +14,10 @@ import { pwaAssetHeaders } from "../app/features/pwa/pwa-assets.server";
 import { PWA_OFFLINE_SHELL_PATH, PWA_SERVICE_WORKER_PATH } from "../app/features/pwa/pwa-config";
 import { DAY_SECONDS } from "../app/lib/time";
 import { env } from "../app/server/env.server";
-import { MAX_REQUEST_BYTES } from "../app/server/limits.server";
 import { logger } from "../app/server/logger.server";
 import { clientIpFromHeaders, staticFileLimiter } from "../app/server/rate-limit.server";
 import { securityHeaders } from "../app/server/security.server";
+import { enforceRequestLimit, LimitedIncomingMessage } from "./request-limit.server";
 import { storybookRouter } from "./storybook.server";
 
 // Attach a request-scoped child logger to every Express request. Declared
@@ -70,7 +70,7 @@ function rateLimitStaticFiles(
 
 async function createServer(): Promise<{ server: http.Server; viteDevServer?: ViteDevServer }> {
   const app = express();
-  const server = http.createServer(app);
+  const server = http.createServer({ IncomingMessage: LimitedIncomingMessage }, app);
   let viteDevServer: ViteDevServer | undefined;
   app.disable("x-powered-by");
   app.set("trust proxy", true);
@@ -136,20 +136,7 @@ async function createServer(): Promise<{ server: http.Server; viteDevServer?: Vi
     next();
   });
 
-  // Drop oversized payloads early - RR parses FormData itself, but Node
-  // will hold the full body in memory before our loader/action sees it,
-  // so we short-circuit based on Content-Length. This runs after request
-  // instrumentation so rejected requests still get security headers and logs.
-  app.use((req, res, next) => {
-    if (req.method === "GET" || req.method === "HEAD") return next();
-
-    const contentLength = Number(req.headers["content-length"] ?? 0);
-    if (contentLength > MAX_REQUEST_BYTES) {
-      res.status(413).send("Payload too large");
-      return;
-    }
-    next();
-  });
+  app.use(enforceRequestLimit);
 
   app.use((req, res, next) => {
     if (HEALTH_PATHS.has(req.path)) return next();

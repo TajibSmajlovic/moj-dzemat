@@ -12,17 +12,19 @@ import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { Button } from "#app/components/ui/button";
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import {
+  MAX_PASSWORD_BYTES,
+  MAX_PASSWORD_BYTES_MESSAGE,
   MIN_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH_MESSAGE,
   PASSWORD_RESET_TOKEN_TTL_LABEL,
 } from "#app/features/auth/auth-policy";
 import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { hashPassword, startSessionFor, validateNewPassword } from "#app/features/auth/auth.server";
+import { resetPassword } from "#app/features/auth/reset-password.server";
 import { verifyResetToken } from "#app/features/auth/reset-token.server";
 import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { buildNoindexMeta } from "#app/lib/seo";
-import { prisma } from "#app/server/db.server";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
 import { logger } from "#app/server/logger.server";
 
@@ -31,6 +33,8 @@ import type { Route } from "./+types/nova-lozinka.$token";
 const NewPasswordSchema = z
   .object({
     password: passwordField({
+      maxBytes: MAX_PASSWORD_BYTES,
+      maxBytesMessage: MAX_PASSWORD_BYTES_MESSAGE,
       minLength: MIN_PASSWORD_LENGTH,
       minLengthMessage: MIN_PASSWORD_LENGTH_MESSAGE,
     }),
@@ -82,7 +86,9 @@ export async function action({ params, request }: Route.ActionArgs) {
     const message =
       problem.kind === "too-short"
         ? MIN_PASSWORD_LENGTH_MESSAGE
-        : "Ova lozinka se pojavljuje u javno objavljenim bazama ukradenih podataka. Odaberite drugu.";
+        : problem.kind === "too-long"
+          ? MAX_PASSWORD_BYTES_MESSAGE
+          : "Ova lozinka se pojavljuje u javno objavljenim bazama ukradenih podataka. Odaberite drugu.";
 
     return data(
       {
@@ -93,14 +99,14 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   const hash = await hashPassword(submission.value.password);
-  await prisma.$transaction([
-    prisma.password.upsert({
-      where: { userId: verification.userId },
-      create: { userId: verification.userId, hash },
-      update: { hash },
-    }),
-    prisma.session.deleteMany({ where: { userId: verification.userId } }),
-  ]);
+  const consumed = await resetPassword({
+    userId: verification.userId,
+    passwordUpdatedAt: verification.passwordUpdatedAt,
+    hash,
+  });
+  if (!consumed) {
+    throw new Response("Link nije važeći ili je istekao.", { status: 400 });
+  }
 
   // Log the admin in immediately. Rotate the session id so any
   // pre-existing cookie is replaced after all old sessions were revoked.
@@ -190,7 +196,7 @@ export default function NewPasswordPage({ actionData, loaderData }: Route.Compon
         <PasswordField
           label="Nova lozinka"
           errors={fields.password.errors}
-          hint={`Minimalno ${MIN_PASSWORD_LENGTH} znakova.`}
+          hint={`Minimalno ${MIN_PASSWORD_LENGTH} znakova. ${MAX_PASSWORD_BYTES_MESSAGE}`}
           inputProps={{
             ...getInputProps(fields.password, { type: "password" }),
             autoComplete: "new-password",

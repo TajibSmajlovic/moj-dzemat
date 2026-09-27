@@ -67,6 +67,63 @@ afterEach(() => {
 });
 
 describe("new password route", () => {
+  it.each(["old-password-123", null])(
+    "consumes a reset only once with starting password %s",
+    async (password) => {
+      const { user } = await createUser({ password });
+      const oldCookie = await sessionCookieFor(user.id);
+      const token = await resetTokenForUser(user.id);
+      let release!: () => void;
+      const ready = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      let checks = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+        if (++checks === 2) release();
+        await ready;
+        return new Response("ABCDEF:1");
+      });
+      const passwords = ["first-competing-password", "second-competing-password"];
+      const results = await Promise.all(
+        passwords.map((value) =>
+          callAction(token, passwordForm(value)).catch((error: unknown) => error),
+        ),
+      );
+      expect(results.map((result) => statusOf(result))).toEqual(expect.arrayContaining([302, 400]));
+      const winner = results.findIndex((result) => statusOf(result) === 302);
+      const row = await prisma.password.findUniqueOrThrow({ where: { userId: user.id } });
+      expect(await verifyPassword(passwords[winner]!, row.hash)).toBe(true);
+      expect(await verifyPassword(passwords[1 - winner]!, row.hash)).toBe(false);
+      const cookie = (results[winner] as Response).headers.getSetCookie().at(-1)?.split(";")[0];
+      const session = await getSession(cookie);
+      expect(session.get("userId")).toBe(user.id);
+      const oldSession = await getSession(oldCookie);
+      expect(oldSession.get("userId")).toBeUndefined();
+      expect(await prisma.session.count({ where: { userId: user.id } })).toBe(1);
+      await expect(
+        callAction(token, passwordForm("sequential-replay-password")),
+      ).rejects.toMatchObject({ status: 400 });
+      const retainedSession = await getSession(cookie);
+      expect(retainedSession.get("userId")).toBe(user.id);
+    },
+  );
+
+  it.each(["a".repeat(73), "č".repeat(37), "🔐".repeat(19)])(
+    "rejects a new password exceeding 72 UTF-8 bytes (%s)",
+    async (password) => {
+      const { user } = await createUser({ password: null });
+      const token = await resetTokenForUser(user.id);
+      const lookup = vi.spyOn(globalThis, "fetch");
+      const result = await callAction(token, passwordForm(password));
+      expect(statusOf(result)).toBe(400);
+      expect(payloadOf<NewPasswordPayload>(result).result.error?.password?.[0]).toContain(
+        "72 bajta",
+      );
+      expect(lookup).not.toHaveBeenCalled();
+      expect(await prisma.password.findUnique({ where: { userId: user.id } })).toBeNull();
+    },
+  );
+
   it("loader returns invalid data with status 400 for a bad token", async () => {
     const result = await callLoader("not.a.jwt");
 

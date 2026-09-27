@@ -31,22 +31,24 @@ reporting instructions.
 - Sessions last at most 30 days. Password changes delete all existing sessions
   before creating the replacement login session.
 - Password-reset links last 10 minutes, use a rotating secret keyring, and bind
-  to the current password-row version. A completed reset invalidates older links
-  on subsequent verification. Verification and consumption are not atomic;
-  concurrent submissions can both succeed, as tracked in
-  [TD-005](exec-plans/tech-debt-tracker.md#td-005-concurrent-password-resets-can-reuse-one-link).
+  to the current password-row version. Password writes atomically compare that
+  version and revoke sessions only when the write wins. First-time setup uses
+  the unique password row to consume the link once. Concurrent submissions and
+  sequential replays cannot overwrite a successful reset.
 - Passwords must have at least 10 characters and are rejected when the existing
   password validation identifies them as publicly breached. Hashing uses bcrypt
-  with cost 10. The app does not yet reject passwords beyond bcrypt's 72-byte
-  limit; see
-  [TD-006](exec-plans/tech-debt-tracker.md#td-006-passwords-can-exceed-bcrypts-byte-limit).
+  with cost 10. New passwords must fit within 72 UTF-8 bytes; form validation,
+  server validation, and hashing reject inputs that bcrypt would truncate.
+  Login retains bcrypt's existing comparison behavior so legacy long-password
+  users can still authenticate and use the reset flow to choose a compliant
+  password. Existing hashes do not reveal the original password's byte length.
 - Unknown and passwordless accounts perform a valid dummy bcrypt comparison at
   the same cost as password verification before returning the generic credential
   error. This avoids a fast failure caused by a missing password hash.
 
 New-password checks send only the first five characters of a SHA-1 password hash
 to Have I Been Pwned. The lookup has a two-second timeout and fails open when the
-service is unavailable; the local minimum-length requirement still applies.
+service is unavailable; local minimum-length and maximum-byte requirements still apply.
 
 Admin state-changing forms rely on same-site cookies, the production
 `form-action 'self'` policy, and same-origin routes. Do not loosen cookie or CSP
@@ -69,9 +71,10 @@ test-only flags. Environment validation rejects them when enabled in production.
 
 ## Content and upload safety
 
-- Express rejects request bodies whose `Content-Length` exceeds 20 MiB. It does
-  not yet enforce that limit on the incoming stream; see
-  [TD-004](exec-plans/tech-debt-tracker.md#td-004-request-body-limits-rely-on-content-length).
+- The HTTP entrypoint counts received body bytes before exposing them to
+  middleware or form parsers. It rejects bodies over 20 MiB, including chunked
+  transfers without Content-Length, and closes the connection after the 413.
+  Declared oversized bodies are rejected before receiving their contents.
 - Each uploaded image is limited to 15 MiB, checked by content signature,
   decoded with Sharp, orientation-normalized, metadata-stripped, resized to a
   2000 pixel maximum edge, and re-encoded as WebP.
