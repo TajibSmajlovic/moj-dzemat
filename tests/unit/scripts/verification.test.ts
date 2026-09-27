@@ -321,8 +321,14 @@ describe("staged file checks", () => {
     fs.writeFileSync(path.join(root, ".prettierignore"), "ignored.json\n");
     fs.writeFileSync(path.join(root, "ignored.json"), '{"value":1}');
     fs.writeFileSync(path.join(root, "image.png"), Buffer.from([0, 1, 2, 255]));
-    fs.symlinkSync("bad.json", path.join(root, "link.json"));
-    git("add", "ignored.json", "image.png", "link.json");
+    git("add", "ignored.json", "image.png");
+    // The checker reads the index, so no filesystem symlink privileges are needed.
+    const target = execFileSync("git", ["hash-object", "-w", "--stdin"], {
+      cwd: root,
+      input: "bad.json",
+      encoding: "utf8",
+    }).trim();
+    git("update-index", "--add", "--cacheinfo", `120000,${target},link.json`);
     expect(await checkStaged(root)).toBe(true);
   });
 });
