@@ -15,7 +15,8 @@ const artifacts = process.env.CI
   ? path.join(root, "test-results", "agent")
   : fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-smoke-"));
 fs.mkdirSync(artifacts, { recursive: true });
-const secondWorkspace = path.join(artifacts, "second-workspace");
+// Keep sources outside ignored report directories and on the checkout's drive.
+const secondWorkspace = fs.mkdtempSync(path.join(path.dirname(root), "moj-dzemat-smoke-"));
 type Command = { name: string; child: ChildProcess; logPath: string; error?: Error };
 type Run = {
   command: Command;
@@ -41,7 +42,9 @@ process.on("SIGTERM", cancel);
 async function main(): Promise<void> {
   console.log("[agent-smoke] starting two isolated runtimes");
   // React Router rewrites route types at startup; simultaneous servers need separate checkouts.
-  copyWorkspace(root, secondWorkspace);
+  // Vite serves React Router's client entry directly; keep it inside the copied checkout.
+  copyWorkspace(root, secondWorkspace, ["@react-router"]);
+
   const firstStart = start("first");
   const secondStart = start("second", [], undefined, secondWorkspace);
   await Promise.all([completed(firstStart), completed(secondStart)]);
