@@ -3,7 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 /** Copy working sources, including uncommitted changes, without sharing writable build caches. */
-export function copyWorkspace(root: string, destination: string): void {
+export function copyWorkspace(
+  root: string,
+  destination: string,
+  copyDependencies: readonly string[] = [],
+): void {
   const files = execFileSync(
     "git",
     ["ls-files", "--cached", "--others", "--exclude-standard", "--deduplicate", "-z"],
@@ -11,11 +15,13 @@ export function copyWorkspace(root: string, destination: string): void {
   )
     .split("\0")
     .filter(Boolean);
+
   // Vite and the E2E server load local configuration. Never copy local databases or build output.
   files.push(
     "generated",
     ...fs.readdirSync(root).filter((name) => name === ".env" || name.startsWith(".env.")),
   );
+
   for (const file of new Set(files)) {
     const source = path.join(root, file);
     if (!fs.existsSync(source)) continue;
@@ -32,6 +38,10 @@ export function copyWorkspace(root: string, destination: string): void {
   // Linking node_modules itself would also share Vite and Storybook's writable cache directories.
   for (const name of fs.readdirSync(dependencies)) {
     if (name.startsWith(".") && name !== ".bin") continue;
-    fs.symlinkSync(path.join(dependencies, name), path.join(target, name), "junction");
+    const source = path.join(dependencies, name);
+    const entry = path.join(target, name);
+
+    if (copyDependencies.includes(name)) fs.cpSync(source, entry, { recursive: true });
+    else fs.symlinkSync(source, entry, "junction");
   }
 }

@@ -75,9 +75,10 @@ for first-load Vite errors, browser verification, and sandbox permission failure
 metadata set by `npm run agent:start`. Do not add them to `.env` or configure
 them manually.
 
-For parallel code changes, use one Git worktree per task and one runtime per
-worktree. Multiple runtimes can execute in one worktree, but builds still share
-the checkout's `build/` directory.
+For parallel code changes or runtimes, use one Git worktree per task and one
+runtime per worktree. Builds share `build/`, and React Router dev servers rewrite
+`.react-router/types/` during startup, so simultaneous startup in one checkout
+can race.
 
 ## Verification
 

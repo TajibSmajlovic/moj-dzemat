@@ -28,6 +28,8 @@ type PasswordFieldOptions = {
   requiredMessage?: string;
   minLength?: number;
   minLengthMessage?: string;
+  maxBytes?: number;
+  maxBytesMessage?: string;
 };
 
 export function passwordField(options: PasswordFieldOptions = {}) {
@@ -39,5 +41,11 @@ export function passwordField(options: PasswordFieldOptions = {}) {
     .min(
       minLength,
       minLength === 1 ? requiredMessage : (options.minLengthMessage ?? requiredMessage),
+    )
+    .refine(
+      (password) =>
+        options.maxBytes === undefined ||
+        new TextEncoder().encode(password).length <= options.maxBytes,
+      { message: options.maxBytesMessage ?? "Lozinka je preduga." },
     );
 }

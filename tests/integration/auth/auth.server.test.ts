@@ -58,6 +58,20 @@ describe("auth.server", () => {
   });
 
   describe("login", () => {
+    it("keeps login available to users with legacy long passwords", async () => {
+      const password = "legacy-password".repeat(6);
+      const { user } = await createUser({ password: null });
+      await prisma.password.create({
+        data: { userId: user.id, hash: await bcrypt.hash(password, 4) },
+      });
+      const result = await login({ request: makeRequest(), email: user.email, password });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        const session = await getSession(newSessionCookie(result.headers));
+        expect(session.get("userId")).toBe(user.id);
+      }
+    });
+
     it("issues a session cookie on valid credentials", async () => {
       const { user } = await createUser({ password: "hunter2pass1" });
       const result = await login({

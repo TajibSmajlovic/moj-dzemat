@@ -7,6 +7,7 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from "../../tests/e2e/fixtures/admin-credentials";
+import { copyWorkspace } from "../checks/workspace";
 import { loadOwnedManifest } from "./runtime";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -14,6 +15,8 @@ const artifacts = process.env.CI
   ? path.join(root, "test-results", "agent")
   : fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-smoke-"));
 fs.mkdirSync(artifacts, { recursive: true });
+// Keep sources outside ignored report directories and on the checkout's drive.
+const secondWorkspace = fs.mkdtempSync(path.join(path.dirname(root), "moj-dzemat-smoke-"));
 type Command = { name: string; child: ChildProcess; logPath: string; error?: Error };
 type Run = {
   command: Command;
@@ -38,8 +41,12 @@ process.on("SIGTERM", cancel);
 
 async function main(): Promise<void> {
   console.log("[agent-smoke] starting two isolated runtimes");
+  // React Router rewrites route types at startup; simultaneous servers need separate checkouts.
+  // Vite serves React Router's client entry directly; keep it inside the copied checkout.
+  copyWorkspace(root, secondWorkspace, ["@react-router"]);
+
   const firstStart = start("first");
-  const secondStart = start("second");
+  const secondStart = start("second", [], undefined, secondWorkspace);
   await Promise.all([completed(firstStart), completed(secondStart)]);
   const first = readRun(firstStart);
   const second = readRun(secondStart);
@@ -94,7 +101,7 @@ async function main(): Promise<void> {
   passed = true;
 }
 
-function launch(name: string, args: string[], preload?: string): Command {
+function launch(name: string, args: string[], preload?: string, cwd = root): Command {
   if (!cleaning) cancellation.signal.throwIfAborted();
   const logPath = path.join(artifacts, `${name}.log`);
   const log = fs.openSync(logPath, "w");
@@ -108,7 +115,7 @@ function launch(name: string, args: string[], preload?: string): Command {
       ...args,
     ],
     {
-      cwd: root,
+      cwd,
       stdio: ["ignore", log, log],
     },
   );
@@ -121,8 +128,8 @@ function launch(name: string, args: string[], preload?: string): Command {
   return command;
 }
 
-function start(name: string, args: string[] = [], preload?: string): Command {
-  const command = launch(name, ["start", ...args], preload);
+function start(name: string, args: string[] = [], preload?: string, cwd = root): Command {
+  const command = launch(name, ["start", ...args], preload, cwd);
   starts.push(command);
   return command;
 }
@@ -378,6 +385,7 @@ try {
       );
     }
   }
+  fs.rmSync(secondWorkspace, { recursive: true, force: true });
   if (passed) {
     fs.rmSync(artifacts, { recursive: true });
     console.log("[agent-smoke] passed; all owned runtime state cleaned");

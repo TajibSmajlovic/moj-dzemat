@@ -8,7 +8,11 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 type Task = { name: string; command: string; args: string[]; graceful?: boolean };
 let runTasks: (tasks: Task[], concurrency?: number) => Promise<void>;
 let checkStaged: (root: string) => Promise<boolean>;
-let copyWorkspace: (root: string, destination: string) => void;
+let copyWorkspace: (
+  root: string,
+  destination: string,
+  copyDependencies?: readonly string[],
+) => void;
 const directories: string[] = [];
 const runnerUrl = pathToFileURL(path.resolve("scripts/checks/runner.ts")).href;
 
@@ -233,13 +237,19 @@ describe("browser workspaces", () => {
     fs.writeFileSync(path.join(root, "new.js"), "untracked\n");
     fs.writeFileSync(path.join(root, "local.db"), "local database");
     fs.writeFileSync(path.join(root, ".env"), "SYNTHETIC_FIXTURE=true\n");
-    for (const name of ["generated", "build", "node_modules/example", "node_modules/.cache"]) {
+    for (const name of [
+      "generated",
+      "build",
+      "node_modules/example",
+      "node_modules/@react-router/dev",
+      "node_modules/.cache",
+    ]) {
       fs.mkdirSync(path.join(root, name), { recursive: true });
       fs.writeFileSync(path.join(root, name, "value"), name);
     }
     const first = path.join(temporaryDirectory(), "first");
     const second = path.join(temporaryDirectory(), "second");
-    copyWorkspace(root, first);
+    copyWorkspace(root, first, ["@react-router"]);
     copyWorkspace(root, second);
     expect(fs.readFileSync(path.join(first, "tracked.js"), "utf8")).toBe("working\n");
     expect(fs.readFileSync(path.join(first, "new.js"), "utf8")).toBe("untracked\n");
@@ -250,7 +260,10 @@ describe("browser workspaces", () => {
     expect(fs.realpathSync(path.join(first, "node_modules/example"))).toBe(
       fs.realpathSync(path.join(root, "node_modules/example")),
     );
-    for (const name of ["generated/value", "tracked.js"]) {
+    expect(fs.realpathSync(path.join(first, "node_modules/@react-router/dev"))).toBe(
+      path.join(fs.realpathSync(first), "node_modules", "@react-router", "dev"),
+    );
+    for (const name of ["generated/value", "tracked.js", "node_modules/@react-router/dev/value"]) {
       fs.writeFileSync(path.join(first, name), "changed");
       expect(fs.readFileSync(path.join(second, name), "utf8")).not.toBe("changed");
       expect(fs.readFileSync(path.join(root, name), "utf8")).not.toBe("changed");
@@ -321,8 +334,14 @@ describe("staged file checks", () => {
     fs.writeFileSync(path.join(root, ".prettierignore"), "ignored.json\n");
     fs.writeFileSync(path.join(root, "ignored.json"), '{"value":1}');
     fs.writeFileSync(path.join(root, "image.png"), Buffer.from([0, 1, 2, 255]));
-    fs.symlinkSync("bad.json", path.join(root, "link.json"));
-    git("add", "ignored.json", "image.png", "link.json");
+    git("add", "ignored.json", "image.png");
+    // The checker reads the index, so no filesystem symlink privileges are needed.
+    const target = execFileSync("git", ["hash-object", "-w", "--stdin"], {
+      cwd: root,
+      input: "bad.json",
+      encoding: "utf8",
+    }).trim();
+    git("update-index", "--add", "--cacheinfo", `120000,${target},link.json`);
     expect(await checkStaged(root)).toBe(true);
   });
 });

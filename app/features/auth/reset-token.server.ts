@@ -54,7 +54,7 @@ export async function signResetToken({
 }
 
 type VerifyResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; passwordUpdatedAt: Date | null }
   | { ok: false; reason: "invalid" | "expired" | "superseded" | "unknown-user" };
 
 export async function verifyResetToken(token: string): Promise<VerifyResult> {
@@ -101,5 +101,5 @@ export async function verifyResetToken(token: string): Promise<VerifyResult> {
     return { ok: false, reason: "superseded" };
   }
 
-  return { ok: true, userId: record.id };
+  return { ok: true, userId: record.id, passwordUpdatedAt: record.password?.updatedAt ?? null };
 }

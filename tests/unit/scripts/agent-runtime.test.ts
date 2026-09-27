@@ -41,7 +41,8 @@ describe("agent runtime ownership", () => {
     const actual = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-agent-real-"));
     const symlink = path.join(os.tmpdir(), `moj-dzemat-agent-link-${process.pid}-${Date.now()}`);
     temporaryPaths.push(symlink, actual);
-    fs.symlinkSync(actual, symlink, "dir");
+    // Junctions exercise the same path check without Windows symlink privileges.
+    fs.symlinkSync(actual, symlink, process.platform === "win32" ? "junction" : "dir");
     const manifestPath = path.join(symlink, "manifest.json");
     fs.writeFileSync(
       path.join(actual, "manifest.json"),

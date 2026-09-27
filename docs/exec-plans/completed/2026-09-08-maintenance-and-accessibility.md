@@ -126,12 +126,12 @@ Record further verified limitations separately from the completed fixes.
 
 ## Further improvements
 
-Three locally reproduced limitations remain open. Their evidence and exit
-conditions live in the debt tracker:
+Three locally reproduced limitations remained open at completion. Their later
+resolution and verification are recorded in the technical debt execution plan:
 
-1. [TD-004: Request body limits rely on Content-Length](../tech-debt-tracker.md#td-004-request-body-limits-rely-on-content-length).
-2. [TD-005: Concurrent password resets can reuse one link](../tech-debt-tracker.md#td-005-concurrent-password-resets-can-reuse-one-link).
-3. [TD-006: Passwords can exceed bcrypt's byte limit](../tech-debt-tracker.md#td-006-passwords-can-exceed-bcrypts-byte-limit).
+1. [TD-004: Request body limits rely on Content-Length](2026-09-13-technical-debt.md#td-004-request-body-limits).
+2. [TD-005: Concurrent password resets can reuse one link](2026-09-13-technical-debt.md#td-005-concurrent-password-resets).
+3. [TD-006: Passwords can exceed bcrypt's byte limit](2026-09-13-technical-debt.md#td-006-password-byte-limits).
 
 These fixes are not implemented in this change. Review scope included public
 rendering and navigation, authentication and sessions, reset lifecycle, request

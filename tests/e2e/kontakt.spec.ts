@@ -1,8 +1,15 @@
 import { href } from "react-router";
 
-import { expect, test } from "@playwright/test";
+import { expect, test, type BrowserContext } from "@playwright/test";
 
 import { loginAsAdmin } from "./utils/admin";
+
+async function omitExternalMap(context: BrowserContext) {
+  // The saved contact data must not depend on Google Maps finishing a network request.
+  await context.route("https://www.google.com/maps?**", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<!doctype html><title>Test map</title>" }),
+  );
+}
 
 test.describe("kontakt", () => {
   test.afterEach(async ({ page }) => {
@@ -32,6 +39,7 @@ test.describe("kontakt", () => {
     browser,
     baseURL,
   }) => {
+    await omitExternalMap(page.context());
     await loginAsAdmin(page);
 
     await page.goto(href("/admin/kontakt"));
@@ -64,6 +72,7 @@ test.describe("kontakt", () => {
         serviceWorkers: "block",
       });
       try {
+        await omitExternalMap(context);
         const reader = await context.newPage();
         await reader.goto(href("/kontakt"));
         await expect(reader.getByRole("link", { name: uniquePhone })).toBeVisible();

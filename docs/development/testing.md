@@ -71,9 +71,12 @@ the current working files, including staged, unstaged, and non-ignored untracked
 changes. Generated Prisma code and local `.env` files are copied too; local
 databases and previous build output are excluded. Installed dependencies are
 linked, while build output, route types, caches, and test databases remain separate.
-Storybook tests and runtime smoke stay in the checkout: they use separate caches,
-and only smoke generates route types there. This avoids changing the application's
-production build paths or copying the dependency installation.
+Storybook tests stay in the checkout. Runtime smoke starts one server there and
+one in a temporary sibling checkout so React Router type generation cannot race
+between them; both servers still start and run concurrently. The copy stays outside
+ignored report directories and includes local copies of the `@react-router` packages
+so Vite can serve their client entry with its default filesystem rules. Other
+dependencies remain linked. CI logs stay in `test-results/agent`.
 
 The command waits for every started group and fails if any group fails. On
 cancellation, browser tools and runtime smoke finish shutting down their owned

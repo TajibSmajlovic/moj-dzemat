@@ -3,6 +3,10 @@ import { DAY_MS, DAY_SECONDS, MINUTE_SECONDS } from "#app/lib/time";
 export const MIN_PASSWORD_LENGTH = 10;
 export const MIN_PASSWORD_LENGTH_MESSAGE = `Lozinka mora imati najmanje ${MIN_PASSWORD_LENGTH} znakova.`;
 
+export const MAX_PASSWORD_BYTES = 72;
+export const MAX_PASSWORD_BYTES_MESSAGE =
+  "Lozinka može imati najviše 72 bajta. Slova s kvačicama i emoji mogu zauzeti više bajtova.";
+
 const PASSWORD_RESET_TOKEN_TTL_MINUTES = 10;
 export const PASSWORD_RESET_TOKEN_TTL_LABEL = `${PASSWORD_RESET_TOKEN_TTL_MINUTES} minuta`;
 export const PASSWORD_RESET_TOKEN_TTL_SECONDS = PASSWORD_RESET_TOKEN_TTL_MINUTES * MINUTE_SECONDS;

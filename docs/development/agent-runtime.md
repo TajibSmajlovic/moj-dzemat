@@ -22,8 +22,9 @@ npm run agent:stop -- --manifest /path/from/start/manifest.json
 ```
 
 The manifest contains process and local connection metadata but no secret values.
-Use a separate Git worktree for each parallel code change because build output is
-still shared within one checkout.
+Use a separate Git worktree for each parallel runtime or code change: build
+output and React Router generated types are shared within one checkout.
+Simultaneous dev-server startup can race while rewriting route types.
 
 Cancelling startup with `SIGINT` or `SIGTERM`, or reaching the readiness timeout,
 stops the owned child before deleting its temporary state. The readiness timeout
@@ -91,7 +92,7 @@ disable checks, or kill processes by name or port.
 ## Runtime smoke test
 
 `npm run agent:smoke` uses the installed Playwright Chromium and runs as part of
-`agent:verify` and CI. It starts two fresh runtimes, exercises public and admin
+`agent:verify` and CI. It starts two fresh runtimes in separate source directories, exercises public and admin
 controls without a recovery reload, checks each Vite connection uses its own
 port, correlates a redacted request log, and verifies stop, cancellation, and
 readiness-failure cleanup. It uses fictional fixtures and omits external embeds.
