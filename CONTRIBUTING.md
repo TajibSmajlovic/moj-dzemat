@@ -144,7 +144,9 @@ and verification; update [component coverage](stories/coverage.md) when adding s
 Before opening a PR:
 
 - make sure the branch is focused and up to date with `master`
-- fill out the pull request template with concrete verification results
+- fill out the [pull request description template](.github/pull_request_template.md),
+  keeping its Summary, Scope and Risk, Verification, Architecture and
+  Documentation, Deployment, and Visual Evidence sections
 - include screenshots or recordings for visible UI changes
 - call out migrations, environment variables, seed changes, deploy steps, and rollback notes
 - explain skipped checks or known caveats
