@@ -64,10 +64,33 @@ approval. Multiple versions of `fsevents` and `better-sqlite3` are intentional
 while their dependency parents require different releases; keep an approval for
 each installed version that needs its script.
 
-Known upstream Prisma advisories and the `prebuild-install` deprecation are
-tracked in
+The remaining upstream Prisma native-helper deprecation is tracked in
 [TD-003](../exec-plans/tech-debt-tracker.md#td-003-upstream-prisma-dependency-warnings).
-Keep these warnings visible until compatible upstream releases resolve them.
+Keep this warning visible until a compatible upstream release removes the helper.
+
+### Security overrides
+
+The dependency parents below still require vulnerable releases. The root
+`package.json` scopes each override to that parent rather than changing every
+copy of a shared dependency.
+
+| Parent                                             | Override                        | Reason                                                                                                                                                                            |
+| -------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@tailwindcss/typography`                          | `postcss-selector-parser@6.1.6` | The plugin pins vulnerable 6.0.10. Version 6.1.6 includes the selector parsing fixes.                                                                                             |
+| `@joshwooding/vite-plugin-react-docgen-typescript` | `glob@14.0.6`                   | Storybook's docgen plugin requires glob 13. Its `globSync` calls retain the same API in the patched release.                                                                      |
+| `@react-router/fs-routes`                          | `minimatch@6.2.3`               | The maintained `legacy-v6` line is outside the globparts amplification advisory's affected range and retains `makeRe`. Minimatch 11 removes that API and breaks route generation. |
+| `@typescript-eslint/typescript-estree`             | `minimatch@11.0.8`              | The parser still requires vulnerable minimatch 10. Its matcher calls work with the patched release.                                                                               |
+
+Remove an override when a stable parent release accepts a safe dependency with
+the API it needs. Verify with a clean `npm ci`, `npm audit`, and
+`npm run agent:verify`. Route generation checks the filesystem convention;
+Storybook builds exercise docgen, and typed lint exercises the parser.
+
+Dependabot groups routine npm minor and patch updates into one weekly PR.
+Security updates have their own group, independent of that schedule. GitHub
+Actions use separate version and security groups. Deliberate major-version
+ignores remain in place. The configuration uses the repository's default branch
+so security grouping applies too.
 
 ## Development-only routes
 

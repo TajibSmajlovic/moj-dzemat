@@ -18,9 +18,9 @@ test.describe("public", () => {
     await page.goto(href("/"));
 
     await expect(page).toHaveTitle("Moj Džemat - Donje Mostre");
-    await expect(
-      page.getByRole("banner").getByRole("link", { name: "Moj Džemat - Donje Mostre" }),
-    ).toBeVisible();
+    const homeLink = page.getByRole("banner").getByRole("link", { name: /Moj Džemat/ });
+    await expect(homeLink).toHaveAccessibleName(/Rijaset Islamske zajednice u BiH/);
+    await expect(homeLink).toHaveAttribute("href", "/");
     await expect(page.getByRole("heading", { name: "Najnovije objave" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Gdje se nalazimo" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Otvori u Google Maps" })).toBeVisible();

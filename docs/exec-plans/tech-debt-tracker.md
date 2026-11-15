@@ -45,28 +45,22 @@ process-local state before horizontal scaling:
 
 ## TD-003: Upstream Prisma dependency warnings
 
-**Status:** Accepted pending upstream releases.
+**Status:** Security findings resolved; native-helper deprecation remains upstream.
 
-**Evidence and impact:** The last recorded `npm audit --json` check on 2026-09-14
+**Evidence and impact:** The `npm audit --json` check on 2026-09-14
 reported four high-severity entries in `deepmerge-ts`, `mysql2`, `@prisma/config`,
 and `prisma`.
 
-Prisma 7.10.0 pins deepmerge-ts 7.1.5 and mysql2 3.15.3, which retain npm audit
-findings. The application uses SQLite and a checked-in Prisma configuration;
-it does not accept MySQL connections or public configuration objects. This
-limits exposure but does not remove the affected dependencies. The SQLite
-adapter also retains better-sqlite3 12 and its deprecated prebuild-install helper.
+The compatible Prisma 7.10.1 update and dependency refresh cleared these findings
+on 2026-11-15; the complete `npm audit` reports zero vulnerabilities. No Prisma
+override, downgrade, or release candidate is used.
 
-At that check, the npm registry pointed `prisma` at 8.0.0-rc.15, while the SQLite
-adapter remained at 7.10.0. That release candidate did not meet this item's
-compatible stable update requirement. The audit's suggested Prisma 6 downgrade
-was not a compatible upgrade.
+The SQLite adapter still retains better-sqlite3 12 and its deprecated
+prebuild-install helper. Keep that notice visible until an upstream adapter
+update removes it.
 
-Keep these notices visible. Do not add dependency overrides or migrate to a
-Prisma release candidate just to clear them.
-
-**Exit condition:** Compatible stable upstream updates remove the findings and
-deprecation, verified with a clean `npm ci`,
+**Exit condition:** A compatible stable adapter update removes the deprecated
+helper, verified with a clean `npm ci`,
 `npm audit`, and the database and browser suites.
 
 ## Resolved items

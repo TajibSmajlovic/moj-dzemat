@@ -159,7 +159,6 @@ function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: st
   return (
     <PublicTransitionLink
       to={href("/")}
-      aria-label={siteName}
       onClick={onClick}
       className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 overflow-hidden rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
     >

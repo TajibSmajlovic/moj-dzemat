@@ -35,6 +35,7 @@ type RichEditorProps = {
   value: string;
   /** Fired on every content change with the current HTML string. */
   onChange: (html: string) => void;
+  label: string;
   /** Maps to Tiptap's `editable`. */
   disabled?: boolean;
   /** Placeholder shown when the editor is empty. */
@@ -50,6 +51,7 @@ type RichEditorProps = {
 export function RichEditor({
   value,
   onChange,
+  label,
   disabled = false,
   placeholder = "Počnite pisati…",
   id,
@@ -82,6 +84,8 @@ export function RichEditor({
       },
       attributes: {
         id: id ?? "",
+        "aria-label": label,
+        "aria-multiline": "true",
         class:
           "prose prose-stone prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-blockquote:border-primary/30 dark:prose-invert dark:prose-a:text-primary max-w-none min-h-[240px] px-4 py-3 focus:outline-none " +
           "[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] " +
