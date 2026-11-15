@@ -32,9 +32,9 @@ export function WebPushPrompt() {
     const markInteraction = () => setInteracted(true);
     const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
     for (const eventName of events)
-      globalThis.addEventListener(eventName, markInteraction, { once: true, passive: true });
+      addEventListener(eventName, markInteraction, { once: true, passive: true });
     return () => {
-      for (const eventName of events) globalThis.removeEventListener(eventName, markInteraction);
+      for (const eventName of events) removeEventListener(eventName, markInteraction);
     };
   }, [eligibleRoute, eligibleState]);
 
@@ -51,19 +51,19 @@ export function WebPushPrompt() {
       setVisible(true);
     };
     const schedule = () => {
-      if (timeout) globalThis.clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
       if (document.visibilityState !== "visible") {
         remainingMs = Math.max(0, remainingMs - (performance.now() - startedAt));
         return;
       }
       startedAt = performance.now();
-      timeout = globalThis.setTimeout(show, remainingMs);
+      timeout = setTimeout(show, remainingMs);
     };
 
     schedule();
     document.addEventListener("visibilitychange", schedule);
     return () => {
-      if (timeout) globalThis.clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
       document.removeEventListener("visibilitychange", schedule);
     };
   }, [eligibleRoute, eligibleState, interacted, visible]);

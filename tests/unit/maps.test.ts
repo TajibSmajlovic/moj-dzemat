@@ -29,7 +29,7 @@ describe("Google Maps helpers", () => {
 
   it("returns null when neither address nor query is configured", () => {
     expect(getDzematLocation({})).toBeNull();
-    expect(getDzematLocation({ address: "   ", query: "" })).toBeNull();
+    expect(getDzematLocation({ address: " ".repeat(3), query: "" })).toBeNull();
   });
 
   it("falls back to the address when no explicit map query is set", () => {

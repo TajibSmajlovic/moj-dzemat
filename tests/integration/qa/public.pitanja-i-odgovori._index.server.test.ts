@@ -170,7 +170,7 @@ describe("public Q&A index route", () => {
   it("returns field errors for invalid question text", async () => {
     const cases = [
       { question: "1234", ip: "203.0.113.33", error: /najmanje 5/i },
-      { question: "    ", ip: "203.0.113.34", error: /obavezno/i },
+      { question: " ".repeat(4), ip: "203.0.113.34", error: /obavezno/i },
       { question: "a".repeat(1001), ip: "203.0.113.35", error: /najviše 1000/i },
     ];
 

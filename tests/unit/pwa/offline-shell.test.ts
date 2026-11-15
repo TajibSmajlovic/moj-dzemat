@@ -116,7 +116,7 @@ describe("offline shell", () => {
     await renderShell({ pathname: "/objave/javna-objava", records: [saved] });
 
     expect(root().querySelector("h1")?.textContent).toBe("Javna objava");
-    expect(root().querySelector(".offline-prose strong")?.textContent).toBe("sadržaj");
+    expect(root().querySelector(":scope .offline-prose strong")?.textContent).toBe("sadržaj");
     expect(root().textContent).toContain("Slike i video");
     expect(root().textContent).toContain("Sačuvana verzija");
     expect(root().textContent).toContain("Sačuvano na uređaju 26. jul 2026. u 10:00");

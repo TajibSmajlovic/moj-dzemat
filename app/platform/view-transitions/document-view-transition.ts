@@ -56,7 +56,7 @@ export function startThemeViewTransition(update: VoidFunction): boolean {
 
   try {
     const transition = transitionDocument.startViewTransition.call(document, update);
-    void transition.finished.then(clearKind, clearKind);
+    void transition.finished.then(clearKind).catch(clearKind);
 
     return true;
   } catch {

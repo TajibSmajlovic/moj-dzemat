@@ -15,6 +15,7 @@ let originalServiceWorkerDescriptor: PropertyDescriptor | undefined;
 beforeEach(() => {
   localStorage.clear();
   originalServiceWorkerDescriptor = Object.getOwnPropertyDescriptor(navigator, "serviceWorker");
+  // eslint-disable-next-line unicorn/no-global-object-property-assignment -- React reads this flag from the global object in tests
   (
     globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
   ).IS_REACT_ACT_ENVIRONMENT = true;

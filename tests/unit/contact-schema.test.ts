@@ -76,21 +76,23 @@ describe("CommunityInfoFormSchema", () => {
     });
 
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data).toMatchObject({
-        showAbout: true,
-        showContact: true,
-        showImam: true,
-        showBoard: true,
-        showBank: true,
-        showLocation: true,
-      });
-      expect(
-        Object.entries(result.data)
-          .filter(([key]) => !key.startsWith("show"))
-          .every(([, value]) => value === null),
-      ).toBe(true);
+    if (!result.success) {
+      return;
     }
+
+    expect(result.data).toMatchObject({
+      showAbout: true,
+      showContact: true,
+      showImam: true,
+      showBoard: true,
+      showBank: true,
+      showLocation: true,
+    });
+    expect(
+      Object.entries(result.data)
+        .filter(([key]) => !key.startsWith("show"))
+        .every(([, value]) => value === null),
+    ).toBe(true);
   });
 
   it("maps omitted visibility checkboxes to false", () => {

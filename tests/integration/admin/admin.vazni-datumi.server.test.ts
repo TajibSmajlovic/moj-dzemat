@@ -99,7 +99,7 @@ describe("admin important dates route", () => {
   it("returns 400 with a field error when the title is missing", async () => {
     const formData = new FormData();
     formData.set("intent", "create");
-    formData.set("title", "   ");
+    formData.set("title", " ".repeat(3));
     formData.set("date", "2026-06-16");
     withHoneypot(formData);
 

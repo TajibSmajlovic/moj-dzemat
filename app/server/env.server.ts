@@ -115,7 +115,7 @@ export const envSchema = z
       ] as const;
 
       for (const key of requiredKeys) {
-        if (!value[key]) {
+        if (value[key] === undefined) {
           ctx.addIssue({ code: "custom", path: [key], message: `${key} is required` });
         }
       }

@@ -35,7 +35,7 @@ export function parsePageParam(value: string | null) {
   if (!value) return 1;
 
   const page = Number(value);
-  if (!Number.isInteger(page) || page < 1) {
+  if (!Number.isSafeInteger(page) || page < 1) {
     return 1;
   }
 

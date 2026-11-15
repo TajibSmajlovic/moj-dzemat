@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigation, useViewTransitionState } from "react-router";
 
 import {
@@ -35,9 +27,9 @@ const PublicViewTransitionContext = createContext<PublicViewTransitionContextVal
 export function PublicViewTransitionProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigation = useNavigation();
-  const nextToken = useRef(0);
-  const navigationStartedForToken = useRef<number | null>(null);
-  const routerTransitionSeenForToken = useRef<number | null>(null);
+  const nextTokenRef = useRef(0);
+  const navigationStartedForTokenRef = useRef<number | null>(null);
+  const routerTransitionSeenForTokenRef = useRef<number | null>(null);
   const [intent, setIntent] = useState<ActiveIntent | null>(null);
   const intentRef = useRef<ActiveIntent | null>(intent);
   const transitionTarget = intent?.targetUrl ?? location.pathname;
@@ -45,14 +37,14 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
 
   const replaceIntent = useCallback((nextIntent: ActiveIntent | null) => {
     intentRef.current = nextIntent;
-    navigationStartedForToken.current = null;
-    routerTransitionSeenForToken.current = null;
+    navigationStartedForTokenRef.current = null;
+    routerTransitionSeenForTokenRef.current = null;
     setIntent(nextIntent);
   }, []);
 
   const beginIntent = useCallback(
     (targetUrl: string) => {
-      const token = ++nextToken.current;
+      const token = ++nextTokenRef.current;
       setDocumentViewTransitionKind("section");
       replaceIntent({
         kind: "section",
@@ -86,20 +78,20 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
     if (!intent) return;
 
     if (navigation.state !== "idle") {
-      navigationStartedForToken.current = intent.token;
+      navigationStartedForTokenRef.current = intent.token;
     }
 
     if (routerTransitionActive) {
-      routerTransitionSeenForToken.current = intent.token;
+      routerTransitionSeenForTokenRef.current = intent.token;
       return;
     }
 
-    if (routerTransitionSeenForToken.current === intent.token) {
+    if (routerTransitionSeenForTokenRef.current === intent.token) {
       finishIntent(intent.token);
       return;
     }
 
-    if (navigationStartedForToken.current === intent.token && navigation.state === "idle") {
+    if (navigationStartedForTokenRef.current === intent.token && navigation.state === "idle") {
       finishIntent(intent.token);
       return;
     }
@@ -115,9 +107,9 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
     // A blocked navigation may never change either Router signal. Keep the
     // document marker bounded so it cannot affect later interactions forever.
     const token = intent.token;
-    const timeout = globalThis.setTimeout(() => finishIntent(token), INTENT_FALLBACK_TIMEOUT_MS);
+    const timeout = setTimeout(() => finishIntent(token), INTENT_FALLBACK_TIMEOUT_MS);
 
-    return () => globalThis.clearTimeout(timeout);
+    return () => clearTimeout(timeout);
   }, [finishIntent, intent]);
 
   useEffect(() => {
@@ -136,9 +128,9 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
 
     // Capture runs before React Router's bubble listener so the section marker
     // is set before Router captures the outgoing snapshot.
-    globalThis.addEventListener("popstate", handlePopState, true);
+    addEventListener("popstate", handlePopState, { capture: true });
 
-    return () => globalThis.removeEventListener("popstate", handlePopState, true);
+    return () => removeEventListener("popstate", handlePopState, true);
   }, [beginIntent, location]);
 
   useEffect(
@@ -157,15 +149,11 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
     [beginSection, intent],
   );
 
-  return (
-    <PublicViewTransitionContext.Provider value={value}>
-      {children}
-    </PublicViewTransitionContext.Provider>
-  );
+  return <PublicViewTransitionContext value={value}>{children}</PublicViewTransitionContext>;
 }
 
 export function useOptionalPublicViewTransition() {
-  return useContext(PublicViewTransitionContext);
+  return use(PublicViewTransitionContext);
 }
 
 export function useSuppressPublicRouteMotion(): boolean {

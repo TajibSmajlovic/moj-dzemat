@@ -17,8 +17,10 @@ import { prisma } from "#app/server/db.server";
 import { createUser } from "../../factories";
 import { testUrl } from "../../helpers/route";
 
-function makeRequest(url = href("/prijava"), init: RequestInit = {}) {
-  return new Request(testUrl(url), { method: "POST", ...init });
+const PASSWORD = "hunter2pass1";
+
+function makeRequest(init: RequestInit = {}) {
+  return new Request(testUrl(href("/prijava")), { method: "POST", ...init });
 }
 
 /**
@@ -33,19 +35,19 @@ function newSessionCookie(headers: Headers): string {
     throw new Error("expected at least one Set-Cookie header");
   }
   const latest = cookies.at(-1)!;
-  return latest.split(";")[0]!;
+  return latest.split(";", 1)[0]!;
 }
 
-async function loginAndGetCookie(email: string, password: string): Promise<string> {
-  const result = await login({ request: makeRequest(), email, password });
+async function loginAndGetCookie(email: string): Promise<string> {
+  const result = await login({ request: makeRequest(), email, password: PASSWORD });
   if (!result.ok) {
     throw new Error("login() unexpectedly failed during test setup");
   }
   return newSessionCookie(result.headers);
 }
 
-function authedRequest(cookie: string, url = `http://localhost${href("/admin/objave")}`) {
-  return new Request(url, { headers: { Cookie: cookie } });
+function authedRequest(cookie: string) {
+  return new Request(`http://localhost${href("/admin/objave")}`, { headers: { Cookie: cookie } });
 }
 
 describe("auth.server", () => {
@@ -66,18 +68,18 @@ describe("auth.server", () => {
       });
       const result = await login({ request: makeRequest(), email: user.email, password });
       expect(result.ok).toBe(true);
-      if (result.ok) {
-        const session = await getSession(newSessionCookie(result.headers));
-        expect(session.get("userId")).toBe(user.id);
-      }
+      if (!result.ok) return;
+
+      const session = await getSession(newSessionCookie(result.headers));
+      expect(session.get("userId")).toBe(user.id);
     });
 
     it("issues a session cookie on valid credentials", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
+      const { user } = await createUser({ password: PASSWORD });
       const result = await login({
         request: makeRequest(),
         email: user.email,
-        password: "hunter2pass1",
+        password: PASSWORD,
       });
 
       expect(result.ok).toBe(true);
@@ -89,20 +91,19 @@ describe("auth.server", () => {
     it("normalizes email casing before looking up credentials", async () => {
       const { user } = await createUser({
         email: "admin@dzemat.ba",
-        password: "hunter2pass1",
+        password: PASSWORD,
       });
       const result = await login({
         request: makeRequest(),
         email: "ADMIN@DZEMAT.BA",
-        password: "hunter2pass1",
+        password: PASSWORD,
       });
 
       expect(result.ok).toBe(true);
-      if (result.ok) {
-        const cookie = newSessionCookie(result.headers);
-        const session = await getSession(cookie);
-        expect(session.get("userId")).toBe(user.id);
-      }
+      if (!result.ok) return;
+
+      const session = await getSession(newSessionCookie(result.headers));
+      expect(session.get("userId")).toBe(user.id);
     });
 
     it.each(["unknown account", "account without a password"])(
@@ -143,7 +144,7 @@ describe("auth.server", () => {
     });
 
     it("rejects wrong password", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
+      const { user } = await createUser({ password: PASSWORD });
       const result = await login({
         request: makeRequest(),
         email: user.email,
@@ -153,10 +154,10 @@ describe("auth.server", () => {
     });
 
     it("rotates the session id on every login (defends against fixation)", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
+      const { user } = await createUser({ password: PASSWORD });
 
       // Establish a baseline session A from a first login.
-      const cookieA = await loginAndGetCookie(user.email, "hunter2pass1");
+      const cookieA = await loginAndGetCookie(user.email);
       const sessionA = await getSession(cookieA);
       const idA = sessionA.id;
       expect(idA).toBeTruthy();
@@ -165,11 +166,9 @@ describe("auth.server", () => {
       // A second login that *carries cookie A* must NOT reuse session A.
       // The old row gets destroyed and a brand new row replaces it.
       const second = await login({
-        request: makeRequest(href("/prijava"), {
-          headers: { Cookie: cookieA },
-        }),
+        request: makeRequest({ headers: { Cookie: cookieA } }),
         email: user.email,
-        password: "hunter2pass1",
+        password: PASSWORD,
       });
       if (!second.ok) {
         throw new Error("expected second login to succeed");
@@ -196,16 +195,16 @@ describe("auth.server", () => {
     });
 
     it("returns the user record when the cookie points at a live session", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
-      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const { user } = await createUser({ password: PASSWORD });
+      const cookie = await loginAndGetCookie(user.email);
 
       const result = await getCurrentUser(authedRequest(cookie));
       expect(result).toMatchObject({ id: user.id, email: user.email });
     });
 
     it("memoizes the user lookup for repeated calls with the same Request", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
-      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const { user } = await createUser({ password: PASSWORD });
+      const cookie = await loginAndGetCookie(user.email);
       const request = authedRequest(cookie);
       const findUnique = vi.spyOn(prisma.user, "findUnique");
 
@@ -218,8 +217,8 @@ describe("auth.server", () => {
     });
 
     it("returns null when the cookie points at a deleted session row", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
-      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const { user } = await createUser({ password: PASSWORD });
+      const cookie = await loginAndGetCookie(user.email);
 
       // Deleting the user cascades the Session row, leaving the browser
       // with a cookie whose server-side session no longer exists.
@@ -254,8 +253,8 @@ describe("auth.server", () => {
     });
 
     it("returns the user when a valid session is attached", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
-      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const { user } = await createUser({ password: PASSWORD });
+      const cookie = await loginAndGetCookie(user.email);
       const request = authedRequest(cookie);
 
       const result = await requireAdmin(request, new URL(request.url));
@@ -265,17 +264,17 @@ describe("auth.server", () => {
 
   describe("logout", () => {
     it("returns a destroying Set-Cookie and removes the session row from the DB", async () => {
-      const { user } = await createUser({ password: "hunter2pass1" });
-      const cookie = await loginAndGetCookie(user.email, "hunter2pass1");
+      const { user } = await createUser({ password: PASSWORD });
+      const cookie = await loginAndGetCookie(user.email);
 
       const sessionsBefore = await prisma.session.count({ where: { userId: user.id } });
       expect(sessionsBefore).toBe(1);
 
       const headers = await logout(authedRequest(cookie));
-      const setCookie = headers.get("Set-Cookie") ?? "";
-      expect(setCookie).toMatch(/mdz_session=/);
+      const cookieHeader = headers.get("Set-Cookie") ?? "";
+      expect(cookieHeader).toMatch(/mdz_session=/);
       // remix/react-router destroySession sets a past Expires so the browser drops it.
-      expect(setCookie.toLowerCase()).toMatch(/expires=|max-age=0/);
+      expect(cookieHeader.toLowerCase()).toMatch(/expires=|max-age=0/);
 
       const sessionsAfter = await prisma.session.count({ where: { userId: user.id } });
       expect(sessionsAfter).toBe(0);

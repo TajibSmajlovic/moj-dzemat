@@ -33,7 +33,7 @@ function decodeHtmlEntities(value: string): string {
     }
 
     if (code.startsWith("#")) {
-      return decodeCodePoint(entity, Number.parseInt(code.slice(1), 10));
+      return decodeCodePoint(entity, Number(code.slice(1)));
     }
 
     return NAMED_HTML_ENTITIES[code] ?? entity;

@@ -336,20 +336,19 @@ function BankAccountCopy({ account }: { account: string }) {
 
   useEffect(
     () => () => {
-      if (resetTimerRef.current) globalThis.clearTimeout(resetTimerRef.current);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     },
     [],
   );
 
   function copyAccount() {
-    void copyText(account).then(
-      () => {
+    void copyText(account)
+      .then(() => {
         setCopyState("copied");
-        if (resetTimerRef.current) globalThis.clearTimeout(resetTimerRef.current);
-        resetTimerRef.current = globalThis.setTimeout(() => setCopyState("idle"), 2000);
-      },
-      () => setCopyState("failed"),
-    );
+        if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = setTimeout(() => setCopyState("idle"), 2000);
+      })
+      .catch(() => setCopyState("failed"));
   }
 
   const buttonLabel =

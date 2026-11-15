@@ -94,26 +94,26 @@ function showToast(toastInput?: ToastInput | null) {
 }
 
 function useToast(toastInput?: ToastPayload | null) {
-  const lastToastId = useRef<string | null>(null);
+  const lastToastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!toastInput || toastInput.id === lastToastId.current) return;
+    if (!toastInput || toastInput.id === lastToastIdRef.current) return;
 
     showToast(toastInput);
-    lastToastId.current = toastInput.id;
+    lastToastIdRef.current = toastInput.id;
   }, [toastInput]);
 }
 
 function useActionToast(actionData: unknown) {
-  const lastSeen = useRef<unknown>(undefined);
+  const lastSeenRef = useRef<unknown>(undefined);
 
   useEffect(() => {
-    if (!actionData || actionData === lastSeen.current) return;
+    if (!actionData || actionData === lastSeenRef.current) return;
     if (hasSuccessToast(actionData)) {
       showToast(actionData.toast);
     }
 
-    lastSeen.current = actionData;
+    lastSeenRef.current = actionData;
   }, [actionData]);
 }
 

@@ -9,7 +9,7 @@ import {
   parsePostFormData,
 } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
-import { useIsSubmittingIntent } from "#app/lib/intent";
+import { isSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { env } from "#app/server/env.server";
@@ -41,7 +41,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 export default function AdminNewPost({ actionData, loaderData }: Route.ComponentProps) {
   const navigation = useNavigation();
-  const submitting = useIsSubmittingIntent(navigation, PostAdminIntents.Create);
+  const submitting = isSubmittingIntent(navigation, PostAdminIntents.Create);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">

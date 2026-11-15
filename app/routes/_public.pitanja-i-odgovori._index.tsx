@@ -119,9 +119,8 @@ export default function QaIndexPage({ actionData, loaderData }: Route.ComponentP
   const sectionRevealMotion = useEntranceMotion(sectionReveal, suppressRouteMotion);
 
   useEffect(() => {
-    const shouldOpen =
-      globalThis.location.hash === `#${QA_ASK_HASH}` || Boolean(actionData && !actionData.ok);
-    const isMobile = globalThis.matchMedia("(max-width: 1023px)").matches;
+    const shouldOpen = location.hash === `#${QA_ASK_HASH}` || Boolean(actionData && !actionData.ok);
+    const isMobile = matchMedia("(max-width: 1023px)").matches;
     if (!shouldOpen || !isMobile) return;
 
     const frame = requestAnimationFrame(() => setMobileFormOpen(true));

@@ -46,13 +46,13 @@ export function IconActionButton({
   active = false,
   className,
   children,
-  type,
+  type = "button",
   ...props
 }: IconActionButtonProps) {
   return (
     <Button
       {...props}
-      type={props.asChild ? undefined : (type ?? "button")}
+      type={props.asChild ? undefined : type}
       variant="ghost"
       size="icon-sm"
       title={label}

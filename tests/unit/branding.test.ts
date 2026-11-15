@@ -12,7 +12,7 @@ describe("formatSiteName", () => {
   it("falls back to the default name when dzemat name is missing", () => {
     expect(formatSiteName()).toBe(DEFAULT_SITE_NAME);
     expect(formatSiteName("")).toBe(DEFAULT_SITE_NAME);
-    expect(formatSiteName("   ")).toBe(DEFAULT_SITE_NAME);
+    expect(formatSiteName(" ".repeat(3))).toBe(DEFAULT_SITE_NAME);
   });
 
   it("appends the configured dzemat name", () => {

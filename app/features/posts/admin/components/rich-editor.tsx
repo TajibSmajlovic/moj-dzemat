@@ -54,7 +54,7 @@ export function RichEditor({
   label,
   disabled = false,
   placeholder = "Počnite pisati…",
-  id,
+  id = "",
 }: RichEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -83,7 +83,7 @@ export function RichEditor({
         return normalizeNonBreakingSpaces(html);
       },
       attributes: {
-        id: id ?? "",
+        id,
         "aria-label": label,
         "aria-multiline": "true",
         class:
@@ -107,7 +107,7 @@ export function RichEditor({
     if (!editor) return;
 
     const previousUrl = (editor.getAttributes("link") as { href?: string }).href ?? "";
-    const url = globalThis.prompt("Adresa linka:", previousUrl);
+    const url = prompt("Adresa linka:", previousUrl);
 
     if (url === null) return; // cancelled
     if (url === "") {

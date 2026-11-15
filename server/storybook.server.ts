@@ -28,7 +28,7 @@ export function storybookRouter(directory = path.resolve("build/storybook")): ex
       res.set("Allow", "GET, HEAD").status(405).end();
       return;
     }
-    const [pathname] = req.originalUrl.split("?");
+    const [pathname] = req.originalUrl.split("?", 1);
     if (pathname === "/storybook") {
       const query = req.originalUrl.slice(pathname.length);
       res.redirect(308, `/storybook/${query}`);

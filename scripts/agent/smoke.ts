@@ -215,7 +215,9 @@ async function inspectBrowser(run: Run, mobile: boolean): Promise<void> {
           body: "<!doctype html><title>External content omitted in local check</title>",
         }));
   });
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => {
+    errors.push(error.message);
+  });
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
@@ -223,10 +225,12 @@ async function inspectBrowser(run: Run, mobile: boolean): Promise<void> {
     if (response.status() >= 400)
       errors.push(`${response.status()} ${new URL(response.url()).pathname}`);
   });
-  page.on("requestfailed", (request) =>
-    errors.push(`${new URL(request.url()).pathname}: ${request.failure()?.errorText}`),
-  );
-  page.on("websocket", (socket) => sockets.push(new URL(socket.url()).host));
+  page.on("requestfailed", (request) => {
+    errors.push(`${new URL(request.url()).pathname}: ${request.failure()?.errorText}`);
+  });
+  page.on("websocket", (socket) => {
+    sockets.push(new URL(socket.url()).host);
+  });
   const documents: string[] = [];
   page.on("request", (request) => {
     // Router history updates also emit frame navigation events. Count actual
@@ -357,16 +361,18 @@ try {
     console.error(error instanceof Error ? error.message : error);
   });
   for (const command of commands) {
-    if (command.child.exitCode === null && command.child.signalCode === null && !command.error) {
-      command.child.kill("SIGTERM");
-      await until(
-        () => command.child.exitCode !== null || command.child.signalCode !== null,
-        `${command.name} cancellation`,
-        20_000,
-      ).catch(() => {
-        passed = false;
-      });
+    if (!(command.child.exitCode === null && command.child.signalCode === null) || command.error) {
+      continue;
     }
+
+    command.child.kill("SIGTERM");
+    await until(
+      () => command.child.exitCode !== null || command.child.signalCode !== null,
+      `${command.name} cancellation`,
+      20_000,
+    ).catch(() => {
+      passed = false;
+    });
   }
   for (const command of starts) {
     const file = manifestPath(command);

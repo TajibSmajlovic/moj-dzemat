@@ -118,7 +118,9 @@ for (const viewport of [
         releaseScripts = resolve;
       });
       const errors: string[] = [];
-      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("pageerror", (error) => {
+        errors.push(error.message);
+      });
       await page.route("**/*", async (route) => {
         if (route.request().resourceType() === "script") await scriptsReady;
         await route.continue();

@@ -17,13 +17,15 @@ function isAllowedImageMime(mime: string): mime is AllowedImageMime {
   return (ALLOWED_IMAGE_MIMES as ReadonlySet<string>).has(mime);
 }
 
+const JPEG_MIME_ALIASES = new Set(["image/jpg", "image/pjpeg", "image/x-citrix-jpeg"]);
+
 /**
    Browsers report JPEGs under a handful of legacy aliases. Normalise
    to the canonical IANA value before doing anything else.
  */
 function normalizeClientMime(raw: string): string {
   const t = raw.trim().toLowerCase();
-  if (t === "image/jpg" || t === "image/pjpeg" || t === "image/x-citrix-jpeg") {
+  if (JPEG_MIME_ALIASES.has(t)) {
     return "image/jpeg";
   }
 

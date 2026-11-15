@@ -75,8 +75,8 @@ export async function getPublicAnsweredQuestions({
   const questions = await prisma.question.findMany({
     where: publicAnsweredWhere,
     orderBy: publicQuestionOrderBy,
-    ...(take === undefined ? {} : { take }),
-    ...(skip === undefined ? {} : { skip }),
+    ...(take !== undefined && { take }),
+    ...(skip !== undefined && { skip }),
     select: publicQuestionSelect,
   });
 

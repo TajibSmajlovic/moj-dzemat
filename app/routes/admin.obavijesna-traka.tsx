@@ -179,15 +179,17 @@ async function handleUpsert(
 
   return redirectWithToast(
     href("/admin/obavijesna-traka"),
-    intent === AnnouncementIntents.Create
-      ? createActionToast({
-          action: "create",
-          description: "Poruka na obavijesnoj traci je uspješno dodana.",
-        })
-      : createActionToast({
-          action: "update",
-          description: "Poruka na obavijesnoj traci je uspješno ažurirana.",
-        }),
+    createActionToast(
+      intent === AnnouncementIntents.Create
+        ? {
+            action: "create",
+            description: "Poruka na obavijesnoj traci je uspješno dodana.",
+          }
+        : {
+            action: "update",
+            description: "Poruka na obavijesnoj traci je uspješno ažurirana.",
+          },
+    ),
   );
 }
 

@@ -60,10 +60,11 @@ export function ServiceWorkerRegistration() {
         isPageLoaded: document.readyState === "complete",
         serviceWorker: "serviceWorker" in navigator ? navigator.serviceWorker : undefined,
         addLoadListener: (listener) => {
-          globalThis.addEventListener("load", listener, { once: true });
+          // eslint-disable-next-line @eslint-react/web-api-no-leaked-event-listener -- removed by the returned cleanup via `removeLoadListener`
+          addEventListener("load", listener, { once: true });
         },
         removeLoadListener: (listener) => {
-          globalThis.removeEventListener("load", listener);
+          removeEventListener("load", listener);
         },
       }),
     [],

@@ -40,6 +40,9 @@ export async function checkStaged(root = process.cwd()): Promise<boolean> {
   }
 
   if (sources.length) {
+    // `check:staged` loads this script with `tsx/esm`, not `tsx`. The CommonJS
+    // hook in `tsx` loads part of eslint-plugin-unicorn a second time, and the
+    // Unicorn rules then fail to load when ESLint runs in this process.
     const { ESLint } = await import("eslint");
     const eslint = new ESLint({ cwd: root });
     const included = [];

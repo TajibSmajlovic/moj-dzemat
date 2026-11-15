@@ -163,7 +163,7 @@ function InfoTile({
   return (
     <div className="border-border/60 bg-background/80 rounded-2xl border p-4">
       <div className="text-muted-foreground mb-2 inline-flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
-        {icon ?? null}
+        {icon}
         {label}
       </div>
       <p className="text-foreground text-sm font-medium wrap-break-word">{value}</p>

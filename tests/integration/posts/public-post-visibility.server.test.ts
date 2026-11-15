@@ -14,7 +14,7 @@ import { createCommunityInfo, createPost, createQuestion, createUser } from "../
 import { callLoader, testUrl } from "../../helpers/route";
 import { sessionCookieFor } from "../../helpers/session";
 
-const callHomeLoader = (url = testUrl(href("/"))) => callLoader(publicHomeLoader, { url });
+const callHomeLoader = () => callLoader(publicHomeLoader, { url: testUrl(href("/")) });
 
 const callPostLoader = (slug: string) =>
   callLoader(publicPostLoader, {

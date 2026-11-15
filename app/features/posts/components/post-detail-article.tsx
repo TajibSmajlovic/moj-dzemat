@@ -82,7 +82,7 @@ export function PostDetailArticle({
           <div className="flex flex-wrap items-center gap-3">
             <PostTypeBadge type={post.type} />
 
-            {post.pinned && showPinnedBadge ? (
+            {showPinnedBadge && post.pinned ? (
               <span className="text-gold-foreground inline-flex items-center gap-1">
                 <Pin className="fill-secondary h-4 w-4" aria-hidden="true" />
                 <span className="text-xs font-semibold tracking-wide uppercase">Na vrhu</span>
@@ -101,6 +101,7 @@ export function PostDetailArticle({
 
         <div
           className="prose prose-stone prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-blockquote:border-primary/30 prose-blockquote:text-muted-foreground dark:prose-invert dark:prose-a:text-primary text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
+          // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- sanitized on write
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
       </article>
@@ -136,7 +137,7 @@ const PostMediaCarousel = ({ media, fallbackAlt }: { media: MediaItem[]; fallbac
     setLightboxIndex((current) => {
       if (current === null) return current;
 
-      return current === 0 ? media.length - 1 : current - 1;
+      return (current === 0 ? media.length : current) - 1;
     });
   };
 
@@ -259,10 +260,10 @@ function MediaLightbox({
   onNext: VoidFunction;
 }) {
   const item = media[activeIndex];
+  if (!item) return null;
+
   const canNavigate = media.length > 1;
   const allImages = media.every((mediaItem) => mediaItem.kind === "image");
-
-  if (!item) return null;
 
   const activeNoun = item.kind === "video" ? "videa" : "slike";
   const counterKind = item.kind === "video" ? "Video" : "Slika";

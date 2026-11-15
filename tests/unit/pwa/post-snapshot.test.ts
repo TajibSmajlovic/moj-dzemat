@@ -34,18 +34,11 @@ function postSource(overrides: Partial<PublicPostSnapshotSource> = {}): PublicPo
   };
 }
 
-function snapshot(
-  id: string,
-  lastViewedAt: string,
-  overrides: Partial<PostSnapshot> = {},
-): PostSnapshot {
-  return {
-    ...normalizePublicPostSnapshot(
-      postSource({ id, slug: `objava-${id}` }),
-      new Date(lastViewedAt),
-    ),
-    ...overrides,
-  };
+function snapshot(id: string, lastViewedAt: string): PostSnapshot {
+  return normalizePublicPostSnapshot(
+    postSource({ id, slug: `objava-${id}` }),
+    new Date(lastViewedAt),
+  );
 }
 
 describe("public post snapshots", () => {

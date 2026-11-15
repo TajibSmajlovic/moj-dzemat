@@ -94,7 +94,7 @@ describe("new password route", () => {
       const row = await prisma.password.findUniqueOrThrow({ where: { userId: user.id } });
       expect(await verifyPassword(passwords[winner]!, row.hash)).toBe(true);
       expect(await verifyPassword(passwords[1 - winner]!, row.hash)).toBe(false);
-      const cookie = (results[winner] as Response).headers.getSetCookie().at(-1)?.split(";")[0];
+      const cookie = (results[winner] as Response).headers.getSetCookie().at(-1)?.split(";", 1)[0];
       const session = await getSession(cookie);
       expect(session.get("userId")).toBe(user.id);
       const oldSession = await getSession(oldCookie);
@@ -147,7 +147,7 @@ describe("new password route", () => {
     expect(passwordRow).not.toBeNull();
     expect(await verifyPassword("brand-new-password", passwordRow!.hash)).toBe(true);
 
-    const sessionCookie = response.headers.getSetCookie().at(-1)?.split(";")[0];
+    const sessionCookie = response.headers.getSetCookie().at(-1)?.split(";", 1)[0];
     expect(sessionCookie).toBeTruthy();
     const session = await getSession(sessionCookie);
     expect(session.get("userId")).toBe(user.id);
@@ -165,7 +165,7 @@ describe("new password route", () => {
     expect(result).toBeInstanceOf(Response);
     expect(await prisma.session.findUnique({ where: { id: oldSession.id } })).toBeNull();
 
-    const newCookie = (result as Response).headers.getSetCookie().at(-1)?.split(";")[0];
+    const newCookie = (result as Response).headers.getSetCookie().at(-1)?.split(";", 1)[0];
     const newSession = await getSession(newCookie);
     expect(newSession.id).not.toBe(oldSession.id);
     expect(newSession.get("userId")).toBe(user.id);

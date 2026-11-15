@@ -27,7 +27,7 @@ import type { Navigation } from "react-router";
      }
 
      // 4. In the component (pending state per intent):
-     const deleting = useIsSubmittingIntent(navigation, PostAdminIntents.Delete);
+     const deleting = isSubmittingIntent(navigation, PostAdminIntents.Delete);
 
    The helpers stay completely domain-agnostic, so every new form just
    declares its own `as const` intent map and gets the same parsing,
@@ -73,7 +73,7 @@ export function IntentInput<T extends string>({
   return <input type="hidden" name={field} value={intent} />;
 }
 
-export function useIsSubmittingIntent<T extends string>(
+export function isSubmittingIntent<T extends string>(
   navigation: SubmissionNavigation,
   intent: T,
   field: string = INTENT_FIELD,

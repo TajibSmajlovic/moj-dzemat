@@ -100,8 +100,8 @@ export function checkAgentDocs(
 
     for (const link of links) {
       if (isExternalLink(link.target)) continue;
-      const [rawFile, rawAnchor] = link.target.split("#", 2);
-      const decodedFile = decodeURIComponent(rawFile ?? "");
+      const [rawFile = "", rawAnchor] = link.target.split("#", 2);
+      const decodedFile = decodeURIComponent(rawFile);
       const targetFile = decodedFile
         ? path.resolve(path.dirname(absoluteDocument), decodedFile)
         : absoluteDocument;
@@ -129,16 +129,16 @@ export function checkAgentDocs(
       if (normalizedTarget !== toPosix(documentPath) && checkedDocuments.has(normalizedTarget)) {
         targets.add(normalizedTarget);
       }
-      if (rawAnchor && fs.statSync(targetFile).isFile()) {
-        const anchors = markdownAnchors(withoutCodeFences(fs.readFileSync(targetFile, "utf8")));
-        if (!anchors.has(rawAnchor.toLocaleLowerCase())) {
-          findings.push({
-            file: documentPath,
-            line: lineAt(contents, link.index),
-            kind: "broken-anchor",
-            detail: `Heading anchor does not exist: ${link.target}`,
-          });
-        }
+      if (!rawAnchor || !fs.statSync(targetFile).isFile()) continue;
+
+      const anchors = markdownAnchors(withoutCodeFences(fs.readFileSync(targetFile, "utf8")));
+      if (!anchors.has(rawAnchor.toLocaleLowerCase())) {
+        findings.push({
+          file: documentPath,
+          line: lineAt(contents, link.index),
+          kind: "broken-anchor",
+          detail: `Heading anchor does not exist: ${link.target}`,
+        });
       }
     }
 
@@ -160,6 +160,7 @@ export function checkAgentDocs(
   for (const document of pending) {
     if (reachable.has(document)) continue;
     reachable.add(document);
+    // eslint-disable-next-line unicorn/no-loop-iterable-mutation -- intentional worklist; appended links are visited in this loop
     pending.push(...(linksByDocument.get(document) ?? []));
   }
   for (const documentPath of documentPaths) {
@@ -201,9 +202,9 @@ export function checkAgentDocs(
 }
 
 function indexFor(document: string): string | null {
-  if (document.startsWith("docs/design-docs/") && document !== "docs/design-docs/index.md")
+  if (document !== "docs/design-docs/index.md" && document.startsWith("docs/design-docs/"))
     return "docs/design-docs/index.md";
-  if (document.startsWith("docs/product-specs/") && document !== "docs/product-specs/index.md")
+  if (document !== "docs/product-specs/index.md" && document.startsWith("docs/product-specs/"))
     return "docs/product-specs/index.md";
   if (/^docs\/exec-plans\/(?:active|completed)\//.test(document)) return "docs/PLANS.md";
   return null;

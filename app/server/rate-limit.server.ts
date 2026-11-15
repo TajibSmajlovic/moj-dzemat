@@ -31,7 +31,7 @@ function createRateLimiter({ windowMs, max, name }: LimiterOptions) {
     name,
     check(ip: string): RateLimitResult {
       if (env().DISABLE_RATE_LIMITING) {
-        return { ok: true, remaining: Number.POSITIVE_INFINITY, resetInMs: 0 };
+        return { ok: true, remaining: Infinity, resetInMs: 0 };
       }
 
       const now = Date.now();
@@ -106,7 +106,7 @@ export function clientIpFromHeaders(
 ): string {
   return (
     getHeader("fly-client-ip") ??
-    getHeader("x-forwarded-for")?.split(",")[0]?.trim() ??
+    getHeader("x-forwarded-for")?.split(",", 1)[0]?.trim() ??
     getHeader("x-real-ip") ??
     "unknown"
   );

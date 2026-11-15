@@ -196,7 +196,7 @@ describe("sanitizePostBody", () => {
     });
 
     it("normalises non-breaking spaces", () => {
-      expect(sanitizePostBody("a\u00A0b")).toBe("<p>a b</p>");
+      expect(sanitizePostBody("a\u{A0}b")).toBe("<p>a b</p>");
       expect(sanitizePostBody("<p>a&nbsp;b</p>")).toBe("<p>a b</p>");
     });
 

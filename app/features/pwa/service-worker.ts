@@ -11,7 +11,7 @@ declare const __PWA_OFFLINE_SHELL_REVISION__: string;
 
 const serviceWorker = globalThis as unknown as ServiceWorkerGlobalScope;
 const shellCacheName = getPwaShellCacheName(__PWA_OFFLINE_SHELL_REVISION__);
-const offlineShellUrl = new URL(PWA_OFFLINE_SHELL_PATH, serviceWorker.location.origin).toString();
+const offlineShellUrl = new URL(PWA_OFFLINE_SHELL_PATH, serviceWorker.location.origin).href;
 const WEB_PUSH_PROTOCOL_VERSION = 1;
 const MAX_PUSH_PAYLOAD_BYTES = 4096;
 
@@ -153,8 +153,8 @@ function isSafePushPath(value: string): boolean {
 async function openPushTarget(data: unknown): Promise<void> {
   const url =
     data && typeof data === "object" && isSafePushPath((data as { url?: string }).url ?? "")
-      ? new URL((data as { url: string }).url, serviceWorker.location.origin).toString()
-      : new URL("/objave", serviceWorker.location.origin).toString();
+      ? new URL((data as { url: string }).url, serviceWorker.location.origin).href
+      : new URL("/objave", serviceWorker.location.origin).href;
   const windowClients = await serviceWorker.clients.matchAll({
     type: "window",
     includeUncontrolled: true,

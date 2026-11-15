@@ -148,6 +148,7 @@ function ThemeInitScript() {
 })();
 `.trim();
 
+  // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- static inline script
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }
 

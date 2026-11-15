@@ -1,4 +1,4 @@
-const DIACRITIC_RE = /[\u0300-\u036F]/g;
+const DIACRITIC_RE = /[\u{300}-\u{36F}]/gu;
 const NON_SLUG_RE = /[^a-z0-9]+/g;
 const EDGE_DASH_RE = /^-+|-+$/g;
 const MAX_LENGTH = 80;

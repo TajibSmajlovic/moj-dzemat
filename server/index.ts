@@ -156,7 +156,7 @@ async function createServer(): Promise<{ server: http.Server; viteDevServer?: Vi
       "canonical host redirect",
     );
 
-    return res.redirect(308, target.toString());
+    return res.redirect(308, target.href);
   });
 
   // Shallow liveness probe: this only confirms that Node + Express can
@@ -179,7 +179,7 @@ async function createServer(): Promise<{ server: http.Server; viteDevServer?: Vi
         middlewareMode: true,
         // Keep Vite's browser connection on the run-owned HTTP port. HMR can
         // stay disabled without leaving the client connected to a shared socket.
-        ...(AGENT_RUN_ID ? { hmr: false, ws: { server } } : {}),
+        ...(AGENT_RUN_ID && { hmr: false, ws: { server } }),
       },
       appType: "custom",
     });

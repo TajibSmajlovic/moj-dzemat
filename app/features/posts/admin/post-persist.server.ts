@@ -103,7 +103,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
               pinned,
               notifyOnPublish,
               status,
-              ...(shouldStampPublishedAt ? { publishedAt: now } : {}),
+              ...(shouldStampPublishedAt && { publishedAt: now }),
             },
             select: {
               id: true,
@@ -124,7 +124,7 @@ export async function persistPostAndImages(args: PersistPostArgs): Promise<Persi
               notifyOnPublish,
               status,
               authorId,
-              ...(status === "published" ? { publishedAt: now } : {}),
+              ...(status === "published" && { publishedAt: now }),
             },
             select: {
               id: true,

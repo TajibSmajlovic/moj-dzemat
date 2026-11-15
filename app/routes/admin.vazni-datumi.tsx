@@ -110,15 +110,17 @@ async function handleUpsert(
 
   return redirectWithToast(
     href("/admin/vazni-datumi"),
-    intent === ImportantDateIntents.Create
-      ? createActionToast({
-          action: "create",
-          description: "Važan datum je uspješno dodan.",
-        })
-      : createActionToast({
-          action: "update",
-          description: "Važan datum je uspješno ažuriran.",
-        }),
+    createActionToast(
+      intent === ImportantDateIntents.Create
+        ? {
+            action: "create",
+            description: "Važan datum je uspješno dodan.",
+          }
+        : {
+            action: "update",
+            description: "Važan datum je uspješno ažuriran.",
+          },
+    ),
   );
 }
 

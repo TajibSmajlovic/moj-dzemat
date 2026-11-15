@@ -25,6 +25,10 @@ const DELIVERY_BATCH_SIZE = 5;
 const LEASE_MS = 30 * SECOND_MS;
 const RETRY_DELAYS_MS = [MINUTE_MS, 5 * MINUTE_MS, 30 * MINUTE_MS, 2 * HOUR_MS, 12 * HOUR_MS];
 
+class WebPushTimeoutError extends Error {
+  override name = "WebPushTimeoutError";
+}
+
 export async function sendWebPushDeliveryBatch(
   owner: string,
   now: Date,
@@ -193,8 +197,7 @@ async function sendClaimedDelivery(
 
     await failDelivery(delivery.id, owner, now, "invalid_request", status);
   } catch (error) {
-    const code =
-      error instanceof Error && error.name === "WebPushTimeoutError" ? "timeout" : "network_error";
+    const code = error instanceof WebPushTimeoutError ? "timeout" : "network_error";
     await retryOrFail(delivery, owner, now, code, null, null);
   }
   return "done";
@@ -223,23 +226,25 @@ async function invalidateSubscription(
         leaseExpiresAt: null,
       },
     });
-    if (delivery.subscriptionId !== null) {
-      await tx.pushDelivery.updateMany({
-        where: {
-          id: { not: delivery.id },
-          subscriptionId: delivery.subscriptionId,
-          status: { in: ["pending", "sending", "retry"] },
-        },
-        data: {
-          status: "cancelled",
-          resultCode: "cancelled",
-          cancelledAt: now,
-          leaseOwner: null,
-          leaseExpiresAt: null,
-        },
-      });
-      await tx.pushSubscription.deleteMany({ where: { id: delivery.subscriptionId } });
+    if (delivery.subscriptionId === null) {
+      return;
     }
+
+    await tx.pushDelivery.updateMany({
+      where: {
+        id: { not: delivery.id },
+        subscriptionId: delivery.subscriptionId,
+        status: { in: ["pending", "sending", "retry"] },
+      },
+      data: {
+        status: "cancelled",
+        resultCode: "cancelled",
+        cancelledAt: now,
+        leaseOwner: null,
+        leaseExpiresAt: null,
+      },
+    });
+    await tx.pushSubscription.deleteMany({ where: { id: delivery.subscriptionId } });
   });
 }
 
@@ -400,9 +405,7 @@ async function sendWebPushRequest({
       },
     );
     const timer = setTimeout(() => {
-      const error = new Error("Web Push request timed out");
-      error.name = "WebPushTimeoutError";
-      request.destroy(error);
+      request.destroy(new WebPushTimeoutError("Web Push request timed out"));
     }, OUTBOUND_TIMEOUT_MS);
     request.on("close", () => clearTimeout(timer));
     request.on("error", reject);

@@ -1,7 +1,7 @@
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -124,7 +124,7 @@ export function WebPushProvider({
 
   useEffect(() => {
     let active = true;
-    globalThis.queueMicrotask(() => {
+    queueMicrotask(() => {
       if (!active) return;
       void inspect().catch(() => {
         if (active) setState(config.enabled ? "retry" : "hidden");
@@ -209,11 +209,11 @@ export function WebPushProvider({
   const retry = useCallback(async () => inspect(true), [inspect]);
   const value = useMemo(() => ({ state, enable, disable, retry }), [state, enable, disable, retry]);
 
-  return <WebPushContext.Provider value={value}>{children}</WebPushContext.Provider>;
+  return <WebPushContext value={value}>{children}</WebPushContext>;
 }
 
 export function useWebPush(): WebPushContextValue {
-  const value = useContext(WebPushContext);
+  const value = use(WebPushContext);
   if (!value) throw new Error("useWebPush must be used inside WebPushProvider");
   return value;
 }
@@ -237,9 +237,7 @@ function isIosOrIpadOs(): boolean {
 
 function isStandaloneWebApp(): boolean {
   const iosNavigator = navigator as Navigator & { standalone?: boolean };
-  return (
-    iosNavigator.standalone === true || globalThis.matchMedia("(display-mode: standalone)").matches
-  );
+  return iosNavigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
 }
 
 async function activeWorkerSupportsPush(registration: ServiceWorkerRegistration): Promise<boolean> {
@@ -248,9 +246,9 @@ async function activeWorkerSupportsPush(registration: ServiceWorkerRegistration)
 
   return new Promise((resolve) => {
     const channel = new MessageChannel();
-    const timeout = globalThis.setTimeout(() => resolve(false), 1500);
+    const timeout = setTimeout(() => resolve(false), 1500);
     channel.port1.addEventListener("message", (event: MessageEvent<unknown>) => {
-      globalThis.clearTimeout(timeout);
+      clearTimeout(timeout);
       const message =
         event.data && typeof event.data === "object"
           ? (event.data as Record<string, unknown>)
@@ -296,9 +294,8 @@ async function synchronizeSubscription(
     v: 1,
     currentHash: hash,
     syncedAt: Date.now(),
-    ...(previous.cleanupHash && previous.cleanupHash !== hash
-      ? { cleanupHash: previous.cleanupHash }
-      : {}),
+    ...(previous.cleanupHash &&
+      previous.cleanupHash !== hash && { cleanupHash: previous.cleanupHash }),
   });
   const obsoleteHash = previous.currentHash === hash ? previous.cleanupHash : previous.currentHash;
   if (obsoleteHash && obsoleteHash !== hash) {
@@ -363,8 +360,8 @@ async function retryPendingCleanup(): Promise<void> {
     await deleteServerSubscription(stored.cleanupHash);
     writeStoredState({
       v: 1,
-      ...(stored.currentHash ? { currentHash: stored.currentHash } : {}),
-      ...(stored.syncedAt ? { syncedAt: stored.syncedAt } : {}),
+      ...(stored.currentHash && { currentHash: stored.currentHash }),
+      ...(stored.syncedAt && { syncedAt: stored.syncedAt }),
     });
   } catch {
     // Cleanup is best-effort and retries on a later visit.
@@ -388,9 +385,9 @@ function readStoredState(): StoredSyncState {
     if (value?.v !== 1) return { v: 1 };
     return {
       v: 1,
-      ...(isEndpointHash(value.currentHash) ? { currentHash: value.currentHash } : {}),
-      ...(typeof value.syncedAt === "number" ? { syncedAt: value.syncedAt } : {}),
-      ...(isEndpointHash(value.cleanupHash) ? { cleanupHash: value.cleanupHash } : {}),
+      ...(isEndpointHash(value.currentHash) && { currentHash: value.currentHash }),
+      ...(typeof value.syncedAt === "number" && { syncedAt: value.syncedAt }),
+      ...(isEndpointHash(value.cleanupHash) && { cleanupHash: value.cleanupHash }),
     };
   } catch {
     return { v: 1 };

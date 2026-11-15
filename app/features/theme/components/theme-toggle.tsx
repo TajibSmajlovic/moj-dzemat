@@ -98,12 +98,12 @@ function commitThemePreference(theme: ThemePreference) {
 function subscribeToThemePreference(onChange: VoidFunction) {
   if (globalThis.window === undefined) return () => undefined;
 
-  globalThis.addEventListener(THEME_CHANGE_EVENT, onChange);
-  globalThis.addEventListener("storage", onChange);
+  addEventListener(THEME_CHANGE_EVENT, onChange);
+  addEventListener("storage", onChange);
 
   return () => {
-    globalThis.removeEventListener(THEME_CHANGE_EVENT, onChange);
-    globalThis.removeEventListener("storage", onChange);
+    removeEventListener(THEME_CHANGE_EVENT, onChange);
+    removeEventListener("storage", onChange);
   };
 }
 
@@ -124,7 +124,7 @@ function readClientThemePreference(): ThemePreference | null {
   const cookieValue = document.cookie
     .split("; ")
     .find((entry) => entry.startsWith(`${THEME_COOKIE_NAME}=`))
-    ?.split("=")[1];
+    ?.split("=", 2)[1];
 
   if (cookieValue) {
     const decoded = decodeURIComponent(cookieValue);

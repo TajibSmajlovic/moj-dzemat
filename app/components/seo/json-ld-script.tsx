@@ -10,8 +10,9 @@ export function JsonLdScript({ value }: JsonLdScriptProps) {
   return (
     <script
       type="application/ld+json"
-      // Safe: JSON-LD payloads are serialized and `</` is escaped to
-      // prevent accidental early-close of the script tag.
+      // JSON-LD payloads are serialized and `</` is escaped to prevent an early
+      // close of the script tag.
+      // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- escaped JSON-LD
       dangerouslySetInnerHTML={{ __html: jsonLdScriptContent(value) }}
     />
   );

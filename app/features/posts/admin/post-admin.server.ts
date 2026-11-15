@@ -50,7 +50,7 @@ export async function togglePostStatus(postId: string, userId: string) {
       where: { id: postId },
       data: {
         status,
-        ...(status === "published" ? { publishedAt: now } : {}),
+        ...(status === "published" && { publishedAt: now }),
       },
       select: {
         id: true,
@@ -143,8 +143,8 @@ export async function createOrUpdatePostFromForm({
   const existingId = intent === "update" ? requireId(parsedFormData.get("id")) : null;
 
   let processedImages: ProcessedPostImage[];
-  let imageAltTextUpdates: ImageAltTextUpdate[] = [];
-  let videoInputs: ParsedVideo[] = [];
+  let imageAltTextUpdates: ImageAltTextUpdate[];
+  let videoInputs: ParsedVideo[];
 
   try {
     imageAltTextUpdates = existingImageAltTextUpdates(parsedFormData);
@@ -162,7 +162,7 @@ export async function createOrUpdatePostFromForm({
     throw error;
   }
 
-  let savedPost: PersistedPost | null = null;
+  let savedPost: PersistedPost;
 
   try {
     savedPost = await persistPostAndImages({
@@ -233,8 +233,6 @@ export async function createOrUpdatePostFromForm({
     throw error;
   }
 
-  invariant(savedPost, "Post save completed without a saved post payload.");
-
   const redirectTo =
     savedPost.status === "published"
       ? postHref(savedPost.slug)
@@ -247,14 +245,16 @@ export async function createOrUpdatePostFromForm({
           action: intent === "create" ? "create" : "update",
           description: "Objava je objavljena. Obavijest je zakazana za slanje.",
         })
-      : intent === "create"
-        ? createActionToast({
-            action: "create",
-            description: "Objava je uspješno dodana.",
-          })
-        : createActionToast({
-            action: "update",
-            description: "Objava je uspješno ažurirana.",
-          }),
+      : createActionToast(
+          intent === "create"
+            ? {
+                action: "create",
+                description: "Objava je uspješno dodana.",
+              }
+            : {
+                action: "update",
+                description: "Objava je uspješno ažurirana.",
+              },
+        ),
   );
 }
