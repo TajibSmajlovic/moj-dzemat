@@ -206,6 +206,7 @@ export function PostForm({
           <input type="hidden" name={fields.body.name} value={bodyHtml} />
           <RichEditor
             id={fields.body.id}
+            label="Tekst"
             value={bodyHtml}
             onChange={setBodyHtml}
             placeholder="Počnite pisati tekst objave…"

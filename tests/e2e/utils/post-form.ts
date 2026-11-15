@@ -30,10 +30,7 @@ export async function fillPostForm(page: Page, options: FillPostFormOptions) {
     await page.getByLabel("Vrsta").selectOption(options.type);
   }
   if (options.body !== undefined) {
-    // The rich editor is client-only, so it does not exist until the route
-    // has hydrated and Tiptap has booted.
-    const editor = page.locator(".ProseMirror");
-    await editor.waitFor({ state: "visible" });
+    const editor = page.getByRole("textbox", { name: "Tekst", exact: true });
     await editor.fill(options.body);
 
     // The editor is not the field that gets submitted. Its content reaches
