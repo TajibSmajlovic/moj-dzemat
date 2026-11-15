@@ -78,7 +78,6 @@
     "@prisma/client": "^7.10.1",
     "@react-router/express": "8.5.0",
     "@react-router/node": "8.5.0",
-    "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-link": "^3.31.4",
     "@tiptap/extension-placeholder": "^3.31.4",
     "@tiptap/extension-text-align": "^3.31.4",
@@ -124,6 +123,7 @@
     "@storybook/addon-docs": "10.6.3",
     "@storybook/addon-vitest": "10.6.3",
     "@storybook/react-vite": "10.6.3",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.3.4",
     "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
@@ -166,19 +166,5 @@
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
     "prisma@7.10.1": true
-  },
-  "overrides": {
-    "@tailwindcss/typography": {
-      "postcss-selector-parser": "6.1.6"
-    },
-    "@joshwooding/vite-plugin-react-docgen-typescript": {
-      "glob": "14.0.6"
-    },
-    "@react-router/fs-routes": {
-      "minimatch": "6.2.3"
-    },
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "11.0.8"
-    }
   }
 }

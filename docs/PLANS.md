@@ -72,8 +72,6 @@ Do not mark a plan complete because time or context ran out.
 
 ## Active plans
 
-- [Consolidate dependency and security updates](exec-plans/active/2026-11-15-dependency-security-updates.md)
-
 ## Completed plans
 
 Completed plans are dated historical records. Their starting state, test counts,

@@ -51,9 +51,9 @@ process-local state before horizontal scaling:
 reported four high-severity entries in `deepmerge-ts`, `mysql2`, `@prisma/config`,
 and `prisma`.
 
-The compatible Prisma 7.10.1 update and dependency refresh cleared these findings
-on 2026-11-15; the complete `npm audit` reports zero vulnerabilities. No Prisma
-override, downgrade, or release candidate is used.
+The compatible Prisma 7.10.1 update and dependency refresh cleared these Prisma
+findings on 2026-11-15. No Prisma override, downgrade, or release candidate is
+used.
 
 The SQLite adapter still retains better-sqlite3 12 and its deprecated
 prebuild-install helper. Keep that notice visible until an upstream adapter
@@ -62,6 +62,28 @@ update removes it.
 **Exit condition:** A compatible stable adapter update removes the deprecated
 helper, verified with a clean `npm ci`,
 `npm audit`, and the database and browser suites.
+
+## TD-007: Upstream tooling security findings
+
+**Status:** Accepted pending stable upstream fixes, reviewed on 2026-11-15.
+
+**Evidence and impact:** `npm audit --json` reports 13 moderate entries from
+three development-tool advisories, including affected parent packages:
+
+- [postcss-selector-parser](https://github.com/advisories/GHSA-rj75-hqrm-r3gf) through Typography.
+- [glob](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) through Storybook's docgen plugin.
+- [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249) through docgen, Router fs-routes, and TypeScript ESLint.
+
+There are no high or critical findings. `npm audit --omit=dev --json` reports
+zero findings; Typography is a build-only development dependency. The reviewed
+callers process repository-controlled files and patterns, limiting exposure.
+The owner accepts these findings without overrides until stable upstream fixes
+are available. Install deprecations for ESLint 9 and the native helper in TD-003
+remain separate warnings.
+
+**Exit condition:** Stable upstream updates remove the findings without
+overrides, verified by a clean `npm ci`, both audit commands, and
+`npm run agent:verify`.
 
 ## Resolved items
 
