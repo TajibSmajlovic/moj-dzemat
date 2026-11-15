@@ -1,7 +1,8 @@
 import { BRAND_LOGO_URL } from "#app/lib/brand-assets";
+import { dzemat } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 
-export function IslamskaZajednicaLogo({ className }: { className?: string }) {
+export function SiteLogo({ className }: { className?: string }) {
   return (
     <div className="shrink-0">
       <img
@@ -12,7 +13,7 @@ export function IslamskaZajednicaLogo({ className }: { className?: string }) {
         className={cn("inline-block h-9 w-auto sm:h-10", className)}
         aria-hidden="true"
       />
-      <span className="sr-only">Logo Islamske zajednice</span>
+      <span className="sr-only">{dzemat.logoAlt}</span>
     </div>
   );
 }

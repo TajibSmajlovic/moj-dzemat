@@ -2,15 +2,15 @@ import { ExternalLink, MapPinned, Navigation } from "lucide-react";
 import { motion } from "motion/react";
 
 import { Button } from "#app/components/ui/button";
+import { SITE_NAME } from "#app/lib/branding";
 import type { DzematLocation } from "#app/lib/maps";
 import { scrollReveal, useEntranceMotion } from "#app/lib/motion";
 
 type DzematLocationSectionProps = {
   location: DzematLocation;
-  siteName: string;
 };
 
-export function DzematLocationSection({ location, siteName }: DzematLocationSectionProps) {
+export function DzematLocationSection({ location }: DzematLocationSectionProps) {
   const entrance = useEntranceMotion(scrollReveal);
 
   return (
@@ -38,7 +38,7 @@ export function DzematLocationSection({ location, siteName }: DzematLocationSect
               </h2>
 
               <p className="text-muted-foreground mt-3 max-w-md text-sm leading-relaxed sm:text-base">
-                Ako dolazite prvi put u {siteName}, ovdje možete odmah otvoriti mapu i dobiti upute
+                Ako dolazite prvi put u {SITE_NAME}, ovdje možete odmah otvoriti mapu i dobiti upute
                 do džemata.
               </p>
 
@@ -69,7 +69,7 @@ export function DzematLocationSection({ location, siteName }: DzematLocationSect
 
           <div className="border-border/70 bg-muted/30 relative min-h-80 border-t lg:min-h-full lg:border-t-0 lg:border-l">
             <iframe
-              title={`Google mapa za ${siteName}`}
+              title={`Google mapa za ${SITE_NAME}`}
               src={location.embedUrl}
               loading="lazy"
               allowFullScreen

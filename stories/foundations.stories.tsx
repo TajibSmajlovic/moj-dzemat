@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
-import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SiteLogo } from "#app/components/icons/site-logo";
 import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 const meta = {
   title: "Foundations",
@@ -68,7 +68,7 @@ export const Icons: StoryObj = {
     <div className="text-primary flex items-center gap-8">
       <FacebookIcon className="size-8" />
       <YouTubeIcon className="size-8" />
-      <IslamskaZajednicaLogo className="size-16" />
+      <SiteLogo className="size-16" />
     </div>
   ),
 };

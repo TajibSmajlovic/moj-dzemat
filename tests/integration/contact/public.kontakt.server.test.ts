@@ -33,6 +33,5 @@ describe("public contact route", () => {
       imamPhone: null,
       imamEmail: null,
     });
-    expect(result.location).toBeNull();
   });
 });

@@ -31,6 +31,7 @@ import {
   OFFICE_HOURS_MAX,
   PHONE_MAX,
 } from "#app/features/contact/contact-schema";
+import { dzemat } from "#app/lib/branding";
 import { IntentInput } from "#app/lib/intent";
 
 type Props = {
@@ -267,7 +268,7 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
           inputProps={{
             ...getInputProps(fields.bankBeneficiary, { type: "text" }),
             maxLength: BANK_BENEFICIARY_MAX,
-            placeholder: "npr. Džemat Donje Mostre",
+            placeholder: `npr. Džemat ${dzemat.name}`,
           }}
         />
 

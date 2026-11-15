@@ -22,7 +22,7 @@ import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { hashPassword, startSessionFor, validateNewPassword } from "#app/features/auth/auth.server";
 import { resetPassword } from "#app/features/auth/reset-password.server";
 import { verifyResetToken } from "#app/features/auth/reset-token.server";
-import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { passwordField, requiredString } from "#app/lib/form-schema";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
@@ -45,8 +45,8 @@ const NewPasswordSchema = z
     message: "Lozinke se ne podudaraju.",
   });
 
-export function meta({ matches }: Route.MetaArgs) {
-  return buildNoindexMeta(formatPageTitle("Nova lozinka", getRootSiteName(matches)));
+export function meta() {
+  return buildNoindexMeta(formatPageTitle("Nova lozinka"));
 }
 
 export async function loader({ params }: Route.LoaderArgs) {

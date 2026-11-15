@@ -111,17 +111,17 @@ message does not contain `[skip deploy]`. Manual workflow dispatch is also
 available and does not require a preceding CI run.
 
 Deployment configuration lives in `Dockerfile`, `fly.toml`, `litefs.yml`, and
-`start.sh`. Environment-specific values stay outside the repo. Before
-deploying, make sure these values are set in Fly secrets or environment
-configuration:
+`start.sh`. The džemat's public identity lives in `app/dzemat.config.ts`; to run
+the app for another džemat, follow
+[Deploy Moj Džemat for your džemat](docs/deploy-your-dzemat.md).
+Environment-specific values stay outside the repo. Before deploying, make sure
+these values are set in Fly secrets or environment configuration:
 
 - `APP_URL`
 - `SESSION_SECRET`, `PASSWORD_RESET_SECRET`, and `HONEYPOT_SECRET`
 - `ADMIN_SEED_EMAILS`
 - `RESEND_API_KEY` and `EMAIL_FROM`
-- optional branding and integrations: `DZEMAT_NAME`, `DZEMAT_ADDRESS`,
-  `DZEMAT_MAP_QUERY`, `FACEBOOK_PAGE_URL`, `YOUTUBE_CHANNEL_URL`,
-  `CLOUDFLARE_WEB_ANALYTICS_TOKEN`
+- optional analytics: `CLOUDFLARE_WEB_ANALYTICS_TOKEN`
 - optional Web Push: `WEB_PUSH_ENABLED`, `WEB_PUSH_VAPID_PUBLIC_KEY`,
   `WEB_PUSH_VAPID_PRIVATE_KEY`, and `WEB_PUSH_ENCRYPTION_KEYS`; follow the
   [Web Push rollout guide](docs/design-docs/web-push.md) before enabling it

@@ -33,44 +33,34 @@ import {
 } from "#app/features/posts/public-posts.server";
 import { QaHomePreview } from "#app/features/qa/components/qa-home-preview";
 import { getPublicAnsweredQuestions, QA_HOME_PREVIEW_LIMIT } from "#app/features/qa/qa.server";
-import {
-  formatSiteDescription,
-  getRootSiteName,
-  getRootSiteUrl,
-  useRootSiteName,
-  useRootSiteUrl,
-} from "#app/lib/branding";
-import { getDzematLocation } from "#app/lib/maps";
+import { SITE_DESCRIPTION, SITE_NAME } from "#app/lib/branding";
+import { DZEMAT_LOCATION } from "#app/lib/maps";
 import { softFade, useEntranceMotion } from "#app/lib/motion";
+import { getRootSiteUrl, useRootSiteUrl } from "#app/lib/root-loader-data";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
   buildPublicPageMeta,
-  formatDefaultSocialImageAlt,
+  DEFAULT_SOCIAL_IMAGE,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
-import { useRootSocialProfileUrls } from "#app/lib/social-links";
 import { absoluteUrl } from "#app/lib/url";
 import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/public-view-transition-provider";
-import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public._index";
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const siteName = getRootSiteName(matches);
-  const siteDescription = formatSiteDescription(siteName);
   const siteUrl = getRootSiteUrl(matches);
   const canonical = siteUrl ? absoluteUrl(siteUrl, href("/")) : href("/");
   const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
 
   return buildPublicPageMeta({
-    title: siteName,
-    description: siteDescription,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     canonical,
-    siteName,
     imageUrl: getDefaultSocialImageUrl(siteUrl),
-    imageAlt: formatDefaultSocialImageAlt(siteName),
+    imageAlt: DEFAULT_SOCIAL_IMAGE.alt,
     robots: isFiltered
       ? `${ROBOTS_NOINDEX_FOLLOW},${ROBOTS_MAX_IMAGE_PREVIEW_LARGE}`
       : ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
@@ -79,7 +69,6 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
 
 export async function loader({ url }: Route.LoaderArgs) {
   const activeType = getActivePostType(url);
-  const environment = env();
 
   const featuredPromise = getFeaturedPostCards();
   const postsPromise = getPublicPostCards({ activeType, take: HOME_POST_LIMIT });
@@ -102,33 +91,19 @@ export async function loader({ url }: Route.LoaderArgs) {
     importantDates,
     communityInfo,
     activeType,
-    location: getDzematLocation({
-      address: environment.DZEMAT_ADDRESS,
-      query: environment.DZEMAT_MAP_QUERY,
-    }),
   };
 }
 
 export default function HomePage({ loaderData }: Route.ComponentProps) {
-  const { posts, featured, qaPreview, importantDates, communityInfo, activeType, location } =
-    loaderData;
-  const siteName = useRootSiteName();
+  const { posts, featured, qaPreview, importantDates, communityInfo, activeType } = loaderData;
   const siteUrl = useRootSiteUrl();
-  const socialProfileUrls = useRootSocialProfileUrls();
   const suppressRouteMotion = useSuppressPublicRouteMotion();
   const softFadeMotion = useEntranceMotion(softFade, suppressRouteMotion);
   const latestTitle = formatLatestPostsTitle(activeType);
 
   return (
     <>
-      {siteUrl ? (
-        <HomeStructuredData
-          location={location}
-          socialProfileUrls={socialProfileUrls}
-          siteName={siteName}
-          siteUrl={siteUrl}
-        />
-      ) : null}
+      {siteUrl ? <HomeStructuredData siteUrl={siteUrl} /> : null}
 
       <PageMain className="pb-0 sm:pb-0">
         {featured.length > 0 ? <Featured featured={featured} /> : null}
@@ -172,7 +147,7 @@ export default function HomePage({ loaderData }: Route.ComponentProps) {
 
         <ContactHomeTeaser info={communityInfo} />
 
-        {location ? <DzematLocationSection location={location} siteName={siteName} /> : null}
+        {DZEMAT_LOCATION ? <DzematLocationSection location={DZEMAT_LOCATION} /> : null}
       </PageMain>
     </>
   );

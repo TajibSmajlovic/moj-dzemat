@@ -46,7 +46,6 @@ type PostDetailPost = {
 
 type PostDetailArticleProps = {
   post: PostDetailPost;
-  siteName: string;
   siteUrl?: string;
   showPinnedBadge?: boolean;
   showStructuredData?: boolean;
@@ -54,7 +53,6 @@ type PostDetailArticleProps = {
 
 export function PostDetailArticle({
   post,
-  siteName,
   siteUrl,
   showPinnedBadge = false,
   showStructuredData = false,
@@ -66,12 +64,7 @@ export function PostDetailArticle({
 
   return (
     <>
-      <PostArticleJsonLd
-        enabled={showStructuredData}
-        post={post}
-        siteName={siteName}
-        siteUrl={siteUrl}
-      />
+      <PostArticleJsonLd enabled={showStructuredData} post={post} siteUrl={siteUrl} />
 
       <article>
         <h1 className="font-display text-foreground mt-3 mb-3 text-2xl leading-[1.16] font-bold text-balance sm:mt-2 sm:mb-2 sm:text-4xl sm:leading-tight">

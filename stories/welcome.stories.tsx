@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SiteLogo } from "#app/components/icons/site-logo";
 const meta = {
   title: "Welcome",
   parameters: {
@@ -18,7 +18,7 @@ export const Catalogue: StoryObj = {
   render: () => (
     <main className="mx-auto max-w-5xl px-6 py-14 sm:px-12">
       <div className="text-primary mb-10 w-16">
-        <IslamskaZajednicaLogo />
+        <SiteLogo />
       </div>
       <p className="text-muted-foreground mb-3 text-sm tracking-widest uppercase">
         Moj Džemat / Komponente

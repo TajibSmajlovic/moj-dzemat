@@ -20,6 +20,8 @@ type StartOfflineShellOptions = {
 };
 
 type RenderOptions = Omit<StartOfflineShellOptions, "snapshotStore"> & {
+  /** The build-time document title, restored whenever the saved-post list renders. */
+  listTitle: string;
   snapshots: PostSnapshot[];
   clearSnapshots: () => Promise<void>;
 };
@@ -39,6 +41,7 @@ export async function startOfflineShell({
 
     renderOfflineContent(root, {
       document,
+      listTitle: document.title,
       pathname,
       snapshots: sortPostSnapshotsByMostRecentView(snapshots),
       clearSnapshots: snapshotStore.clear,
@@ -53,7 +56,7 @@ export async function startOfflineShell({
 
 function renderOfflineContent(
   root: HTMLElement,
-  { document, pathname, snapshots, clearSnapshots, retry }: RenderOptions,
+  { document, listTitle, pathname, snapshots, clearSnapshots, retry }: RenderOptions,
 ): void {
   const requestedSlug = getRequestedPostSlug(pathname);
   const requestedSnapshot = requestedSlug
@@ -66,7 +69,7 @@ function renderOfflineContent(
     return;
   }
 
-  document.title = "Bez interneta · Moj džemat";
+  document.title = listTitle;
   root.replaceChildren(
     renderSavedPostList(document, {
       snapshots,
@@ -76,6 +79,7 @@ function renderOfflineContent(
       rerender: (nextSnapshots) => {
         renderOfflineContent(root, {
           document,
+          listTitle,
           pathname,
           snapshots: nextSnapshots,
           clearSnapshots,
@@ -337,7 +341,6 @@ function renderClearActions(
 }
 
 function renderStorageFallback(root: HTMLElement, document: Document, retry: () => void): void {
-  document.title = "Bez interneta · Moj džemat";
   const container = createElement(document, "div", "offline-stack");
   container.append(renderConnectionStatus(document, retry));
 

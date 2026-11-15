@@ -1,12 +1,22 @@
 import { spawnSync } from "node:child_process";
 import { rmSync } from "node:fs";
 
+import { dzematConfig } from "#app/dzemat.config";
+import { describeDzematConfigProblems } from "#app/lib/dzemat-config";
+
 const workerModeArgument =
   process.argv.find((argument) => argument.startsWith("--worker-mode=")) ?? "--worker-mode=normal";
 const workerMode = workerModeArgument.slice("--worker-mode=".length);
 
 if (workerMode !== "normal" && workerMode !== "recovery") {
   console.error(`[build] Unsupported PWA worker mode: ${workerMode || "<empty>"}`);
+  process.exit(1);
+}
+
+const dzematConfigProblems = describeDzematConfigProblems(dzematConfig);
+
+if (dzematConfigProblems) {
+  console.error(`[build] app/dzemat.config.ts is invalid:\n${dzematConfigProblems}`);
   process.exit(1);
 }
 

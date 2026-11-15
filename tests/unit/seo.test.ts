@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { SITE_NAME } from "#app/lib/branding";
 import {
   DEFAULT_SOCIAL_IMAGE,
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
@@ -11,7 +12,6 @@ import {
   buildNoindexMeta,
   buildPublicPageMeta,
   buildSocialMeta,
-  formatDefaultSocialImageAlt,
   getDefaultSocialImageUrl,
   jsonLdScriptContent,
 } from "#app/lib/seo";
@@ -39,12 +39,6 @@ describe("seo helpers", () => {
     });
     expect(getDefaultSocialImageUrl("https://example.test")).toBe(
       "https://example.test/social-card-default.jpg",
-    );
-  });
-
-  it("formats default social image alt text", () => {
-    expect(formatDefaultSocialImageAlt("Moj Džemat - Donje Mostre")).toBe(
-      "Moj Džemat - Donje Mostre - nova online platforma za džemat",
     );
   });
 
@@ -103,7 +97,6 @@ describe("seo helpers", () => {
         socialTitle: "Objave",
         description: "Sve javne objave džemata na jednom mjestu.",
         canonical: "https://example.test/objave",
-        siteName: "Moj Džemat",
         imageUrl: "https://example.test/social.jpg",
         imageAlt: "Opis slike",
         imageWidth: 1600,
@@ -115,7 +108,7 @@ describe("seo helpers", () => {
       { title: "Objave - Moj Džemat" },
       { name: "description", content: "Sve javne objave džemata na jednom mjestu." },
       { property: "og:type", content: "article" },
-      { property: "og:site_name", content: "Moj Džemat" },
+      { property: "og:site_name", content: SITE_NAME },
       { property: "og:locale", content: "bs_BA" },
       { property: "og:url", content: "https://example.test/objave" },
       { property: "og:title", content: "Objave" },
