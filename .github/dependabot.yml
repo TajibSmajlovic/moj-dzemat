@@ -4,8 +4,8 @@ version: 2
 
 updates:
   # npm dependencies (root package.json).
-  # Minor + patch bumps are grouped by related stack, with one catch-all PR
-  # for everything else. Major bumps stay separate for deliberate review.
+  # Review routine updates together; security updates can arrive immediately.
+  # Major version updates remain separate for deliberate review.
   - package-ecosystem: npm
     directory: "/"
     schedule:
@@ -13,8 +13,7 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Sarajevo
-    target-branch: master
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     versioning-strategy: increase
     labels:
       - dependencies
@@ -92,87 +91,17 @@ updates:
         update-types:
           - version-update:semver-major
     groups:
-      react-router-stack:
-        patterns:
-          - react-router
-          - "@react-router/*"
-        update-types:
-          - minor
-          - patch
-      prisma-stack:
-        patterns:
-          - prisma
-          - "@prisma/*"
-          - better-sqlite3
-        update-types:
-          - minor
-          - patch
-      eslint-stack:
-        patterns:
-          - eslint
-          - "@eslint/*"
-          - "@typescript-eslint/*"
-          - typescript-eslint
-          - eslint-config-*
-          - eslint-plugin-*
-          - globals
-        update-types:
-          - minor
-          - patch
-      vite-vitest-stack:
-        patterns:
-          - vite
-          - vitest
-          - "@vitest/*"
-          - "@vitejs/*"
-        update-types:
-          - minor
-          - patch
-      react-stack:
-        patterns:
-          - react
-          - react-dom
-          - "@types/react"
-          - "@types/react-dom"
-        update-types:
-          - minor
-          - patch
-      tiptap-stack:
-        patterns:
-          - "@tiptap/*"
-        update-types:
-          - minor
-          - patch
-      embla-stack:
-        patterns:
-          - embla-carousel*
-        update-types:
-          - minor
-          - patch
-      tailwind-stack:
-        patterns:
-          - tailwindcss
-          - "@tailwindcss/*"
-          - tailwind-merge
-          - tw-animate-css
-          - prettier-plugin-tailwindcss
-        update-types:
-          - minor
-          - patch
-      conform-stack:
-        patterns:
-          - "@conform-to/*"
-        update-types:
-          - minor
-          - patch
-      # Keep this explicit wildcard catch-all after the stack-specific groups.
-      # Dependabot's specificity rules let the narrower patterns above win.
-      remaining-minor-and-patch:
+      npm-minor-and-patch:
+        applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - minor
           - patch
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # GitHub Actions used by workflows under .github/workflows/.
   - package-ecosystem: github-actions
@@ -182,7 +111,6 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Sarajevo
-    target-branch: master
     open-pull-requests-limit: 5
     labels:
       - dependencies
@@ -192,8 +120,13 @@ updates:
       include: scope
     groups:
       actions-minor-and-patch:
+        applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - minor
           - patch
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

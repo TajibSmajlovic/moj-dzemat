@@ -46,7 +46,7 @@ export function RootErrorBoundary({ error }: { error: unknown }) {
       </div>
 
       <div className="relative mx-auto flex max-w-md flex-col items-center gap-6 text-center">
-        <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium">
+        <span className="bg-primary/10 text-foreground inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium">
           <SiteLogo />
           <span>
             {SITE_NAME} · {status}

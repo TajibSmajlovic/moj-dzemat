@@ -3,7 +3,7 @@ import { href } from "react-router";
 import { expect, test } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
-import { SITE_NAME } from "../../app/lib/branding";
+import { dzemat, PRODUCT_NAME, SITE_NAME } from "../../app/lib/branding";
 import { DZEMAT_LOCATION } from "../../app/lib/maps";
 import { SOCIAL_LINKS } from "../../app/lib/social-links";
 import { SEEDED_ANNOUNCEMENT_MESSAGE } from "./fixtures/seed-announcements";
@@ -21,7 +21,11 @@ test.describe("public", () => {
     await page.goto(href("/"));
 
     await expect(page).toHaveTitle(SITE_NAME);
-    await expect(page.getByRole("banner").getByRole("link", { name: SITE_NAME })).toBeVisible();
+    const homeLink = page.getByRole("banner").getByRole("link", { name: /Moj Džemat/ });
+    await expect(homeLink).toHaveAccessibleName(
+      `${dzemat.logoAlt} ${PRODUCT_NAME} ${dzemat.name} ${dzemat.tagline}`,
+    );
+    await expect(homeLink).toHaveAttribute("href", "/");
     await expect(page.getByRole("heading", { name: "Najnovije objave" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Gdje se nalazimo" })).toHaveCount(
       DZEMAT_LOCATION ? 1 : 0,

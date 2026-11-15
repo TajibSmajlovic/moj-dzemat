@@ -61,10 +61,9 @@ approval. Multiple versions of `fsevents` and `better-sqlite3` are intentional
 while their dependency parents require different releases; keep an approval for
 each installed version that needs its script.
 
-Known upstream Prisma advisories and the `prebuild-install` deprecation are
-tracked in
-[TD-003](../exec-plans/tech-debt-tracker.md#td-003-upstream-prisma-dependency-warnings).
-Keep these warnings visible until compatible upstream releases resolve them.
+Upstream dependency warnings are tracked in
+[TD-003](../exec-plans/tech-debt-tracker.md#td-003-upstream-prisma-dependency-warnings)
+and [TD-007](../exec-plans/tech-debt-tracker.md#td-007-upstream-tooling-security-findings).
 
 ## Development-only routes
 

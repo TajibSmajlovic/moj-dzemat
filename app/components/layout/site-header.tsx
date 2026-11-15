@@ -25,7 +25,7 @@ import { SiteLogo } from "#app/components/icons/site-logo";
 import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
-import { dzemat, PRODUCT_NAME, SITE_NAME } from "#app/lib/branding";
+import { dzemat, PRODUCT_NAME } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { SOCIAL_LINKS, type SocialLinkPlatform } from "#app/lib/social-links";
 import { NavigationProgress } from "#app/platform/view-transitions/navigation-progress";
@@ -157,7 +157,6 @@ function BrandLink({ onClick }: { onClick?: VoidFunction }) {
   return (
     <PublicTransitionLink
       to={href("/")}
-      aria-label={SITE_NAME}
       onClick={onClick}
       className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 overflow-hidden rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
     >
@@ -172,6 +171,7 @@ function BrandLink({ onClick }: { onClick?: VoidFunction }) {
             ·
           </span>
           <span className="text-primary hidden text-[0.92em] font-semibold sm:inline">
+            {" "}
             {dzemat.name}
           </span>
         </span>
