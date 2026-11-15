@@ -24,10 +24,7 @@ import type { WebPushState } from "#app/features/web-push/web-push";
 import { DemoPushProvider } from "../mocks/web-push";
 
 const rootData = {
-  siteName: "Moj Džemat - Primjer",
   siteUrl: "https://example.invalid",
-  facebookPageUrl: undefined,
-  youtubeChannelUrl: undefined,
   themePreference: "light",
   webPush: { enabled: false },
   toast: null,

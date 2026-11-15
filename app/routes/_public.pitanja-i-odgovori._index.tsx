@@ -24,13 +24,14 @@ import {
   countPublicAnsweredQuestions,
   getPublicAnsweredQuestions,
 } from "#app/features/qa/qa.server";
-import { formatPageTitle, getRootSiteName, getRootSiteUrl } from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { sectionReveal, softFade, useEntranceMotion } from "#app/lib/motion";
 import { getLoadMorePaginationState, parsePageParam } from "#app/lib/pagination";
+import { getRootSiteUrl } from "#app/lib/root-loader-data";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   buildPublicPageMeta,
-  formatDefaultSocialImageAlt,
+  DEFAULT_SOCIAL_IMAGE,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
@@ -45,9 +46,8 @@ import type { Route } from "./+types/_public.pitanja-i-odgovori._index";
 const QA_ASK_HASH = "postavi-pitanje";
 
 export function meta({ matches }: Route.MetaArgs) {
-  const siteName = getRootSiteName(matches);
   const siteUrl = getRootSiteUrl(matches);
-  const title = formatPageTitle("Pitanja i odgovori", siteName);
+  const title = formatPageTitle("Pitanja i odgovori");
   const description =
     "Pošaljite svoje pitanje ili pogledajte odgovore na ranija pitanja džematlija.";
   const canonical = siteUrl
@@ -58,9 +58,8 @@ export function meta({ matches }: Route.MetaArgs) {
     title,
     description,
     canonical,
-    siteName,
     imageUrl: getDefaultSocialImageUrl(siteUrl),
-    imageAlt: formatDefaultSocialImageAlt(siteName),
+    imageAlt: DEFAULT_SOCIAL_IMAGE.alt,
     robots: ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   });
 }

@@ -15,7 +15,7 @@ import { PASSWORD_RESET_TOKEN_TTL_LABEL } from "#app/features/auth/auth-policy";
 import { passwordResetHref } from "#app/features/auth/auth-routes";
 import { buildPasswordResetEmail } from "#app/features/auth/password-reset-email.server";
 import { signResetToken } from "#app/features/auth/reset-token.server";
-import { formatPageTitle, formatSiteName, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle, SITE_NAME } from "#app/lib/branding";
 import { emailField } from "#app/lib/form-schema";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
@@ -32,8 +32,8 @@ const ForgotSchema = z.object({
   email: emailField(),
 });
 
-export function meta({ matches }: Route.MetaArgs) {
-  return buildNoindexMeta(formatPageTitle("Zaboravljena lozinka", getRootSiteName(matches)));
+export function meta() {
+  return buildNoindexMeta(formatPageTitle("Zaboravljena lozinka"));
 }
 
 export async function loader() {
@@ -78,7 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
     const url = absoluteUrl(environment.APP_URL, passwordResetHref(token));
     const email = buildPasswordResetEmail({
       resetUrl: url,
-      siteName: formatSiteName(environment.DZEMAT_NAME),
+      siteName: SITE_NAME,
     });
     try {
       await sendEmail({ to: user.email, ...email });

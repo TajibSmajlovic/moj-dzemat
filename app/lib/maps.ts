@@ -1,3 +1,5 @@
+import { dzemat } from "#app/lib/branding";
+
 type DzematLocationInput = {
   address?: string | null;
   query?: string | null;
@@ -64,3 +66,9 @@ export function getDzematLocation(input: DzematLocationInput): DzematLocation | 
     directionsUrl: buildGoogleMapsDirectionsUrl(query),
   };
 }
+
+/** The configured džemat location, or `null` when the map is hidden. */
+export const DZEMAT_LOCATION = getDzematLocation({
+  address: dzemat.location?.address,
+  query: dzemat.location?.mapQuery,
+});

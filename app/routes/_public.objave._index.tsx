@@ -16,23 +16,19 @@ import {
   getPublicPostCards,
 } from "#app/features/posts/public-posts.server";
 import { WebPushCard } from "#app/features/web-push/components/web-push-card";
-import {
-  formatPageTitle,
-  getRootSiteName,
-  getRootSiteUrl,
-  useRootSiteUrl,
-} from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { softFade, useEntranceMotion } from "#app/lib/motion";
 import {
   getLoadMorePaginationState,
   parsePageParam,
   PUBLIC_POSTS_PAGE_SIZE,
 } from "#app/lib/pagination";
+import { getRootSiteUrl, useRootSiteUrl } from "#app/lib/root-loader-data";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   ROBOTS_NOINDEX_FOLLOW,
   buildPublicPageMeta,
-  formatDefaultSocialImageAlt,
+  DEFAULT_SOCIAL_IMAGE,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
@@ -41,9 +37,8 @@ import { useSuppressPublicRouteMotion } from "#app/platform/view-transitions/pub
 import type { Route } from "./+types/_public.objave._index";
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const siteName = getRootSiteName(matches);
   const siteUrl = getRootSiteUrl(matches);
-  const title = formatPageTitle("Objave", siteName);
+  const title = formatPageTitle("Objave");
   const description = "Sve javne objave džemata na jednom mjestu.";
   const canonical = siteUrl ? absoluteUrl(siteUrl, href("/objave")) : href("/objave");
   const isFiltered = loaderData?.activeType && loaderData.activeType !== "all";
@@ -52,9 +47,8 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
     title,
     description,
     canonical,
-    siteName,
     imageUrl: getDefaultSocialImageUrl(siteUrl),
-    imageAlt: formatDefaultSocialImageAlt(siteName),
+    imageAlt: DEFAULT_SOCIAL_IMAGE.alt,
     robots: isFiltered
       ? `${ROBOTS_NOINDEX_FOLLOW},${ROBOTS_MAX_IMAGE_PREVIEW_LARGE}`
       : ROBOTS_MAX_IMAGE_PREVIEW_LARGE,

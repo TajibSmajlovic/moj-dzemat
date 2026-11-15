@@ -4,6 +4,10 @@ export const OFFLINE_SHELL_BACKGROUND_COLOR_MARKER = "__MOJ_DZEMAT_PWA_BACKGROUN
 export const OFFLINE_SHELL_LOGO_MARKER = "__MOJ_DZEMAT_OFFLINE_LOGO__";
 export const OFFLINE_SHELL_LORA_LATIN_FONT_MARKER = "__MOJ_DZEMAT_LORA_LATIN_FONT__";
 export const OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER = "__MOJ_DZEMAT_LORA_LATIN_EXT_FONT__";
+export const OFFLINE_SHELL_SITE_NAME_MARKER = "__MOJ_DZEMAT_SITE_NAME__";
+export const OFFLINE_SHELL_PRODUCT_NAME_MARKER = "__MOJ_DZEMAT_PRODUCT_NAME__";
+export const OFFLINE_SHELL_DZEMAT_NAME_MARKER = "__MOJ_DZEMAT_DZEMAT_NAME__";
+export const OFFLINE_SHELL_TAGLINE_MARKER = "__MOJ_DZEMAT_TAGLINE__";
 
 type OfflineShellDocumentOptions = {
   themeColor: string;
@@ -11,6 +15,10 @@ type OfflineShellDocumentOptions = {
   logoSvg: string;
   loraLatinFontBase64: string;
   loraLatinExtendedFontBase64: string;
+  siteName: string;
+  productName: string;
+  dzematName: string;
+  tagline: string;
 };
 
 export function buildOfflineShellDocument(
@@ -22,6 +30,10 @@ export function buildOfflineShellDocument(
     logoSvg,
     loraLatinFontBase64,
     loraLatinExtendedFontBase64,
+    siteName,
+    productName,
+    dzematName,
+    tagline,
   }: OfflineShellDocumentOptions,
 ): string {
   if (!javascript.trim()) {
@@ -40,6 +52,10 @@ export function buildOfflineShellDocument(
   assertMarkerCount(template, OFFLINE_SHELL_LOGO_MARKER, 1);
   assertMarkerCount(template, OFFLINE_SHELL_LORA_LATIN_FONT_MARKER, 1);
   assertMarkerCount(template, OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER, 1);
+  assertMarkerCount(template, OFFLINE_SHELL_SITE_NAME_MARKER, 2);
+  assertMarkerCount(template, OFFLINE_SHELL_PRODUCT_NAME_MARKER, 1);
+  assertMarkerCount(template, OFFLINE_SHELL_DZEMAT_NAME_MARKER, 1);
+  assertMarkerCount(template, OFFLINE_SHELL_TAGLINE_MARKER, 1);
 
   // Prevent bundled string contents from terminating the enclosing inline
   // script. The replacement has the same JavaScript string semantics.
@@ -51,7 +67,20 @@ export function buildOfflineShellDocument(
     .replaceAll(OFFLINE_SHELL_BACKGROUND_COLOR_MARKER, backgroundColor)
     .replace(OFFLINE_SHELL_LOGO_MARKER, () => logoSvg)
     .replace(OFFLINE_SHELL_LORA_LATIN_FONT_MARKER, loraLatinFontBase64)
-    .replace(OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER, loraLatinExtendedFontBase64);
+    .replace(OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER, loraLatinExtendedFontBase64)
+    .replaceAll(OFFLINE_SHELL_SITE_NAME_MARKER, () => escapeHtml(siteName))
+    .replace(OFFLINE_SHELL_PRODUCT_NAME_MARKER, () => escapeHtml(productName))
+    .replace(OFFLINE_SHELL_DZEMAT_NAME_MARKER, () => escapeHtml(dzematName))
+    .replace(OFFLINE_SHELL_TAGLINE_MARKER, () => escapeHtml(tagline));
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function assertMarkerCount(template: string, marker: string, expectedCount: number): void {

@@ -21,17 +21,13 @@ import {
 } from "lucide-react";
 
 import { FacebookIcon } from "#app/components/icons/facebook-icon";
-import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SiteLogo } from "#app/components/icons/site-logo";
 import { YouTubeIcon } from "#app/components/icons/youtube-icon";
 import { Button } from "#app/components/ui/button";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
-import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
+import { dzemat, PRODUCT_NAME, SITE_NAME } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
-import {
-  useRootSocialLinks,
-  type SocialLink,
-  type SocialLinkPlatform,
-} from "#app/lib/social-links";
+import { SOCIAL_LINKS, type SocialLinkPlatform } from "#app/lib/social-links";
 import { NavigationProgress } from "#app/platform/view-transitions/navigation-progress";
 import { PublicTransitionLink } from "#app/platform/view-transitions/public-transition-link";
 
@@ -73,12 +69,19 @@ const PRIMARY_NAV_ITEMS: readonly InternalNavItem[] = [
   },
 ];
 
+const NAV_ITEMS: HeaderNavItem[] = [
+  ...PRIMARY_NAV_ITEMS,
+  ...SOCIAL_LINKS.map((socialLink): ExternalNavItem => ({
+    type: "external",
+    label: socialLink.label,
+    href: socialLink.href,
+    Icon: SOCIAL_LINK_ICONS[socialLink.platform],
+  })),
+];
+
 export function SiteHeader({ adminHref = href("/prijava") }: { adminHref?: string }) {
   const { pathname } = useLocation();
   const headerRef = useRef<HTMLElement>(null);
-  const siteName = useRootSiteName();
-  const socialLinks = useRootSocialLinks();
-  const navItems = buildNavItems({ socialLinks });
 
   // Reset menu state on route changes without a setState effect.
   return (
@@ -90,9 +93,8 @@ export function SiteHeader({ adminHref = href("/prijava") }: { adminHref?: strin
         key={pathname}
         headerRef={headerRef}
         adminHref={adminHref}
-        navItems={navItems}
+        navItems={NAV_ITEMS}
         pathname={pathname}
-        siteName={siteName}
       />
       <NavigationProgress />
     </header>
@@ -104,13 +106,11 @@ function SiteHeaderContent({
   headerRef,
   navItems,
   pathname,
-  siteName,
 }: {
   adminHref: string;
   headerRef: React.RefObject<HTMLElement | null>;
   navItems: HeaderNavItem[];
   pathname: string;
-  siteName: string;
 }) {
   const mobileMenuId = useId();
   const { menuOpen, toggleMenu, closeMenu } = useMobileMenu({ headerRef });
@@ -118,7 +118,7 @@ function SiteHeaderContent({
   return (
     <>
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:py-4">
-        <BrandLink siteName={siteName} onClick={closeMenu} />
+        <BrandLink onClick={closeMenu} />
 
         <div className="flex shrink-0 items-center gap-1">
           <DesktopNavigation items={navItems} pathname={pathname} />
@@ -153,36 +153,30 @@ function SiteHeaderContent({
   );
 }
 
-function BrandLink({ onClick, siteName }: { onClick?: VoidFunction; siteName: string }) {
-  const { brandName, dzematName } = getSiteNameParts(siteName);
-
+function BrandLink({ onClick }: { onClick?: VoidFunction }) {
   return (
     <PublicTransitionLink
       to={href("/")}
-      aria-label={siteName}
+      aria-label={SITE_NAME}
       onClick={onClick}
       className="focus-visible:ring-ring flex min-w-0 items-center gap-2.5 overflow-hidden rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-3"
     >
-      <IslamskaZajednicaLogo />
+      <SiteLogo />
       <span className="flex min-w-0 flex-col leading-none">
         <span className="font-display min-w-0 truncate text-base leading-tight sm:text-lg">
-          <span className="text-foreground font-bold">{brandName}</span>
-          {dzematName ? (
-            <>
-              <span
-                className="text-muted-foreground mx-1.5 hidden font-medium sm:inline"
-                aria-hidden="true"
-              >
-                ·
-              </span>
-              <span className="text-primary hidden text-[0.92em] font-semibold sm:inline">
-                {dzematName}
-              </span>
-            </>
-          ) : null}
+          <span className="text-foreground font-bold">{PRODUCT_NAME}</span>
+          <span
+            className="text-muted-foreground mx-1.5 hidden font-medium sm:inline"
+            aria-hidden="true"
+          >
+            ·
+          </span>
+          <span className="text-primary hidden text-[0.92em] font-semibold sm:inline">
+            {dzemat.name}
+          </span>
         </span>
         <span className="text-muted-foreground mt-0.5 truncate text-xs">
-          <span>Rijaset Islamske zajednice u BiH</span>
+          <span>{dzemat.tagline}</span>
         </span>
       </span>
     </PublicTransitionLink>
@@ -502,21 +496,6 @@ function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement |
     toggleMenu: () => setMenuOpen((open) => !open),
     closeMenu: () => setMenuOpen(false),
   };
-}
-
-function buildNavItems({ socialLinks }: { socialLinks: SocialLink[] }): HeaderNavItem[] {
-  const items: HeaderNavItem[] = [...PRIMARY_NAV_ITEMS];
-
-  for (const socialLink of socialLinks) {
-    items.push({
-      type: "external",
-      label: socialLink.label,
-      href: socialLink.href,
-      Icon: SOCIAL_LINK_ICONS[socialLink.platform],
-    });
-  }
-
-  return items;
 }
 
 function staggerStyle(index: number, open: boolean): CSSProperties {

@@ -8,7 +8,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'none'; media-src 'none'; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <title>Bez interneta · Moj džemat</title>
+    <title>Bez interneta · __MOJ_DZEMAT_SITE_NAME__</title>
     <script>
       try {
         var storedTheme = globalThis.localStorage.getItem("moj-dzemat-theme");
@@ -201,10 +201,32 @@
       }
 
       .offline-brand-name {
+        overflow: hidden;
         font-family: var(--font-display);
         font-size: 1rem;
         font-weight: 700;
         line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .offline-brand-dzemat {
+        display: none;
+        color: var(--primary);
+        font-size: 0.92em;
+        font-weight: 600;
+      }
+
+      .offline-brand-separator {
+        margin-inline: 0.375rem;
+        color: var(--muted-foreground);
+        font-weight: 500;
+      }
+
+      @media (min-width: 40rem) {
+        .offline-brand-dzemat {
+          display: inline;
+        }
       }
 
       .offline-brand-context {
@@ -784,11 +806,16 @@
   <body>
     <header class="offline-header">
       <div class="offline-header-inner">
-        <a class="offline-brand" href="/" aria-label="Moj džemat">
+        <a class="offline-brand" href="/" aria-label="__MOJ_DZEMAT_SITE_NAME__">
           <span class="offline-brand-logo" aria-hidden="true">__MOJ_DZEMAT_OFFLINE_LOGO__</span>
           <span class="offline-brand-copy">
-            <span class="offline-brand-name">Moj džemat</span>
-            <span class="offline-brand-context">Rijaset Islamske zajednice u BiH</span>
+            <span class="offline-brand-name"
+              >__MOJ_DZEMAT_PRODUCT_NAME__<span class="offline-brand-dzemat"
+                ><span class="offline-brand-separator" aria-hidden="true">·</span
+                >__MOJ_DZEMAT_DZEMAT_NAME__</span
+              ></span
+            >
+            <span class="offline-brand-context">__MOJ_DZEMAT_TAGLINE__</span>
           </span>
         </a>
         <span class="offline-status-badge">Bez interneta</span>

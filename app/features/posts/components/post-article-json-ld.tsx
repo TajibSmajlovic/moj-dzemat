@@ -7,6 +7,7 @@ import {
   youtubeThumbnailUrl,
   youtubeWatchUrl,
 } from "#app/features/posts/post-video";
+import { SITE_NAME } from "#app/lib/branding";
 import { toIsoDate } from "#app/lib/date";
 import { absoluteUrl } from "#app/lib/url";
 
@@ -31,16 +32,10 @@ type PostArticleJsonLdPost = {
 type PostArticleJsonLdProps = {
   enabled?: boolean;
   post: PostArticleJsonLdPost;
-  siteName: string;
   siteUrl?: string;
 };
 
-export function PostArticleJsonLd({
-  enabled = true,
-  post,
-  siteName,
-  siteUrl,
-}: PostArticleJsonLdProps) {
+export function PostArticleJsonLd({ enabled = true, post, siteUrl }: PostArticleJsonLdProps) {
   if (!enabled || !siteUrl) return null;
 
   const canonical = absoluteUrl(siteUrl, postHref(post.slug));
@@ -86,7 +81,7 @@ export function PostArticleJsonLd({
         author: {
           "@type": "Organization",
           "@id": organizationId,
-          name: siteName,
+          name: SITE_NAME,
           url: siteUrl,
         },
         publisher: {

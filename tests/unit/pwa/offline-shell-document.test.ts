@@ -5,14 +5,19 @@ import { describe, expect, it } from "vitest";
 import {
   buildOfflineShellDocument,
   OFFLINE_SHELL_BACKGROUND_COLOR_MARKER,
+  OFFLINE_SHELL_DZEMAT_NAME_MARKER,
   OFFLINE_SHELL_LOGO_MARKER,
   OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER,
   OFFLINE_SHELL_LORA_LATIN_FONT_MARKER,
+  OFFLINE_SHELL_PRODUCT_NAME_MARKER,
   OFFLINE_SHELL_SCRIPT_MARKER,
+  OFFLINE_SHELL_SITE_NAME_MARKER,
+  OFFLINE_SHELL_TAGLINE_MARKER,
   OFFLINE_SHELL_THEME_COLOR_MARKER,
 } from "#app/features/pwa/offline-shell-document";
 
 const template = `
+  <title>Bez interneta · ${OFFLINE_SHELL_SITE_NAME_MARKER}</title>
   <meta name="theme-color" content="${OFFLINE_SHELL_THEME_COLOR_MARKER}">
   <style>
     @font-face {
@@ -26,7 +31,11 @@ const template = `
       --page: ${OFFLINE_SHELL_BACKGROUND_COLOR_MARKER};
     }
   </style>
-  <span>${OFFLINE_SHELL_LOGO_MARKER}</span>
+  <a aria-label="${OFFLINE_SHELL_SITE_NAME_MARKER}">
+    <span>${OFFLINE_SHELL_LOGO_MARKER}</span>
+    <span>${OFFLINE_SHELL_PRODUCT_NAME_MARKER} · ${OFFLINE_SHELL_DZEMAT_NAME_MARKER}</span>
+    <span>${OFFLINE_SHELL_TAGLINE_MARKER}</span>
+  </a>
   <script>${OFFLINE_SHELL_SCRIPT_MARKER}</script>
 `;
 
@@ -36,6 +45,10 @@ const documentOptions = {
   logoSvg: '<svg viewBox="0 0 1 1"></svg>',
   loraLatinFontBase64: "Zm9udA==",
   loraLatinExtendedFontBase64: "Zm9udC1leHQ=",
+  siteName: "Moj Džemat - Primjer",
+  productName: "Moj Džemat",
+  dzematName: "Primjer",
+  tagline: "Islamska zajednica",
 };
 
 describe("offline shell document", () => {
@@ -54,7 +67,25 @@ describe("offline shell document", () => {
     expect(document).toContain('<svg viewBox="0 0 1 1"></svg>');
     expect(document).toContain("Zm9udA==");
     expect(document).toContain("Zm9udC1leHQ=");
+    expect(document).toContain("<title>Bez interneta · Moj Džemat - Primjer</title>");
+    expect(document).toContain('aria-label="Moj Džemat - Primjer"');
+    expect(document).toContain("<span>Moj Džemat · Primjer</span>");
+    expect(document).toContain("<span>Islamska zajednica</span>");
     expect(document).not.toMatch(/__MOJ_DZEMAT_/);
+  });
+
+  it("escapes configured names so they cannot break the markup", () => {
+    const document = buildOfflineShellDocument(template, "script", {
+      ...documentOptions,
+      siteName: 'Moj Džemat - "Most" & <Luka>',
+      dzematName: "<b>Luka</b>",
+      tagline: "Medžlis 'Grad'",
+    });
+
+    expect(document).toContain('aria-label="Moj Džemat - &quot;Most&quot; &amp; &lt;Luka&gt;"');
+    expect(document).toContain("Moj Džemat · &lt;b&gt;Luka&lt;/b&gt;");
+    expect(document).toContain("Medžlis &#39;Grad&#39;");
+    expect(document).not.toContain("<b>Luka</b>");
   });
 
   it("rejects empty scripts and incomplete templates", () => {

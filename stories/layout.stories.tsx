@@ -78,7 +78,6 @@ export const RootFailure: StoryObj = {
 export const Location: StoryObj = {
   render: () => (
     <DzematLocationSection
-      siteName="Moj Džemat - Primjer"
       location={{
         query: "Grad",
         address: "Ulica primjera 1, Grad",

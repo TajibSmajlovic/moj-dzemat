@@ -61,14 +61,14 @@ export const Filters: StoryObj = {
 export const Article: StoryObj = {
   render: () => (
     <div className="mx-auto max-w-3xl">
-      <PostDetailArticle post={post} siteName="Moj Džemat - Primjer" />
+      <PostDetailArticle post={post} />
     </div>
   ),
 };
 export const ArticleWithoutMedia: StoryObj = {
   render: () => (
     <div className="max-w-3xl">
-      <PostDetailArticle post={{ ...post, images: [] }} siteName="Moj Džemat - Primjer" />
+      <PostDetailArticle post={{ ...post, images: [] }} />
     </div>
   ),
 };
@@ -106,11 +106,7 @@ export const Lightbox: StoryObj = {
 export const PinnedArticle: StoryObj = {
   render: () => (
     <div className="mx-auto max-w-3xl">
-      <PostDetailArticle
-        post={{ ...post, pinned: true }}
-        siteName="Moj Džemat - Primjer"
-        showPinnedBadge
-      />
+      <PostDetailArticle post={{ ...post, pinned: true }} showPinnedBadge />
     </div>
   ),
 };
