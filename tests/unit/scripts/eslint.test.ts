@@ -37,6 +37,9 @@ it("rejects unsafe JSX and accepts each corrected example using the repository c
   const output = execFileSync(process.execPath, ["--input-type=module"], {
     cwd: process.cwd(),
     encoding: "utf8",
+    // With `CI=true`, typescript-eslint parses the file on disk instead of the
+    // text passed to `lintText`, so the fixtures below would never be linted.
+    env: { ...process.env, TSESTREE_SINGLE_RUN: "false" },
     input: `
       import { ESLint } from "eslint";
       const eslint = new ESLint();
