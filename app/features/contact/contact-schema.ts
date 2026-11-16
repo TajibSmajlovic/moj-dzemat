@@ -37,10 +37,7 @@ function optionalEmail(tooLongMessage: string, invalidMessage: string) {
     .max(EMAIL_MAX, tooLongMessage)
     .optional()
     .transform((value) => (value && value.length > 0 ? value : null))
-    .refine(
-      (value) => value === null || z.string().email().safeParse(value).success,
-      invalidMessage,
-    );
+    .refine((value) => value === null || z.email().safeParse(value).success, invalidMessage);
 }
 
 /**

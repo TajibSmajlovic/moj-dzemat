@@ -8,7 +8,6 @@ import importHelpers from "eslint-plugin-import-helpers";
 import jsxA11y from "eslint-plugin-jsx-a11y-x";
 import noRelativeImportPaths from "eslint-plugin-no-relative-import-paths";
 import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
 import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -63,8 +62,6 @@ export default defineConfig(
       "dist/**",
       "generated/**",
       "prisma/migrations/**",
-      "public/mockServiceWorker.js",
-      "*.html",
     ],
   },
 
@@ -100,7 +97,6 @@ export default defineConfig(
       },
     },
     plugins: {
-      "react-refresh": reactRefresh,
       "import-helpers": importHelpers,
       "no-relative-import-paths": noRelativeImportPaths,
     },
@@ -109,7 +105,8 @@ export default defineConfig(
       ...reactHooksDuplicates,
       // Keep the `target="_blank"` guard from the previous React plugin's preset.
       "@eslint-react/dom-no-unsafe-target-blank": "error",
-      "react-refresh/only-export-components": ["off"],
+      // Third-party embeds must state what they may do in the page.
+      "@eslint-react/dom-no-missing-iframe-sandbox": "error",
 
       // TypeScript
       "@typescript-eslint/no-unused-vars": [
@@ -128,6 +125,11 @@ export default defineConfig(
       ],
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/no-import-type-side-effects": "error",
+      // A new member of a union type must get its own `case`, not fall into `default`.
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
+      // Inside `try`, a returned promise must be awaited, or `catch` never sees its rejection.
+      "@typescript-eslint/return-await": ["error", "error-handling-correctness-only"],
+      "@typescript-eslint/no-deprecated": "error",
 
       // Imports
       "import-helpers/order-imports": [
@@ -150,12 +152,9 @@ export default defineConfig(
       // Unicorn
       "unicorn/no-null": "off",
       "unicorn/name-replacements": "off",
-      "unicorn/prefer-query-selector": "off",
       "unicorn/no-useless-undefined": "off",
-      "unicorn/prefer-module": "off",
       "unicorn/prefer-top-level-await": "off",
       "unicorn/explicit-length-check": "off",
-      "unicorn/prefer-includes": "off",
       // Booleans follow platform naming (`open`, `active`, `disabled`) shared with
       // HTML attributes and Radix props, not forced `is`/`has` prefixes.
       "unicorn/consistent-boolean-name": "off",
@@ -187,6 +186,19 @@ export default defineConfig(
       "prefer-const": "error",
       "no-var": "error",
       eqeqeq: ["error", "always", { null: "ignore" }],
+      // Callbacks of `filter`, `find`, `some`, `map`, and similar must return a value.
+      "array-callback-return": "error",
+      // Catches `"${value}"` written in plain quotes instead of a template literal.
+      "no-template-curly-in-string": "error",
+    },
+  },
+
+  // App code renders through React. Raw HTML sinks such as `innerHTML` bypass
+  // React's escaping, so each one needs an explained exception.
+  {
+    files: ["app/**/*.{ts,tsx}"],
+    rules: {
+      "unicorn/no-unsafe-dom-html": "error",
     },
   },
 
@@ -247,11 +259,6 @@ export default defineConfig(
         ...globals.node,
       },
     },
-    rules: {
-      // False-positives on patterns like `const x = arg ?? "default"` where
-      // we explicitly want the union type to stay nullable in the signature.
-      "unicorn/prefer-default-parameters": "off",
-    },
   },
 
   // `throw new Response(...)` is React Router's official short-circuit
@@ -280,19 +287,6 @@ export default defineConfig(
     extends: [tseslint.configs.disableTypeChecked, eslintReact.configs["disable-type-checked"]],
     languageOptions: {
       globals: { ...globals.node },
-    },
-    rules: {
-      "@typescript-eslint/no-require-imports": "off",
-      "unicorn/prefer-module": "off",
-    },
-  },
-
-  // Test files
-  {
-    files: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "tests/**/*.{ts,tsx}"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "no-console": "off",
     },
   },
 

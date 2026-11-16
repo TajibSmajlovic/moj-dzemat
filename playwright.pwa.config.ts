@@ -54,6 +54,8 @@ export default defineConfig({
   testDir: "./tests/e2e/pwa",
   fullyParallel: false,
   workers: 1,
+  // A committed `test.only` would otherwise skip every other test in CI.
+  forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI
     ? [["list"], ["html", { open: "never", outputFolder: "playwright-pwa-report" }]]

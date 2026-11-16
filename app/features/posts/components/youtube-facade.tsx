@@ -24,6 +24,10 @@ export function YouTubeFacade({
           className="absolute inset-0 h-full w-full"
           allow="autoplay; encrypted-media; picture-in-picture; web-share"
           allowFullScreen
+          // YouTube's player does not load with an opaque origin. It keeps its own
+          // cross-origin origin, so it still cannot reach this page.
+          // eslint-disable-next-line @eslint-react/dom-no-unsafe-iframe-sandbox -- cross-origin embed, see above
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
           loading="lazy"
         />
       </div>

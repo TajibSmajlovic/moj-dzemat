@@ -110,7 +110,7 @@ function resolveInternalTarget(
 function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
   const clause = node.importClause;
   if (!clause) return false;
-  if (clause.isTypeOnly) return true;
+  if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) return true;
   if (clause.name) return false;
   if (!clause.namedBindings) return false;
   if (ts.isNamespaceImport(clause.namedBindings)) return false;

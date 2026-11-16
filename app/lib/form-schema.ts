@@ -19,8 +19,10 @@ type EmailFieldOptions = {
 };
 
 export function emailField(options: EmailFieldOptions = {}) {
-  return requiredString(options.requiredMessage ?? "E-mail je obavezan.").email(
-    options.invalidMessage ?? "Unesite ispravnu e-mail adresu.",
+  // `.check()` keeps the email check after trimming, as the deprecated
+  // `.email()` method did, and keeps the schema a `ZodString`.
+  return requiredString(options.requiredMessage ?? "E-mail je obavezan.").check(
+    z.email(options.invalidMessage ?? "Unesite ispravnu e-mail adresu."),
   );
 }
 

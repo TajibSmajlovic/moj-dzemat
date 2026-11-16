@@ -43,7 +43,7 @@ export const resolveAddresses: AddressResolver = async (hostname) => {
     return [{ address: normalizedHostname, family: literalFamily }];
   }
 
-  const results = await dnsLookup(normalizedHostname, { all: true, verbatim: true });
+  const results = await dnsLookup(normalizedHostname, { all: true, order: "verbatim" });
   return results.map(({ address, family }) => ({ address, family: family === 6 ? 6 : 4 }));
 };
 

@@ -59,8 +59,8 @@ export const envSchema = z
     DZEMAT_NAME: optionalText,
     DZEMAT_ADDRESS: optionalText,
     DZEMAT_MAP_QUERY: optionalText,
-    FACEBOOK_PAGE_URL: optionalText.pipe(z.string().url().optional()),
-    YOUTUBE_CHANNEL_URL: optionalText.pipe(z.string().url().optional()),
+    FACEBOOK_PAGE_URL: optionalText.pipe(z.url().optional()),
+    YOUTUBE_CHANNEL_URL: optionalText.pipe(z.url().optional()),
     CLOUDFLARE_WEB_ANALYTICS_TOKEN: optionalText,
 
     WEB_PUSH_ENABLED: z
@@ -71,10 +71,7 @@ export const envSchema = z
     WEB_PUSH_VAPID_PRIVATE_KEY: optionalText,
     WEB_PUSH_ENCRYPTION_KEYS: optionalText,
 
-    APP_URL: z
-      .string()
-      .url()
-      .transform((value) => value.replace(/\/$/, "")),
+    APP_URL: z.url().transform((value) => value.replace(/\/$/, "")),
 
     PORT: z.coerce.number().int().positive().default(3000),
     AGENT_RUN_ID: optionalText,

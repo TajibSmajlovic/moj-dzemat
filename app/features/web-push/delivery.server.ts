@@ -74,7 +74,7 @@ export async function sendWebPushDeliveryBatch(
 
   const results = await Promise.all(claimedIds.map((id) => sendClaimedDelivery(id, owner, now)));
 
-  return { progressed: true, fatalVapid: results.some((result) => result === "fatal-vapid") };
+  return { progressed: true, fatalVapid: results.includes("fatal-vapid") };
 }
 
 async function sendClaimedDelivery(

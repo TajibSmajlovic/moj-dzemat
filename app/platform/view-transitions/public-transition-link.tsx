@@ -41,6 +41,7 @@ export function PublicTransitionLink({
       relative={relative}
       target={target}
       onClick={handleClick}
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- moving to React's <ViewTransition> is tracked as TD-008
       viewTransition={transitionEnabled}
     />
   );

@@ -85,6 +85,22 @@ separate warning.
 overrides, verified by a clean `npm ci`, both audit commands, and
 `npm run agent:verify`.
 
+## TD-008: Public view transitions use deprecated React Router APIs
+
+**Status:** Accepted, reviewed on 2026-11-15.
+
+**Evidence and impact:** React Router 8 deprecates the `viewTransition` link
+prop and `useViewTransitionState()` in favor of React's `<ViewTransition>`
+component. `PublicTransitionLink` and `PublicViewTransitionProvider` in
+`app/platform/view-transitions/` still use both. Each call has an inline
+exception to `@typescript-eslint/no-deprecated` that names this item. The
+transitions work today, but a future React Router major version can remove
+these APIs.
+
+**Exit condition:** Public section transitions use React's `<ViewTransition>`,
+both inline exceptions are removed, and the transition behavior is verified in
+the browser and by `npm run agent:verify`.
+
 ## Resolved items
 
 The following items were verified on 2026-09-14 and are no longer active debt.

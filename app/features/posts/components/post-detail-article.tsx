@@ -344,6 +344,10 @@ function MediaLightbox({
                   className="ring-lightbox-foreground/10 aspect-video max-h-full w-full max-w-4xl rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
                   allow="autoplay; encrypted-media; picture-in-picture; web-share"
                   allowFullScreen
+                  // YouTube's player does not load with an opaque origin. It keeps its own
+                  // cross-origin origin, so it still cannot reach this page.
+                  // eslint-disable-next-line @eslint-react/dom-no-unsafe-iframe-sandbox -- cross-origin embed, see above
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
                 />
               )}
             </div>

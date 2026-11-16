@@ -74,6 +74,9 @@ export function DzematLocationSection({ location, siteName }: DzematLocationSect
               loading="lazy"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
+              // Maps runs its own scripts and may open Google Maps in a new tab. Without
+              // `allow-same-origin` it gets an opaque origin and no access to this page.
+              sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
               className="h-full min-h-80 w-full border-0"
             />
           </div>

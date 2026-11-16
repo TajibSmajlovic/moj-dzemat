@@ -33,6 +33,7 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
   const [intent, setIntent] = useState<ActiveIntent | null>(null);
   const intentRef = useRef<ActiveIntent | null>(intent);
   const transitionTarget = intent?.targetUrl ?? location.pathname;
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- moving to React's <ViewTransition> is tracked as TD-008
   const routerTransitionActive = useViewTransitionState(transitionTarget);
 
   const replaceIntent = useCallback((nextIntent: ActiveIntent | null) => {
