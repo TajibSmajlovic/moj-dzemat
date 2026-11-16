@@ -1,280 +1,15 @@
 import fs from "node:fs";
-import { isBuiltin } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
 
 import { findRepositoryRoot } from "../repository-root";
+import { collectEdges, stripSourceExtension, toPosix } from "./architecture-imports";
+import { violationFor, type ImportEdge, type ArchitectureViolation } from "./architecture-rules";
 
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
 const TEST_FILE_PATTERN = /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.[cm]?tsx?$/;
 const DOCS_PATH = "docs/architecture/boundaries.md";
-
-type Owner =
-  | { kind: "feature"; name: string }
-  | { kind: "composition" }
-  | { kind: "foundation" }
-  | { kind: "platform" }
-  | { kind: "other" };
-
-type ImportEdge = {
-  source: string;
-  target: string;
-  specifier: string;
-  line: number;
-  typeOnly: boolean;
-};
-
-export type ArchitectureViolation = ImportEdge & {
-  rule: string;
-  why: string;
-  fix: string;
-  docsAnchor: string;
-  browserPath?: string[];
-};
-
-const CROSS_FEATURE_CONTRACTS = new Map<string, Set<string>>([
-  ["pwa", new Set(["app/features/posts/post-contract"])],
-  ["posts", new Set(["app/features/web-push/post-publication.server"])],
-]);
-
-function toPosix(value: string): string {
-  return value.split(path.sep).join("/");
-}
-
-function stripSourceExtension(value: string): string {
-  return value.replace(/\.(?:[cm]?ts|tsx)$/, "");
-}
-
-function ownerOf(file: string): Owner {
-  const feature = /^app\/features\/([^/]+)(?:\/|$)/.exec(file);
-  if (feature?.[1]) return { kind: "feature", name: feature[1] };
-
-  if (
-    file === "app/root" ||
-    file.startsWith("app/routes/") ||
-    file.startsWith("server/") ||
-    file.startsWith("app/components/layout/")
-  ) {
-    return { kind: "composition" };
-  }
-
-  if (file.startsWith("app/platform/")) return { kind: "platform" };
-  if (
-    file.startsWith("app/components/") ||
-    file.startsWith("app/lib/") ||
-    file.startsWith("app/server/")
-  ) {
-    return { kind: "foundation" };
-  }
-
-  return { kind: "other" };
-}
-
-function resolveInternalTarget(
-  rootDir: string,
-  source: string,
-  specifier: string,
-  compilerOptions: ts.CompilerOptions,
-): string | null {
-  if (isBuiltin(specifier)) return specifier;
-  const resolved = ts.resolveModuleName(
-    specifier,
-    path.join(rootDir, source),
-    compilerOptions,
-    ts.sys,
-  ).resolvedModule;
-  if (resolved && !resolved.isExternalLibraryImport) {
-    return stripSourceExtension(toPosix(path.relative(rootDir, resolved.resolvedFileName)));
-  }
-  let absoluteTarget: string;
-
-  if (specifier.startsWith("#app/")) {
-    absoluteTarget = path.join(rootDir, "app", specifier.slice("#app/".length));
-  } else if (specifier.startsWith("#generated/")) {
-    absoluteTarget = path.join(rootDir, "generated", specifier.slice("#generated/".length));
-  } else if (specifier.startsWith("#prisma/")) {
-    absoluteTarget = path.join(rootDir, "prisma", specifier.slice("#prisma/".length));
-  } else if (specifier.startsWith(".")) {
-    absoluteTarget = path.resolve(rootDir, path.dirname(source), specifier);
-  } else {
-    return null;
-  }
-
-  const relative = path.relative(rootDir, absoluteTarget);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
-
-  return stripSourceExtension(toPosix(relative));
-}
-
-function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
-  const clause = node.importClause;
-  if (!clause) return false;
-  if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) return true;
-  if (clause.name) return false;
-  if (!clause.namedBindings) return false;
-  if (ts.isNamespaceImport(clause.namedBindings)) return false;
-
-  return (
-    clause.namedBindings.elements.length > 0 &&
-    clause.namedBindings.elements.every((element) => element.isTypeOnly)
-  );
-}
-
-function collectEdges(
-  rootDir: string,
-  source: string,
-  contents: string,
-  compilerOptions: ts.CompilerOptions,
-): ImportEdge[] {
-  const sourceFile = ts.createSourceFile(
-    source,
-    contents,
-    ts.ScriptTarget.Latest,
-    true,
-    source.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
-  const edges: ImportEdge[] = [];
-
-  function addEdge(specifier: string, node: ts.Node, typeOnly: boolean): void {
-    const target = resolveInternalTarget(rootDir, source, specifier, compilerOptions);
-    if (!target) return;
-
-    edges.push({
-      source,
-      target,
-      specifier,
-      line: sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1,
-      typeOnly,
-    });
-  }
-
-  function visit(node: ts.Node): void {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-      addEdge(node.moduleSpecifier.text, node, isTypeOnlyImport(node));
-    } else if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
-      if (ts.isStringLiteral(node.moduleSpecifier)) {
-        const typeOnly =
-          node.isTypeOnly ||
-          Boolean(
-            node.exportClause &&
-            ts.isNamedExports(node.exportClause) &&
-            node.exportClause.elements.length > 0 &&
-            node.exportClause.elements.every((element) => element.isTypeOnly),
-          );
-        addEdge(node.moduleSpecifier.text, node, typeOnly);
-      }
-    } else if (
-      ts.isCallExpression(node) &&
-      node.arguments.length >= 1 &&
-      (ts.isStringLiteral(node.arguments[0]!) ||
-        ts.isNoSubstitutionTemplateLiteral(node.arguments[0]!)) &&
-      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
-        (ts.isIdentifier(node.expression) && node.expression.text === "require"))
-    ) {
-      addEdge(node.arguments[0].text, node, false);
-    }
-
-    if (
-      ts.isImportEqualsDeclaration(node) &&
-      ts.isExternalModuleReference(node.moduleReference) &&
-      node.moduleReference.expression &&
-      ts.isStringLiteral(node.moduleReference.expression)
-    ) {
-      addEdge(node.moduleReference.expression.text, node, node.isTypeOnly);
-    }
-    ts.forEachChild(node, visit);
-  }
-
-  visit(sourceFile);
-  return edges;
-}
-
-function violationFor(edge: ImportEdge, browserPath?: string[]): ArchitectureViolation | null {
-  const sourceOwner = ownerOf(edge.source);
-  const targetOwner = ownerOf(edge.target);
-
-  if (
-    sourceOwner.kind === "feature" &&
-    targetOwner.kind === "feature" &&
-    sourceOwner.name !== targetOwner.name
-  ) {
-    const allowedTargets = CROSS_FEATURE_CONTRACTS.get(sourceOwner.name);
-    if (!allowedTargets?.has(edge.target)) {
-      return {
-        ...edge,
-        rule: "feature-isolation",
-        why: "Feature internals are owned by their feature and can change without downstream consumers.",
-        fix: "Import the target feature's named public contract, move generic code to a shared foundation, or compose both features from a route.",
-        docsAnchor: "feature-isolation",
-      };
-    }
-  }
-
-  if (
-    !edge.typeOnly &&
-    sourceOwner.kind === "foundation" &&
-    (targetOwner.kind === "feature" || targetOwner.kind === "composition")
-  ) {
-    return {
-      ...edge,
-      rule: "foundation-direction",
-      why: "Shared foundations must remain reusable and cannot own product feature or application composition behavior.",
-      fix: "Invert the dependency, pass the value into the foundation, or move the source into the owning feature or composition layer.",
-      docsAnchor: "foundation-direction",
-    };
-  }
-
-  if (
-    !edge.typeOnly &&
-    sourceOwner.kind === "platform" &&
-    (targetOwner.kind === "feature" || targetOwner.kind === "composition")
-  ) {
-    return {
-      ...edge,
-      rule: "platform-direction",
-      why: "Cross-cutting platform capabilities cannot depend on product features or route composition.",
-      fix: "Pass feature data through the platform API or move the orchestration to a route or layout.",
-      docsAnchor: "platform-direction",
-    };
-  }
-
-  const isServerTarget =
-    isBuiltin(edge.target) ||
-    edge.target.startsWith("app/server/") ||
-    edge.target.startsWith("generated/") ||
-    edge.target.startsWith("prisma/") ||
-    /\.server(?:\/|$)/.test(edge.target);
-  if (browserPath && isServerTarget && !edge.typeOnly) {
-    return {
-      ...edge,
-      browserPath,
-      rule: "client-server-boundary",
-      why: "Browser-capable modules must not pull server code, secrets, filesystem access, or database clients into their runtime graph.",
-      fix: "Load server data in a route, pass serializable values into the component, or change the import to an explicit type-only import.",
-      docsAnchor: "client-server-boundary",
-    };
-  }
-
-  if (
-    !edge.typeOnly &&
-    (edge.source.startsWith("app/") || edge.source.startsWith("server/")) &&
-    (edge.target.startsWith("tests/") ||
-      edge.target.startsWith("scripts/") ||
-      edge.target.startsWith("stories/") ||
-      edge.target.startsWith(".storybook/"))
-  ) {
-    return {
-      ...edge,
-      rule: "production-dependency",
-      why: "Production code cannot depend on tests, stories, or repository tooling.",
-      fix: "Move reusable code into its owning app module and keep test, story, or script adapters outside production code.",
-      docsAnchor: "production-dependency",
-    };
-  }
-
-  return null;
-}
 
 function sourceFiles(rootDir: string): string[] {
   const files: string[] = [];
@@ -307,19 +42,41 @@ function sourceFiles(rootDir: string): string[] {
 }
 
 export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
+  const compilerOptions = readCompilerOptions(rootDir);
+  const graph = new Map<string, ImportEdge[]>();
+  const browserPaths = new Map<string, string[]>();
+
+  for (const source of sourceFiles(rootDir)) {
+    const key = stripSourceExtension(source);
+    graph.set(
+      key,
+      collectEdges({
+        rootDir,
+        source,
+        contents: fs.readFileSync(path.join(rootDir, source), "utf8"),
+        compilerOptions,
+      }),
+    );
+    if (isBrowserEntry(source)) browserPaths.set(key, [source]);
+  }
+
+  followBrowserPaths(graph, browserPaths);
+
+  return [...graph].flatMap(([source, edges]) =>
+    edges.flatMap((edge) => {
+      const violation = violationFor(edge, browserPaths.get(source));
+      return violation ? [violation] : [];
+    }),
+  );
+}
+
+function readCompilerOptions(rootDir: string): ts.CompilerOptions {
   const configPath = path.join(rootDir, "tsconfig.base.json");
   const config: unknown = fs.existsSync(configPath)
     ? ts.readConfigFile(configPath, (file) => ts.sys.readFile(file)).config
     : {};
-  const configuredOptions =
-    config &&
-    typeof config === "object" &&
-    "compilerOptions" in config &&
-    config.compilerOptions &&
-    typeof config.compilerOptions === "object"
-      ? config.compilerOptions
-      : {};
-  const compilerOptions = ts.parseJsonConfigFileContent(
+  const configuredOptions = compilerOptionsObject(config);
+  return ts.parseJsonConfigFileContent(
     {
       compilerOptions: {
         moduleResolution: "bundler",
@@ -334,22 +91,21 @@ export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
     undefined,
     configPath,
   ).options;
-  const graph = new Map<string, ImportEdge[]>();
-  const browserPaths = new Map<string, string[]>();
-  for (const source of sourceFiles(rootDir)) {
-    const key = stripSourceExtension(source);
-    graph.set(
-      key,
-      collectEdges(
-        rootDir,
-        source,
-        fs.readFileSync(path.join(rootDir, source), "utf8"),
-        compilerOptions,
-      ),
-    );
-    if (isBrowserEntry(source)) browserPaths.set(key, [source]);
-  }
+}
 
+function compilerOptionsObject(config: unknown): object {
+  if (!config || typeof config !== "object") return {};
+  if (!("compilerOptions" in config)) return {};
+
+  const options = config.compilerOptions;
+
+  return options && typeof options === "object" ? options : {};
+}
+
+function followBrowserPaths(
+  graph: Map<string, ImportEdge[]>,
+  browserPaths: Map<string, string[]>,
+): void {
   // Follow runtime edges through helpers and barrels; a directory name alone
   // cannot establish that a module stays on the server.
   // Entries added inside the loop are visited later in the same loop, which makes
@@ -362,12 +118,6 @@ export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
       browserPaths.set(edge.target, [...trail, edge.target]);
     }
   }
-  return [...graph].flatMap(([source, edges]) =>
-    edges.flatMap((edge) => {
-      const violation = violationFor(edge, browserPaths.get(source));
-      return violation ? [violation] : [];
-    }),
-  );
 }
 
 function isBrowserEntry(source: string): boolean {

@@ -19,18 +19,13 @@ export function WebPushCard({
   const [showIosHelp, setShowIosHelp] = useState(false);
   if (state === "initializing" || state === "hidden") return null;
 
-  const content = stateContent(state);
+  const content = STATE_CONTENT[state];
   const busy = ["enabling", "synchronizing", "disabling"].includes(state);
-  const primaryAction =
-    state === "ready"
-      ? { label: "Uključi obavijesti", run: enable }
-      : state === "enable-failed"
-        ? { label: "Pokušaj ponovo", run: enable }
-        : state === "retry"
-          ? { label: "Pokušaj ponovo", run: retry }
-          : state === "install-required"
-            ? { label: "Kako uključiti", run: () => setShowIosHelp((value) => !value) }
-            : null;
+  const primaryAction = primaryActionFor(state, {
+    enable,
+    retry,
+    showHelp: () => setShowIosHelp((value) => !value),
+  });
   const canDisable = state === "enabled" || state === "paused" || state === "retry";
 
   return (
@@ -115,78 +110,50 @@ export function WebPushCard({
   );
 }
 
-function stateContent(state: WebPushState): { title: string; description: string } {
-  switch (state) {
-    case "ready": {
-      return {
-        title: "Saznajte kada objavimo nešto novo",
-        description: "Bez računa i bez praćenja otvaranja. Možete isključiti bilo kada.",
-      };
-    }
-    case "enabled": {
-      return {
-        title: "Obavijesti su uključene na ovom uređaju",
-        description: "Obavijestit ćemo vas samo o novim objavama.",
-      };
-    }
-    case "paused": {
-      return {
-        title: "Obavijesti su privremeno pauzirane",
-        description: "Slanje je trenutno isključeno, ali ovu pretplatu i dalje možete ukloniti.",
-      };
-    }
-    case "enable-failed": {
-      return {
-        title: "Obavijesti nisu uključene",
-        description:
-          "Preglednik nije uspio povezati push servis. Provjerite postavke obavijesti preglednika pa pokušajte ponovo.",
-      };
-    }
-    case "retry": {
-      return {
-        title: "Pretplatu treba ponovo povezati",
-        description:
-          "Obavijesti su uključene u pregledniku, ali povezivanje sa serverom nije uspjelo.",
-      };
-    }
-    case "denied": {
-      return {
-        title: "Obavijesti su blokirane",
-        description:
-          "Dozvolite ih u postavkama preglednika ili uređaja, zatim ponovo otvorite ovu stranicu.",
-      };
-    }
-    case "unsupported": {
-      return {
-        title: "Obavijesti nisu dostupne",
-        description: "Ovaj preglednik ili aktivna verzija aplikacije još ne podržava Web Push.",
-      };
-    }
-    case "install-required": {
-      return {
-        title: "Dodajte Moj Džemat na početni ekran",
-        description:
-          "Na iPhoneu i iPadu obavijesti rade kada aplikaciju otvorite s početnog ekrana.",
-      };
-    }
-    case "enabling": {
-      return { title: "Uključivanje obavijesti…", description: "Potvrdite dozvolu u pregledniku." };
-    }
-    case "synchronizing": {
-      return { title: "Povezivanje uređaja…", description: "Ovo obično traje samo trenutak." };
-    }
-    case "disabling": {
-      return {
-        title: "Isključivanje obavijesti…",
-        description: "Uklanjamo pretplatu s ovog uređaja.",
-      };
-    }
-    case "initializing":
-    case "hidden": {
-      return { title: "Obavijesti", description: "" };
-    }
-  }
-}
+const STATE_CONTENT = {
+  ready: {
+    title: "Saznajte kada objavimo nešto novo",
+    description: "Bez računa i bez praćenja otvaranja. Možete isključiti bilo kada.",
+  },
+  enabled: {
+    title: "Obavijesti su uključene na ovom uređaju",
+    description: "Obavijestit ćemo vas samo o novim objavama.",
+  },
+  paused: {
+    title: "Obavijesti su privremeno pauzirane",
+    description: "Slanje je trenutno isključeno, ali ovu pretplatu i dalje možete ukloniti.",
+  },
+  "enable-failed": {
+    title: "Obavijesti nisu uključene",
+    description:
+      "Preglednik nije uspio povezati push servis. Provjerite postavke obavijesti preglednika pa pokušajte ponovo.",
+  },
+  retry: {
+    title: "Pretplatu treba ponovo povezati",
+    description: "Obavijesti su uključene u pregledniku, ali povezivanje sa serverom nije uspjelo.",
+  },
+  denied: {
+    title: "Obavijesti su blokirane",
+    description:
+      "Dozvolite ih u postavkama preglednika ili uređaja, zatim ponovo otvorite ovu stranicu.",
+  },
+  unsupported: {
+    title: "Obavijesti nisu dostupne",
+    description: "Ovaj preglednik ili aktivna verzija aplikacije još ne podržava Web Push.",
+  },
+  "install-required": {
+    title: "Dodajte Moj Džemat na početni ekran",
+    description: "Na iPhoneu i iPadu obavijesti rade kada aplikaciju otvorite s početnog ekrana.",
+  },
+  enabling: { title: "Uključivanje obavijesti…", description: "Potvrdite dozvolu u pregledniku." },
+  synchronizing: { title: "Povezivanje uređaja…", description: "Ovo obično traje samo trenutak." },
+  disabling: {
+    title: "Isključivanje obavijesti…",
+    description: "Uklanjamo pretplatu s ovog uređaja.",
+  },
+  initializing: { title: "Obavijesti", description: "" },
+  hidden: { title: "Obavijesti", description: "" },
+} satisfies Record<WebPushState, { title: string; description: string }>;
 
 function StateIcon({ state }: { state: WebPushState }) {
   if (["enabling", "synchronizing", "disabling"].includes(state)) {
@@ -200,4 +167,18 @@ function StateIcon({ state }: { state: WebPushState }) {
   }
   if (state === "paused") return <BellOff className="size-5" aria-hidden="true" />;
   return <Bell className="size-5" aria-hidden="true" />;
+}
+
+function primaryActionFor(
+  state: WebPushState,
+  actions: { enable: () => Promise<void>; retry: () => Promise<void>; showHelp: () => void },
+) {
+  const choices: Partial<Record<WebPushState, { label: string; run: () => void | Promise<void> }>> =
+    {
+      ready: { label: "Uključi obavijesti", run: actions.enable },
+      "enable-failed": { label: "Pokušaj ponovo", run: actions.enable },
+      retry: { label: "Pokušaj ponovo", run: actions.retry },
+      "install-required": { label: "Kako uključiti", run: actions.showHelp },
+    };
+  return choices[state];
 }

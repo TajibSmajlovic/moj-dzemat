@@ -1,4 +1,10 @@
-import { chromium, expect, type Browser, type Page } from "@playwright/test";
+import {
+  chromium,
+  expect,
+  type Browser,
+  type Request as BrowserRequest,
+  type Page,
+} from "@playwright/test";
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
@@ -7,8 +13,11 @@ import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { ADMIN_EMAIL, ADMIN_PASSWORD } from "../../tests/e2e/fixtures/admin-credentials";
+import { exitOnUnsupportedNode } from "../checks/node-version";
 import { copyWorkspace } from "../checks/workspace";
 import { loadOwnedManifest } from "./runtime";
+
+exitOnUnsupportedNode();
 
 const root = path.resolve(import.meta.dirname, "../..");
 const artifacts = process.env.CI
@@ -225,7 +234,37 @@ async function inspectBrowser(run: Run, mobile: boolean): Promise<void> {
     if (response.status() >= 400)
       errors.push(`${response.status()} ${new URL(response.url()).pathname}`);
   });
+  // Opening another document aborts requests the previous page still has in
+  // flight, such as React Router's debounced route discovery after the login
+  // redirect. The old page keeps running until the new document commits, so
+  // waiting for idle network first cannot close the race. Those aborts come
+  // from this check leaving the page; every other failed request is an error.
+  let opened = 0;
+  let opening: string | undefined;
+  const origins = new WeakMap<BrowserRequest, { opened: number; pageUrl: string }>();
+  page.on("request", (request) => {
+    origins.set(request, { opened, pageUrl: page.url() });
+  });
+  function abortedByLeavingPage(request: BrowserRequest): boolean {
+    const origin = origins.get(request);
+    return (
+      origin !== undefined &&
+      !request.isNavigationRequest() &&
+      request.failure()?.errorText === "net::ERR_ABORTED" &&
+      (origin.opened < opened || (opening !== undefined && origin.pageUrl !== opening))
+    );
+  }
+  async function open(route: string): Promise<void> {
+    opened += 1;
+    opening = new URL(route, run.manifest.url).href;
+    try {
+      await page.goto(route, { waitUntil: "networkidle" });
+    } finally {
+      opening = undefined;
+    }
+  }
   page.on("requestfailed", (request) => {
+    if (abortedByLeavingPage(request)) return;
     errors.push(`${new URL(request.url()).pathname}: ${request.failure()?.errorText}`);
   });
   page.on("websocket", (socket) => {
@@ -241,7 +280,7 @@ async function inspectBrowser(run: Run, mobile: boolean): Promise<void> {
 
   async function visit(route: string): Promise<void> {
     documents.length = 0;
-    await page.goto(route, { waitUntil: "networkidle" });
+    await open(route);
     await expect(page.locator("main").first()).toBeVisible();
     await expect(page.locator("vite-error-overlay")).toHaveCount(0);
     await toggleTheme(page);
@@ -255,7 +294,7 @@ async function inspectBrowser(run: Run, mobile: boolean): Promise<void> {
     const disclosure = page.locator("details").first();
     await disclosure.locator("summary").click();
     await expect(disclosure).toHaveAttribute("open", "");
-    await page.goto("/prijava", { waitUntil: "networkidle" });
+    await open("/prijava");
     await page.getByLabel("E-mail").fill(ADMIN_EMAIL);
     await page.getByLabel("Lozinka", { exact: true }).fill(ADMIN_PASSWORD);
     await page.getByRole("button", { name: "Prijavi se" }).click();

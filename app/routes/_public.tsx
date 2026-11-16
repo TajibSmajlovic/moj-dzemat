@@ -8,7 +8,10 @@ import { getCurrentUser } from "#app/features/auth/auth.server";
 import { WebPushPrompt } from "#app/features/web-push/components/web-push-prompt";
 import { WebPushProvider } from "#app/features/web-push/web-push";
 import { useRootLoaderData } from "#app/lib/root-loader-data";
-import { PublicViewTransitionProvider } from "#app/platform/view-transitions/public-view-transition-provider";
+import {
+  PublicSectionViewTransition,
+  PublicViewTransitionProvider,
+} from "#app/platform/view-transitions/public-view-transition-provider";
 import { env } from "#app/server/env.server";
 
 import type { Route } from "./+types/_public";
@@ -41,11 +44,15 @@ export default function PublicLayout({ loaderData }: Route.ComponentProps) {
           />
           <SiteHeader adminHref={loaderData.isAdminLoggedIn ? href("/admin") : href("/prijava")} />
 
-          <div className="flex-1">
-            <Outlet />
-          </div>
+          <PublicSectionViewTransition>
+            <div className="flex flex-1 flex-col">
+              <div className="flex-1">
+                <Outlet />
+              </div>
 
-          <SiteFooter />
+              <SiteFooter />
+            </div>
+          </PublicSectionViewTransition>
           <WebPushPrompt />
 
           {loaderData.cloudflareWebAnalyticsToken ? (

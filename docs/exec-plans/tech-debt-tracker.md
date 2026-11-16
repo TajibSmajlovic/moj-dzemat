@@ -45,7 +45,8 @@ process-local state before horizontal scaling:
 
 ## TD-003: Upstream Prisma dependency warnings
 
-**Status:** Security findings resolved; native-helper deprecation remains upstream.
+**Status:** Security findings resolved; native-helper deprecation remains
+upstream, reviewed on 2026-11-16.
 
 **Evidence and impact:** The `npm audit --json` check on 2026-09-14
 reported four high-severity entries in `deepmerge-ts`, `mysql2`, `@prisma/config`,
@@ -55,12 +56,19 @@ The compatible Prisma 7.10.1 update and dependency refresh cleared these Prisma
 findings on 2026-11-15. No Prisma override, downgrade, or release candidate is
 used.
 
-The SQLite adapter still retains better-sqlite3 12 and its deprecated
-prebuild-install helper. Keep that notice visible until an upstream adapter
-update removes it.
+The deprecated prebuild-install helper now enters only through Prisma's SQLite
+adapter. better-sqlite3 13 removed the helper, but
+`@prisma/adapter-better-sqlite3` 7.10.1 and its 8.1.0-dev.12 build still require
+`better-sqlite3@^12.6.0`. The application therefore runs on better-sqlite3 12
+through the adapter, while the direct better-sqlite3 13 dependency serves the
+Prisma CLI's optional peer. Each copy builds its own native binding and needs
+its own install-script approval. Prisma closed the upstream deprecation report,
+[prisma/orm#29588](https://github.com/prisma/orm/issues/29588), before
+better-sqlite3 13 was released. The owner keeps the second copy without an
+override until the adapter accepts better-sqlite3 13.
 
-**Exit condition:** A compatible stable adapter update removes the deprecated
-helper, verified with a clean `npm ci`,
+**Exit condition:** A stable adapter release accepts better-sqlite3 13, leaving
+one better-sqlite3 copy and no prebuild-install, verified with a clean `npm ci`,
 `npm audit`, and the database and browser suites.
 
 ## TD-007: Upstream tooling security findings
@@ -85,32 +93,18 @@ separate warning.
 overrides, verified by a clean `npm ci`, both audit commands, and
 `npm run agent:verify`.
 
-## TD-008: Public view transitions use deprecated React Router APIs
-
-**Status:** Accepted, reviewed on 2026-11-15.
-
-**Evidence and impact:** React Router 8 deprecates the `viewTransition` link
-prop and `useViewTransitionState()` in favor of React's `<ViewTransition>`
-component. `PublicTransitionLink` and `PublicViewTransitionProvider` in
-`app/platform/view-transitions/` still use both. Each call has an inline
-exception to `@typescript-eslint/no-deprecated` that names this item. The
-transitions work today, but a future React Router major version can remove
-these APIs.
-
-**Exit condition:** Public section transitions use React's `<ViewTransition>`,
-both inline exceptions are removed, and the transition behavior is verified in
-the browser and by `npm run agent:verify`.
-
 ## Resolved items
 
-The following items were verified on 2026-09-14 and are no longer active debt.
-Their implementation and regression evidence are linked below.
+The following items are no longer active debt. TD-004 to TD-006 were verified
+on 2026-09-14 and TD-008 on 2026-11-16. Their implementation and regression
+evidence are linked below.
 
-| ID     | Concern                    | Verification evidence                                                                      |
-| ------ | -------------------------- | ------------------------------------------------------------------------------------------ |
-| TD-004 | Request body limits        | [Execution plan](completed/2026-09-13-technical-debt.md#td-004-request-body-limits)        |
-| TD-005 | Concurrent password resets | [Execution plan](completed/2026-09-13-technical-debt.md#td-005-concurrent-password-resets) |
-| TD-006 | Password byte limits       | [Execution plan](completed/2026-09-13-technical-debt.md#td-006-password-byte-limits)       |
+| ID     | Concern                                  | Verification evidence                                                                      |
+| ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
+| TD-004 | Request body limits                      | [Execution plan](completed/2026-09-13-technical-debt.md#td-004-request-body-limits)        |
+| TD-005 | Concurrent password resets               | [Execution plan](completed/2026-09-13-technical-debt.md#td-005-concurrent-password-resets) |
+| TD-006 | Password byte limits                     | [Execution plan](completed/2026-09-13-technical-debt.md#td-006-password-byte-limits)       |
+| TD-008 | Deprecated React Router view transitions | [Browser regression test](../../tests/e2e/public-section-transitions.spec.ts)              |
 
 ## Maintenance
 

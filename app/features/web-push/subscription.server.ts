@@ -51,26 +51,36 @@ export async function validateAndResolveEndpoint(
   endpoint: string,
   resolver: AddressResolver = resolveAddresses,
 ): Promise<{ url: URL; addresses: ResolvedPublicAddress[] }> {
+  const url = parseEndpointUrl(endpoint);
+  const addresses = await resolvePublicAddresses(url.hostname, resolver);
+  return { url, addresses };
+}
+
+function parseEndpointUrl(endpoint: string): URL {
   let url: URL;
   try {
     url = new URL(endpoint);
   } catch {
     throw new Response("Neispravna adresa pretplate.", { status: 400 });
   }
-
+  const forbiddenParts = [url.username, url.password, url.hash];
   if (
     url.protocol !== "https:" ||
-    url.username ||
-    url.password ||
-    url.hash ||
-    (url.port && url.port !== "443")
+    forbiddenParts.some(Boolean) ||
+    !["", "443"].includes(url.port)
   ) {
     throw new Response("Neispravna adresa pretplate.", { status: 400 });
   }
+  return url;
+}
 
+async function resolvePublicAddresses(
+  hostname: string,
+  resolver: AddressResolver,
+): Promise<ResolvedPublicAddress[]> {
   let addresses: ResolvedPublicAddress[];
   try {
-    addresses = await withTimeout(resolver(url.hostname), DNS_TIMEOUT_MS);
+    addresses = await withTimeout(resolver(hostname), DNS_TIMEOUT_MS);
   } catch {
     throw new PushEndpointResolutionError("Push endpoint DNS resolution failed");
   }
@@ -80,8 +90,7 @@ export async function validateAndResolveEndpoint(
   if (addresses.some(({ address }) => !isPublicIpAddress(address))) {
     throw new Response("Adresa pretplate nije dostupna.", { status: 400 });
   }
-
-  return { url, addresses };
+  return addresses;
 }
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
@@ -113,12 +122,7 @@ export function parseBrowserSubscription(
   }
   const { endpoint, expirationTime, keys } = parsed.data;
   const { p256dh, auth } = keys;
-  if (!isValidP256PublicKey(p256dh)) {
-    throw new Response("Neispravan ključ pretplate.", { status: 400 });
-  }
-  if (!isUnpaddedBase64UrlOfLength(auth, 16)) {
-    throw new Response("Neispravan ključ pretplate.", { status: 400 });
-  }
+  validateSubscriptionKeys(keys);
   if (
     expirationTime !== null &&
     (!Number.isFinite(expirationTime) || expirationTime <= now.getTime())
@@ -127,6 +131,15 @@ export function parseBrowserSubscription(
   }
 
   return { endpoint, p256dh, auth, expirationTime };
+}
+
+function validateSubscriptionKeys({
+  p256dh,
+  auth,
+}: z.infer<typeof BrowserPushSubscriptionSchema>["keys"]): void {
+  if (!isValidP256PublicKey(p256dh) || !isUnpaddedBase64UrlOfLength(auth, 16)) {
+    throw new Response("Neispravan ključ pretplate.", { status: 400 });
+  }
 }
 
 function isValidP256PublicKey(value: string): boolean {
@@ -158,7 +171,17 @@ export async function readLimitedJson(request: Request): Promise<unknown> {
   }
   if (!request.body) throw new Response("Tijelo zahtjeva je obavezno.", { status: 400 });
 
-  const reader = request.body.getReader();
+  const chunks = await readLimitedBody(request.body);
+
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
+  } catch {
+    throw new Response("Neispravan JSON zahtjev.", { status: 400 });
+  }
+}
+
+async function readLimitedBody(body: ReadableStream<Uint8Array>): Promise<Uint8Array[]> {
+  const reader = body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
   while (true) {
@@ -172,11 +195,7 @@ export async function readLimitedJson(request: Request): Promise<unknown> {
     chunks.push(value);
   }
 
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
-  } catch {
-    throw new Response("Neispravan JSON zahtjev.", { status: 400 });
-  }
+  return chunks;
 }
 
 export function requireExactOrigin(request: Request): void {

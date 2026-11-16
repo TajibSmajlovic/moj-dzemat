@@ -28,6 +28,12 @@ Use Node `24.x` (`.nvmrc` is included), plus npm `11.18.0`.
 You do not need Docker, Postgres, Redis, or an external email service for the
 first local boot.
 
+Native dependencies are built for the Node version that installed them, so the
+repository enforces `engines.node` from `package.json`. `.npmrc` makes `npm ci`
+refuse another version, and the verification, agent runtime, and browser test
+scripts stop before doing any work. Run `nvm use` in each new shell, including
+agent shells that do not load `.nvmrc` automatically.
+
 If you use `nvm`:
 
 ```bash

@@ -106,37 +106,21 @@ async function sendClaimedDelivery(
     return "done";
   }
 
-  if (
-    !delivery.subscription ||
-    (delivery.subscription.expiresAt && delivery.subscription.expiresAt <= now)
-  ) {
-    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
-    return "done";
-  }
+  const prepared = await prepareSubscription(delivery, owner, now);
+  if (!prepared) return "done";
+  return sendPreparedDelivery(delivery, prepared, owner, now);
+}
 
-  let decrypted: Awaited<ReturnType<typeof decryptSubscription>>;
-  try {
-    decrypted = await decryptSubscription(delivery.subscription.encryptedSubscription);
-  } catch {
-    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
-    return "done";
-  }
-
-  let endpoint: Awaited<ReturnType<typeof validateAndResolveEndpoint>>;
-  try {
-    endpoint = await validateAndResolveEndpoint(decrypted.subscription.endpoint, resolveAddresses);
-  } catch (error) {
-    if (error instanceof PushEndpointResolutionError) {
-      await retryOrFail(delivery, owner, now, "network_error", null, null);
-      return "done";
-    }
-    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
-    return "done";
-  }
-
+async function sendPreparedDelivery(
+  delivery: DeliveryWithRelations,
+  prepared: NonNullable<Awaited<ReturnType<typeof prepareSubscription>>>,
+  owner: string,
+  now: Date,
+): Promise<"done" | "fatal-vapid"> {
+  const { decrypted, endpoint } = prepared;
   if (decrypted.needsReencryption) {
     await prisma.pushSubscription.updateMany({
-      where: { id: delivery.subscription.id },
+      where: { id: prepared.subscriptionId },
       data: { encryptedSubscription: await encryptSubscription(decrypted.subscription) },
     });
   }
@@ -154,53 +138,95 @@ async function sendClaimedDelivery(
       ttl,
       notification: delivery.notification,
     });
-    const status = response.statusCode;
-    if (status >= 200 && status < 300) {
-      await prisma.pushDelivery.updateMany({
-        where: { id: delivery.id, status: "sending", leaseOwner: owner },
-        data: {
-          status: "sent",
-          resultCode: "accepted",
-          lastHttpStatus: status,
-          sentAt: now,
-          leaseOwner: null,
-          leaseExpiresAt: null,
-        },
-      });
-      return "done";
-    }
-    if (status === 404 || status === 410) {
-      await invalidateSubscription(delivery, owner, now, "subscription_gone", status);
-      return "done";
-    }
-    if (status === 401 || status === 403) {
-      await retryOrFail(delivery, owner, now, "vapid_rejected", status, response.retryAfter);
-      logger.warn(
-        { deliveryId: delivery.id, statusCode: status },
-        "web push VAPID credentials rejected",
-      );
-      return "fatal-vapid";
-    }
-    if (status === 400 || status === 413) {
-      await failDelivery(
-        delivery.id,
-        owner,
-        now,
-        status === 413 ? "payload_too_large" : "invalid_request",
-        status,
-      );
-      return "done";
-    }
-    if (status === 408 || status === 429 || status >= 500) {
-      await retryOrFail(delivery, owner, now, "temporary_response", status, response.retryAfter);
-      return "done";
-    }
-
-    await failDelivery(delivery.id, owner, now, "invalid_request", status);
+    return await recordDeliveryResponse(delivery, owner, now, response);
   } catch (error) {
     const code = error instanceof WebPushTimeoutError ? "timeout" : "network_error";
     await retryOrFail(delivery, owner, now, code, null, null);
   }
+  return "done";
+}
+
+async function prepareSubscription(delivery: DeliveryWithRelations, owner: string, now: Date) {
+  if (!delivery.subscription || subscriptionExpired(delivery.subscription, now)) {
+    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
+    return null;
+  }
+
+  let decrypted: Awaited<ReturnType<typeof decryptSubscription>>;
+  try {
+    decrypted = await decryptSubscription(delivery.subscription.encryptedSubscription);
+  } catch {
+    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
+    return null;
+  }
+
+  let endpoint: Awaited<ReturnType<typeof validateAndResolveEndpoint>>;
+  try {
+    endpoint = await validateAndResolveEndpoint(decrypted.subscription.endpoint, resolveAddresses);
+  } catch (error) {
+    if (error instanceof PushEndpointResolutionError) {
+      await retryOrFail(delivery, owner, now, "network_error", null, null);
+      return null;
+    }
+    await invalidateSubscription(delivery, owner, now, "invalid_subscription", null);
+    return null;
+  }
+
+  return { decrypted, endpoint, subscriptionId: delivery.subscription.id };
+}
+
+function subscriptionExpired(
+  subscription: NonNullable<DeliveryWithRelations["subscription"]>,
+  now: Date,
+): boolean {
+  return subscription.expiresAt !== null && subscription.expiresAt <= now;
+}
+
+async function recordDeliveryResponse(
+  delivery: DeliveryWithRelations,
+  owner: string,
+  now: Date,
+  response: Awaited<ReturnType<typeof sendWebPushRequest>>,
+): Promise<"done" | "fatal-vapid"> {
+  const status = response.statusCode;
+  if (status >= 200 && status < 300) {
+    await prisma.pushDelivery.updateMany({
+      where: { id: delivery.id, status: "sending", leaseOwner: owner },
+      data: {
+        status: "sent",
+        resultCode: "accepted",
+        lastHttpStatus: status,
+        sentAt: now,
+        leaseOwner: null,
+        leaseExpiresAt: null,
+      },
+    });
+    return "done";
+  }
+  if ([404, 410].includes(status)) {
+    await invalidateSubscription(delivery, owner, now, "subscription_gone", status);
+    return "done";
+  }
+  if ([401, 403].includes(status)) {
+    await retryOrFail(delivery, owner, now, "vapid_rejected", status, response.retryAfter);
+    logger.warn(
+      { deliveryId: delivery.id, statusCode: status },
+      "web push VAPID credentials rejected",
+    );
+    return "fatal-vapid";
+  }
+  if ([408, 429].includes(status) || status >= 500) {
+    await retryOrFail(delivery, owner, now, "temporary_response", status, response.retryAfter);
+    return "done";
+  }
+
+  await failDelivery(
+    delivery.id,
+    owner,
+    now,
+    status === 413 ? "payload_too_large" : "invalid_request",
+    status,
+  );
   return "done";
 }
 

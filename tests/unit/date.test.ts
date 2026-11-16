@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   dateToYmd,
   formatDateLong,
+  formatDateTimeLong,
   formatDateShort,
   formatYmdDayMonth,
   formatYmdLong,
@@ -72,6 +73,18 @@ describe("formatDateLong", () => {
   });
 });
 
+describe("formatDateTimeLong", () => {
+  it("formats the Sarajevo clock across the spring daylight-saving change", () => {
+    expect(formatDateTimeLong("2026-03-29T00:30:00Z")).toBe("29. mart 2026. u 01:30");
+    expect(formatDateTimeLong("2026-03-29T02:30:00Z")).toBe("29. mart 2026. u 04:30");
+  });
+
+  it("returns an empty string for an invalid instant", () => {
+    expect(formatDateTimeLong("not-a-date")).toBe("");
+    expect(formatDateTimeLong(NaN)).toBe("");
+  });
+});
+
 describe("formatDateShort", () => {
   it("zero-pads day and month", () => {
     expect(formatDateShort("2026-04-07T12:00:00Z")).toBe("07.04.2026");
@@ -99,6 +112,10 @@ describe("isValidYmd", () => {
 
   it("rejects impossible or malformed days", () => {
     expect(isValidYmd("2026-13-01")).toBe(false);
+    expect(isValidYmd("2026-00-15")).toBe(false);
+    expect(isValidYmd("2026-01-00")).toBe(false);
+    expect(isValidYmd("2026-01-32")).toBe(false);
+    expect(isValidYmd("0000-01-01")).toBe(false);
     expect(isValidYmd("2026-02-30")).toBe(false);
     expect(isValidYmd("2026-6-1")).toBe(false);
     expect(isValidYmd("")).toBe(false);

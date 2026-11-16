@@ -85,7 +85,43 @@ function SectionHeader({
 }
 
 export function ContactForm({ info, lastResult, submitting }: Props) {
-  const [form, fields] = useForm({
+  const [form, fields] = useContactForm(info, lastResult);
+
+  return (
+    <Form method="post" {...getFormProps(form)} className="space-y-8">
+      <IntentInput intent={ContactIntents.Save} />
+
+      <AboutFields fields={fields} />
+
+      <ContactFields fields={fields} />
+
+      <ImamFields fields={fields} />
+
+      <BoardFields fields={fields} />
+
+      <BankFields fields={fields} />
+
+      <LocationFields fields={fields} />
+
+      <FormActions sticky className="justify-between">
+        <p className="text-muted-foreground hidden text-sm sm:block">
+          Promjene postaju javne tek kada ih sačuvate.
+        </p>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting}
+          className="w-full sm:w-auto sm:min-w-40"
+        >
+          {submitting ? "Spremanje…" : "Spremi izmjene"}
+        </Button>
+      </FormActions>
+    </Form>
+  );
+}
+
+function useContactForm(info: Props["info"], lastResult: Props["lastResult"]) {
+  return useForm({
     id: "community-info",
     lastResult,
     defaultValue: {
@@ -114,222 +150,228 @@ export function ContactForm({ info, lastResult, submitting }: Props) {
       return parseWithZod(formData, { schema: CommunityInfoFormSchema });
     },
   });
+}
 
+type ContactFormFields = ReturnType<typeof useContactForm>[1];
+
+function AboutFields({ fields }: { fields: ContactFormFields }) {
   return (
-    <Form method="post" {...getFormProps(form)} className="space-y-8">
-      <IntentInput intent={ContactIntents.Save} />
+    <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="O džematu"
+        description="Kratak uvod koji posjetioci vide na stranici 'Kontakt'."
+        visibilityField={fields.showAbout}
+      />
 
-      <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="O džematu"
-          description="Kratak uvod koji posjetioci vide na stranici 'Kontakt'."
-          visibilityField={fields.showAbout}
-        />
+      <TextareaField
+        label="Tekst o džematu"
+        errors={fields.aboutText.errors}
+        textareaProps={{
+          ...getTextareaProps(fields.aboutText),
+          maxLength: ABOUT_TEXT_MAX,
+          rows: 5,
+          placeholder:
+            "Npr. Džemat okuplja vjernike ovog kraja i radi na vjerskom i društvenom životu zajednice…",
+        }}
+      />
+    </section>
+  );
+}
 
-        <TextareaField
-          label="Tekst o džematu"
-          errors={fields.aboutText.errors}
-          textareaProps={{
-            ...getTextareaProps(fields.aboutText),
-            maxLength: ABOUT_TEXT_MAX,
-            rows: 5,
-            placeholder:
-              "Npr. Džemat okuplja vjernike ovog kraja i radi na vjerskom i društvenom životu zajednice…",
-          }}
-        />
-      </section>
+function ContactFields({ fields }: { fields: ContactFormFields }) {
+  return (
+    <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="Kontakt"
+        description="Telefon, e-mail i prijemno vrijeme za opći kontakt s džematom."
+        visibilityField={fields.showContact}
+      />
 
-      <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="Kontakt"
-          description="Telefon, e-mail i prijemno vrijeme za opći kontakt s džematom."
-          visibilityField={fields.showContact}
-        />
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            label="Telefon"
-            errors={fields.contactPhone.errors}
-            inputProps={{
-              ...getInputProps(fields.contactPhone, { type: "tel" }),
-              maxLength: PHONE_MAX,
-              placeholder: "+387 …",
-              autoComplete: "tel",
-            }}
-          />
-          <Field
-            label="E-mail"
-            errors={fields.contactEmail.errors}
-            inputProps={{
-              ...getInputProps(fields.contactEmail, { type: "email" }),
-              maxLength: EMAIL_MAX,
-              placeholder: "kontakt@dzemat.ba",
-              autoComplete: "email",
-            }}
-          />
-        </div>
-
-        <TextareaField
-          label="Radno / prijemno vrijeme"
-          hint="Kratko — npr. radnim danima od 9 do 14 sati ili nakon namaza."
-          errors={fields.officeHours.errors}
-          textareaProps={{
-            ...getTextareaProps(fields.officeHours),
-            maxLength: OFFICE_HOURS_MAX,
-            rows: 3,
-            placeholder: "Radnim danima od 9 do 14 sati",
-          }}
-        />
-      </section>
-
-      <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="Imam"
-          description="Podaci o imamu džemata ostaju sačuvani i kada je prikaz isključen."
-          visibilityField={fields.showImam}
-        />
-
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field
-          label="Ime i prezime"
-          errors={fields.imamName.errors}
+          label="Telefon"
+          errors={fields.contactPhone.errors}
           inputProps={{
-            ...getInputProps(fields.imamName, { type: "text" }),
-            maxLength: NAME_MAX,
-            placeholder: "npr. hfz. Ime Prezime",
-            autoComplete: "name",
+            ...getInputProps(fields.contactPhone, { type: "tel" }),
+            maxLength: PHONE_MAX,
+            placeholder: "+387 …",
+            autoComplete: "tel",
           }}
         />
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            label="Telefon imama"
-            errors={fields.imamPhone.errors}
-            inputProps={{
-              ...getInputProps(fields.imamPhone, { type: "tel" }),
-              maxLength: PHONE_MAX,
-              placeholder: "+387 …",
-            }}
-          />
-          <Field
-            label="E-mail imama"
-            errors={fields.imamEmail.errors}
-            inputProps={{
-              ...getInputProps(fields.imamEmail, { type: "email" }),
-              maxLength: EMAIL_MAX,
-              placeholder: "imam@dzemat.ba",
-            }}
-          />
-        </div>
-      </section>
-
-      <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="Džematski odbor"
-          description="Javne informacije o predsjedniku odbora ili muteveliji."
-          visibilityField={fields.showBoard}
-        />
-
-        <TextareaField
-          label="Džematski odbor / mutevelija (nije obavezno)"
-          hint="Navedite samo javne informacije, npr. ime predsjednika odbora ili mutevelije."
-          errors={fields.boardNote.errors}
-          textareaProps={{
-            ...getTextareaProps(fields.boardNote),
-            maxLength: BOARD_NOTE_MAX,
-            rows: 3,
-            placeholder: "Npr. Predsjednik odbora: …",
-          }}
-        />
-      </section>
-
-      <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="Žiro račun"
-          description="Podaci za članarinu, sadaku i druge uplate džematu."
-          visibilityField={fields.showBank}
-        />
-
         <Field
-          label="IBAN / broj računa"
-          hint="Podržan je međunarodni IBAN ili domaći transakcijski račun."
-          errors={fields.bankAccount.errors}
+          label="E-mail"
+          errors={fields.contactEmail.errors}
           inputProps={{
-            ...getInputProps(fields.bankAccount, { type: "text" }),
-            maxLength: BANK_ACCOUNT_MAX,
-            placeholder: "npr. BA391290079401028494 ili 1011320053423595",
+            ...getInputProps(fields.contactEmail, { type: "email" }),
+            maxLength: EMAIL_MAX,
+            placeholder: "kontakt@dzemat.ba",
+            autoComplete: "email",
+          }}
+        />
+      </div>
+
+      <TextareaField
+        label="Radno / prijemno vrijeme"
+        hint="Kratko — npr. radnim danima od 9 do 14 sati ili nakon namaza."
+        errors={fields.officeHours.errors}
+        textareaProps={{
+          ...getTextareaProps(fields.officeHours),
+          maxLength: OFFICE_HOURS_MAX,
+          rows: 3,
+          placeholder: "Radnim danima od 9 do 14 sati",
+        }}
+      />
+    </section>
+  );
+}
+
+function ImamFields({ fields }: { fields: ContactFormFields }) {
+  return (
+    <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="Imam"
+        description="Podaci o imamu džemata ostaju sačuvani i kada je prikaz isključen."
+        visibilityField={fields.showImam}
+      />
+
+      <Field
+        label="Ime i prezime"
+        errors={fields.imamName.errors}
+        inputProps={{
+          ...getInputProps(fields.imamName, { type: "text" }),
+          maxLength: NAME_MAX,
+          placeholder: "npr. hfz. Ime Prezime",
+          autoComplete: "name",
+        }}
+      />
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field
+          label="Telefon imama"
+          errors={fields.imamPhone.errors}
+          inputProps={{
+            ...getInputProps(fields.imamPhone, { type: "tel" }),
+            maxLength: PHONE_MAX,
+            placeholder: "+387 …",
+          }}
+        />
+        <Field
+          label="E-mail imama"
+          errors={fields.imamEmail.errors}
+          inputProps={{
+            ...getInputProps(fields.imamEmail, { type: "email" }),
+            maxLength: EMAIL_MAX,
+            placeholder: "imam@dzemat.ba",
+          }}
+        />
+      </div>
+    </section>
+  );
+}
+
+function BoardFields({ fields }: { fields: ContactFormFields }) {
+  return (
+    <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="Džematski odbor"
+        description="Javne informacije o predsjedniku odbora ili muteveliji."
+        visibilityField={fields.showBoard}
+      />
+
+      <TextareaField
+        label="Džematski odbor / mutevelija (nije obavezno)"
+        hint="Navedite samo javne informacije, npr. ime predsjednika odbora ili mutevelije."
+        errors={fields.boardNote.errors}
+        textareaProps={{
+          ...getTextareaProps(fields.boardNote),
+          maxLength: BOARD_NOTE_MAX,
+          rows: 3,
+          placeholder: "Npr. Predsjednik odbora: …",
+        }}
+      />
+    </section>
+  );
+}
+
+function BankFields({ fields }: { fields: ContactFormFields }) {
+  return (
+    <section className="border-border bg-card space-y-5 rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="Žiro račun"
+        description="Podaci za članarinu, sadaku i druge uplate džematu."
+        visibilityField={fields.showBank}
+      />
+
+      <Field
+        label="IBAN / broj računa"
+        hint="Podržan je međunarodni IBAN ili domaći transakcijski račun."
+        errors={fields.bankAccount.errors}
+        inputProps={{
+          ...getInputProps(fields.bankAccount, { type: "text" }),
+          maxLength: BANK_ACCOUNT_MAX,
+          placeholder: "npr. BA391290079401028494 ili 1011320053423595",
+          autoComplete: "off",
+          spellCheck: false,
+        }}
+      />
+
+      <Field
+        label="Primalac"
+        errors={fields.bankBeneficiary.errors}
+        inputProps={{
+          ...getInputProps(fields.bankBeneficiary, { type: "text" }),
+          maxLength: BANK_BENEFICIARY_MAX,
+          placeholder: `npr. Džemat ${dzemat.name}`,
+        }}
+      />
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field
+          label="Banka (nije obavezno)"
+          errors={fields.bankName.errors}
+          inputProps={{
+            ...getInputProps(fields.bankName, { type: "text" }),
+            maxLength: BANK_NAME_MAX,
+            placeholder: "npr. Bosna Bank International",
+          }}
+        />
+        <Field
+          label="SWIFT / BIC (nije obavezno)"
+          hint="Koristi se uglavnom za međunarodne uplate."
+          errors={fields.bankSwift.errors}
+          inputProps={{
+            ...getInputProps(fields.bankSwift, { type: "text" }),
+            maxLength: BANK_SWIFT_MAX,
+            placeholder: "npr. BBIBBA22",
+            autoCapitalize: "characters",
             autoComplete: "off",
             spellCheck: false,
           }}
         />
+      </div>
 
-        <Field
-          label="Primalac"
-          errors={fields.bankBeneficiary.errors}
-          inputProps={{
-            ...getInputProps(fields.bankBeneficiary, { type: "text" }),
-            maxLength: BANK_BENEFICIARY_MAX,
-            placeholder: `npr. Džemat ${dzemat.name}`,
-          }}
-        />
+      <TextareaField
+        label="Napomena uz uplatu"
+        errors={fields.bankNote.errors}
+        textareaProps={{
+          ...getTextareaProps(fields.bankNote),
+          maxLength: BANK_NOTE_MAX,
+          rows: 3,
+          placeholder: "npr. U svrhu uplate navedite: članarina / sadaka",
+        }}
+      />
+    </section>
+  );
+}
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            label="Banka (nije obavezno)"
-            errors={fields.bankName.errors}
-            inputProps={{
-              ...getInputProps(fields.bankName, { type: "text" }),
-              maxLength: BANK_NAME_MAX,
-              placeholder: "npr. Bosna Bank International",
-            }}
-          />
-          <Field
-            label="SWIFT / BIC (nije obavezno)"
-            hint="Koristi se uglavnom za međunarodne uplate."
-            errors={fields.bankSwift.errors}
-            inputProps={{
-              ...getInputProps(fields.bankSwift, { type: "text" }),
-              maxLength: BANK_SWIFT_MAX,
-              placeholder: "npr. BBIBBA22",
-              autoCapitalize: "characters",
-              autoComplete: "off",
-              spellCheck: false,
-            }}
-          />
-        </div>
-
-        <TextareaField
-          label="Napomena uz uplatu"
-          errors={fields.bankNote.errors}
-          textareaProps={{
-            ...getTextareaProps(fields.bankNote),
-            maxLength: BANK_NOTE_MAX,
-            rows: 3,
-            placeholder: "npr. U svrhu uplate navedite: članarina / sadaka",
-          }}
-        />
-      </section>
-
-      <section className="border-border bg-card rounded-2xl border p-5 shadow-xs sm:p-6">
-        <SectionHeader
-          title="Lokacija"
-          description="Adresa i mapa podešavaju se u postavkama okruženja, a ovdje možete isključiti njihov javni prikaz."
-          visibilityField={fields.showLocation}
-        />
-      </section>
-
-      <FormActions sticky className="justify-between">
-        <p className="text-muted-foreground hidden text-sm sm:block">
-          Promjene postaju javne tek kada ih sačuvate.
-        </p>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={submitting}
-          className="w-full sm:w-auto sm:min-w-40"
-        >
-          {submitting ? "Spremanje…" : "Spremi izmjene"}
-        </Button>
-      </FormActions>
-    </Form>
+function LocationFields({ fields }: { fields: ContactFormFields }) {
+  return (
+    <section className="border-border bg-card rounded-2xl border p-5 shadow-xs sm:p-6">
+      <SectionHeader
+        title="Lokacija"
+        description="Adresa i mapa podešavaju se u postavkama okruženja, a ovdje možete isključiti njihov javni prikaz."
+        visibilityField={fields.showLocation}
+      />
+    </section>
   );
 }

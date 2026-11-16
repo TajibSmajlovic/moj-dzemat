@@ -2,8 +2,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { exitOnUnsupportedNode } from "../checks/node-version";
 import { runTasks } from "../checks/runner";
 import { copyWorkspace } from "../checks/workspace";
+
+exitOnUnsupportedNode();
 
 const root = path.resolve(import.meta.dirname, "../..");
 // Keep signals from exiting during synchronous copying or removal. runTasks stops active groups.

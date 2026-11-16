@@ -54,71 +54,7 @@ export function WebPushProvider({
   const [state, setState] = useState<WebPushState>("initializing");
 
   const inspect = useCallback(
-    async (forceSync = false) => {
-      if (
-        config.enabled &&
-        globalThis.window !== undefined &&
-        isIosOrIpadOs() &&
-        !isStandaloneWebApp()
-      ) {
-        setState("install-required");
-        return;
-      }
-      if (!isBrowserCapable()) {
-        setState(config.enabled ? "unsupported" : "hidden");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (Notification.permission === "denied") {
-        if (subscription) await removeRevokedSubscription(subscription);
-        setState(config.enabled ? "denied" : "hidden");
-        return;
-      }
-      if (!config.enabled) {
-        setState(subscription ? "paused" : "hidden");
-        return;
-      }
-      if (!(await activeWorkerSupportsPush(registration))) {
-        setState("unsupported");
-        return;
-      }
-      if (!subscription) {
-        await retryPendingCleanup();
-        setState("ready");
-        return;
-      }
-
-      const hash = await endpointHash(subscription.endpoint);
-      const stored = readStoredState();
-      if (stored.cleanupHash === hash) {
-        setState("disabling");
-        const disabled = await finishPendingOptOut(registration, subscription, hash);
-        setState(
-          disabled ? (config.enabled ? "ready" : "hidden") : config.enabled ? "enabled" : "paused",
-        );
-        return;
-      }
-      const synchronizationDue =
-        forceSync ||
-        stored.currentHash !== hash ||
-        !stored.syncedAt ||
-        Date.now() - stored.syncedAt >= SYNC_INTERVAL_MS;
-      if (!synchronizationDue) {
-        await retryPendingCleanup();
-        setState("enabled");
-        return;
-      }
-
-      setState("synchronizing");
-      try {
-        await synchronizeSubscription(subscription, hash);
-        setState("enabled");
-      } catch {
-        setState("retry");
-      }
-    },
+    (forceSync = false) => inspectPush(config.enabled, setState, forceSync),
     [config.enabled],
   );
 
@@ -135,76 +71,11 @@ export function WebPushProvider({
     };
   }, [config.enabled, inspect]);
 
-  const enable = useCallback(async () => {
-    if (!config.enabled || !config.vapidPublicKey || !isBrowserCapable()) return;
-    setState("enabling");
-    try {
-      const permission =
-        Notification.permission === "default"
-          ? await Notification.requestPermission()
-          : Notification.permission;
-      if (permission === "denied") {
-        setState("denied");
-        return;
-      }
-      if (permission !== "granted") {
-        setState("ready");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      if (!(await activeWorkerSupportsPush(registration))) {
-        setState("unsupported");
-        return;
-      }
-      const subscription =
-        (await registration.pushManager.getSubscription()) ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: base64UrlBytes(config.vapidPublicKey),
-        }));
-      const hash = await endpointHash(subscription.endpoint);
-      setState("synchronizing");
-      await synchronizeSubscription(subscription, hash);
-      setState("enabled");
-    } catch {
-      const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined);
-      const subscription = await registration?.pushManager.getSubscription().catch(() => null);
-      if (Notification.permission === "denied") {
-        setState("denied");
-      } else {
-        setState(subscription ? "retry" : "enable-failed");
-      }
-    }
-  }, [config.enabled, config.vapidPublicKey]);
-
-  const disable = useCallback(async () => {
-    if (!isBrowserCapable()) return;
-    setState("disabling");
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      const stored = readStoredState();
-      const hash = subscription ? await endpointHash(subscription.endpoint) : stored.currentHash;
-      if (!hash) {
-        clearStoredState();
-        setState(config.enabled ? "ready" : "hidden");
-        return;
-      }
-
-      let disabled = true;
-      if (subscription) {
-        disabled = await finishPendingOptOut(registration, subscription, hash);
-      } else {
-        await finishServerCleanup(hash);
-      }
-      setState(
-        disabled ? (config.enabled ? "ready" : "hidden") : config.enabled ? "enabled" : "paused",
-      );
-    } catch {
-      setState(config.enabled ? "enabled" : "paused");
-    }
-  }, [config.enabled]);
+  const enable = useCallback(
+    () => enablePush({ enabled: config.enabled, vapidPublicKey: config.vapidPublicKey }, setState),
+    [config.enabled, config.vapidPublicKey],
+  );
+  const disable = useCallback(() => disablePush(config.enabled, setState), [config.enabled]);
 
   const retry = useCallback(async () => inspect(true), [inspect]);
   const value = useMemo(() => ({ state, enable, disable, retry }), [state, enable, disable, retry]);
@@ -216,6 +87,174 @@ export function useWebPush(): WebPushContextValue {
   const value = use(WebPushContext);
   if (!value) throw new Error("useWebPush must be used inside WebPushProvider");
   return value;
+}
+
+type SetPushState = (state: WebPushState) => void;
+
+async function inspectPush(
+  enabled: boolean,
+  setState: SetPushState,
+  forceSync: boolean,
+): Promise<void> {
+  const initial = initialPushState(enabled);
+  if (initial) {
+    setState(initial);
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  if (Notification.permission === "denied") {
+    if (subscription) await removeRevokedSubscription(subscription);
+    setState(enabled ? "denied" : "hidden");
+    return;
+  }
+  if (!enabled) {
+    setState(subscription ? "paused" : "hidden");
+    return;
+  }
+  if (!(await activeWorkerSupportsPush(registration))) {
+    setState("unsupported");
+    return;
+  }
+  if (!subscription) {
+    await retryPendingCleanup();
+    setState("ready");
+    return;
+  }
+
+  await inspectActiveSubscription(registration, subscription, setState, forceSync);
+}
+
+function initialPushState(enabled: boolean): WebPushState | null {
+  if (needsInstallation(enabled)) return "install-required";
+  if (!isBrowserCapable()) return enabled ? "unsupported" : "hidden";
+  return null;
+}
+
+function needsInstallation(enabled: boolean): boolean {
+  if (!enabled || globalThis.window === undefined) return false;
+  return isIosOrIpadOs() && !isStandaloneWebApp();
+}
+
+async function inspectActiveSubscription(
+  registration: ServiceWorkerRegistration,
+  subscription: PushSubscription,
+  setState: SetPushState,
+  forceSync: boolean,
+): Promise<void> {
+  const hash = await endpointHash(subscription.endpoint);
+  const stored = readStoredState();
+  if (stored.cleanupHash === hash) {
+    setState("disabling");
+    const disabled = await finishPendingOptOut(registration, subscription, hash);
+    setState(stateAfterOptOut(true, disabled));
+    return;
+  }
+  const synchronizationDue = isSyncDue(stored, hash, forceSync);
+  if (!synchronizationDue) {
+    await retryPendingCleanup();
+    setState("enabled");
+    return;
+  }
+
+  setState("synchronizing");
+  try {
+    await synchronizeSubscription(subscription, hash);
+    setState("enabled");
+  } catch {
+    setState("retry");
+  }
+}
+
+function isSyncDue(stored: StoredSyncState, hash: string, forceSync: boolean): boolean {
+  return (
+    forceSync ||
+    stored.currentHash !== hash ||
+    !stored.syncedAt ||
+    Date.now() - stored.syncedAt >= SYNC_INTERVAL_MS
+  );
+}
+
+async function enablePush(config: WebPushConfig, setState: SetPushState): Promise<void> {
+  if (!config.enabled || !config.vapidPublicKey) return;
+  if (!isBrowserCapable()) return;
+  setState("enabling");
+  try {
+    const permission = await requestPermission();
+    if (permission === "denied") {
+      setState("denied");
+      return;
+    }
+    if (permission !== "granted") {
+      setState("ready");
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    if (!(await activeWorkerSupportsPush(registration))) {
+      setState("unsupported");
+      return;
+    }
+    const subscription =
+      (await registration.pushManager.getSubscription()) ??
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: base64UrlBytes(config.vapidPublicKey),
+      }));
+    const hash = await endpointHash(subscription.endpoint);
+    setState("synchronizing");
+    await synchronizeSubscription(subscription, hash);
+    setState("enabled");
+  } catch {
+    setState(await enableFailureState());
+  }
+}
+
+async function requestPermission(): Promise<NotificationPermission> {
+  return Notification.permission === "default"
+    ? Notification.requestPermission()
+    : Notification.permission;
+}
+
+async function enableFailureState(): Promise<WebPushState> {
+  const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined);
+  const subscription = await registration?.pushManager.getSubscription().catch(() => null);
+  if (Notification.permission === "denied") {
+    return "denied";
+  }
+  return subscription ? "retry" : "enable-failed";
+}
+
+async function disablePush(enabled: boolean, setState: SetPushState): Promise<void> {
+  if (!isBrowserCapable()) return;
+  setState("disabling");
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    const stored = readStoredState();
+    const hash = subscription ? await endpointHash(subscription.endpoint) : stored.currentHash;
+    if (!hash) {
+      clearStoredState();
+      setState(enabled ? "ready" : "hidden");
+      return;
+    }
+
+    let disabled = true;
+    if (subscription) {
+      disabled = await finishPendingOptOut(registration, subscription, hash);
+    } else {
+      await finishServerCleanup(hash);
+    }
+    setState(stateAfterOptOut(enabled, disabled));
+  } catch {
+    setState(enabled ? "enabled" : "paused");
+  }
+}
+
+function stateAfterOptOut(enabled: boolean, disabled: boolean): WebPushState {
+  if (disabled) return enabled ? "ready" : "hidden";
+  return enabled ? "enabled" : "paused";
 }
 
 function isBrowserCapable(): boolean {

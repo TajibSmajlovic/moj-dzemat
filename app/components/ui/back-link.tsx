@@ -58,7 +58,7 @@ export function BackButton({
   const handleClick = () => {
     if (!canPop) {
       publicViewTransition?.beginSection(fallback);
-      void navigate(fallback, { viewTransition: Boolean(publicViewTransition) });
+      void navigate(fallback);
       return;
     }
 

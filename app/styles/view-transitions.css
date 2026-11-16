@@ -1,23 +1,23 @@
 /*
-   Same-document View Transitions are opt-in through a short-lived marker on
-   <html>. React Router may start an automatic transition for a remembered POP
-   route pair, so an unmarked transition is intentionally visually neutral.
+   React keeps the root snapshot when a public section transition also changes
+   DOM outside its <ViewTransition> boundary. Only the boundary should move, so
+   the root snapshot switches instantly unless a theme crossfade owns it.
  */
-html:not([data-view-transition-kind])::view-transition-group(root) {
+html:not([data-theme-transition])::view-transition-group(root) {
   animation-duration: 1ms;
 }
 
-html:not([data-view-transition-kind])::view-transition-old(root),
-html:not([data-view-transition-kind])::view-transition-new(root) {
+html:not([data-theme-transition])::view-transition-old(root),
+html:not([data-theme-transition])::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-html:not([data-view-transition-kind])::view-transition-old(root) {
+html:not([data-theme-transition])::view-transition-old(root) {
   opacity: 0;
 }
 
-html:not([data-view-transition-kind])::view-transition-new(root) {
+html:not([data-theme-transition])::view-transition-new(root) {
   opacity: 1;
 }
 
@@ -26,77 +26,68 @@ html:not([data-view-transition-kind])::view-transition-new(root) {
    Component-level transitions otherwise continue behind the document
    crossfade and create a second, delayed visual change.
  */
-html[data-view-transition-kind="theme"] *,
-html[data-view-transition-kind="theme"] *::before,
-html[data-view-transition-kind="theme"] *::after {
+html[data-theme-transition] *,
+html[data-theme-transition] *::before,
+html[data-theme-transition] *::after {
   transition: none !important;
 }
 
-html[data-view-transition-kind="theme"]::view-transition-group(root) {
+html[data-theme-transition]::view-transition-group(root) {
   animation-duration: 190ms;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-html[data-view-transition-kind="theme"]::view-transition-old(root) {
+html[data-theme-transition]::view-transition-old(root) {
   animation: none;
   opacity: 1;
   mix-blend-mode: normal;
 }
 
-html[data-view-transition-kind="theme"]::view-transition-new(root) {
+html[data-theme-transition]::view-transition-new(root) {
   animation: view-transition-fade-in 190ms cubic-bezier(0.22, 1, 0.36, 1) both;
   mix-blend-mode: normal;
 }
 
-html[data-view-transition-kind="section"] {
-  --route-transition-out-duration: 160ms;
-  --route-transition-in-duration: 220ms;
-  --route-transition-out-y: -3px;
-  --route-transition-in-y: 5px;
-}
-
 /*
-   Keep document-height route content inside the viewport-bound root snapshot.
-   Naming that element makes Chromium paint its top during the transition,
-   which can flash the home hero while navigating from a scrolled post card.
+   Public section navigations animate through React's <ViewTransition>, which
+   gives the outgoing and incoming page the `public-section` class. The
+   outgoing page keeps its scrolled position, so the sticky shell needs its own
+   snapshot above it. The incoming page is opaque, so the outgoing page never
+   shows through its transparent areas.
  */
-html[data-view-transition-kind="section"] .public-announcement-shell {
+html:not([data-theme-transition]) .public-announcement-shell {
   view-transition-name: public-announcement-shell;
 }
 
-html[data-view-transition-kind="section"] .public-site-header {
+html:not([data-theme-transition]) .public-site-header {
   view-transition-name: public-site-header;
 }
 
-html[data-view-transition-kind="section"]::view-transition-group(root),
-html[data-view-transition-kind="section"]::view-transition-group(public-announcement-shell),
-html[data-view-transition-kind="section"]::view-transition-group(public-site-header) {
+::view-transition-group(public-announcement-shell),
+::view-transition-group(public-site-header) {
   animation: none;
 }
 
-html[data-view-transition-kind="section"]::view-transition-old(root) {
-  animation: view-transition-route-out var(--route-transition-out-duration)
-    cubic-bezier(0.4, 0, 1, 1) both;
-  mix-blend-mode: normal;
-}
-
-html[data-view-transition-kind="section"]::view-transition-new(root) {
-  animation: view-transition-route-in var(--route-transition-in-duration)
-    cubic-bezier(0.22, 1, 0.36, 1) both;
-  mix-blend-mode: normal;
-}
-
-html[data-view-transition-kind="section"]::view-transition-old(public-announcement-shell),
-html[data-view-transition-kind="section"]::view-transition-old(public-site-header) {
+::view-transition-old(public-announcement-shell),
+::view-transition-old(public-site-header) {
   animation: none;
   opacity: 0;
+}
+
+::view-transition-new(public-announcement-shell),
+::view-transition-new(public-site-header) {
+  animation: none;
+  opacity: 1;
+}
+
+::view-transition-old(.public-section) {
+  animation: view-transition-route-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
   mix-blend-mode: normal;
 }
 
-html[data-view-transition-kind="section"]::view-transition-new(public-announcement-shell),
-html[data-view-transition-kind="section"]::view-transition-new(public-site-header) {
-  animation: none;
-  opacity: 1;
+::view-transition-new(.public-section) {
+  animation: view-transition-route-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background-color: var(--color-background);
   mix-blend-mode: normal;
 }
 
@@ -117,12 +108,6 @@ html[data-view-transition-kind="section"]::view-transition-new(public-site-heade
   animation: navigation-progress-sweep 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
-@keyframes view-transition-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
 @keyframes view-transition-fade-in {
   from {
     opacity: 0;
@@ -132,14 +117,14 @@ html[data-view-transition-kind="section"]::view-transition-new(public-site-heade
 @keyframes view-transition-route-out {
   to {
     opacity: 0;
-    transform: translateY(var(--route-transition-out-y));
+    transform: translateY(-3px);
   }
 }
 
 @keyframes view-transition-route-in {
   from {
     opacity: 0;
-    transform: translateY(var(--route-transition-in-y));
+    transform: translateY(5px);
   }
 }
 
@@ -153,21 +138,10 @@ html[data-view-transition-kind="section"]::view-transition-new(public-site-heade
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-view-transition-kind]::view-transition-group(root),
-  html[data-view-transition-kind]::view-transition-group(public-announcement-shell),
-  html[data-view-transition-kind]::view-transition-group(public-site-header) {
-    animation-duration: 1ms !important;
-  }
-
-  html[data-view-transition-kind]::view-transition-old(root),
-  html[data-view-transition-kind]::view-transition-new(root),
-  html[data-view-transition-kind]::view-transition-old(public-announcement-shell),
-  html[data-view-transition-kind]::view-transition-new(public-announcement-shell),
-  html[data-view-transition-kind]::view-transition-old(public-site-header),
-  html[data-view-transition-kind]::view-transition-new(public-site-header) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation: none !important;
-    clip-path: none !important;
-    transform: none !important;
   }
 
   [data-navigation-progress][data-visible="true"] > span {
