@@ -1,7 +1,18 @@
 # Moj Džemat
 
 `Moj Džemat` is a lightweight community publishing app for Bosnian-Herzegovinian
-džemats. It has two main surfaces:
+džemats.
+
+<a href="https://mojdzematdonjemostre.ba/">
+  <picture>
+    <source media="(max-width: 640px)" srcset="docs/images/readme-hero-mobile.png" />
+    <img src="docs/images/readme-hero.png" alt="Moj Džemat public posts on desktop, mobile homepage, and administrative post editor" />
+  </picture>
+</a>
+
+[Visit the live app](https://mojdzematdonjemostre.ba/).
+
+It has two main surfaces:
 
 - a public website for posts, answered questions, upcoming community dates,
   and džemat contact details
