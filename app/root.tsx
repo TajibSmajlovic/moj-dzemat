@@ -17,7 +17,6 @@ import {
 } from "#app/features/theme/theme";
 import { getThemePreference } from "#app/features/theme/theme.server";
 import { kickWebPushDispatcher } from "#app/features/web-push/dispatcher.server";
-import { formatSiteName } from "#app/lib/branding";
 import { env } from "#app/server/env.server";
 import { getToast } from "#app/server/toast.server";
 
@@ -70,10 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return data(
     {
-      siteName: formatSiteName(environment.DZEMAT_NAME),
       siteUrl: environment.APP_URL,
-      facebookPageUrl: environment.FACEBOOK_PAGE_URL,
-      youtubeChannelUrl: environment.YOUTUBE_CHANNEL_URL,
       webPush: {
         enabled: environment.WEB_PUSH_ENABLED,
         vapidPublicKey: environment.WEB_PUSH_ENABLED

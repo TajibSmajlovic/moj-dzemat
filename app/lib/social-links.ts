@@ -1,4 +1,4 @@
-import { useRootLoaderData } from "#app/lib/root-loader-data";
+import { dzemat } from "#app/lib/branding";
 
 export type SocialLinkPlatform = "facebook" | "youtube";
 
@@ -8,21 +8,14 @@ export type SocialLink = {
   href: string;
 };
 
-export function useRootSocialLinks(): SocialLink[] {
-  const data = useRootLoaderData();
-  const links: SocialLink[] = [];
+const SOCIAL_LINK_LABELS: Record<SocialLinkPlatform, string> = {
+  facebook: "Facebook",
+  youtube: "YouTube",
+};
 
-  if (data?.facebookPageUrl) {
-    links.push({ platform: "facebook", label: "Facebook", href: data.facebookPageUrl });
-  }
+/** The džemat's configured official profiles, in display order. */
+export const SOCIAL_LINKS: SocialLink[] = (["facebook", "youtube"] as const).flatMap((platform) => {
+  const href = dzemat.socialLinks[platform];
 
-  if (data?.youtubeChannelUrl) {
-    links.push({ platform: "youtube", label: "YouTube", href: data.youtubeChannelUrl });
-  }
-
-  return links;
-}
-
-export function useRootSocialProfileUrls(): string[] {
-  return useRootSocialLinks().map((link) => link.href);
-}
+  return href ? { platform, label: SOCIAL_LINK_LABELS[platform], href } : [];
+});

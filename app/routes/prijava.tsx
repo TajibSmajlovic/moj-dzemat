@@ -14,7 +14,7 @@ import { Button } from "#app/components/ui/button";
 import { getActiveAnnouncement } from "#app/features/announcements/site-announcement.server";
 import { DEFAULT_LOGGED_IN_REDIRECT } from "#app/features/auth/auth-routes";
 import { getCurrentUser, login } from "#app/features/auth/auth.server";
-import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { emailField, passwordField } from "#app/lib/form-schema";
 import { buildNoindexMeta } from "#app/lib/seo";
 import { assertHoneypot, honeypotToken } from "#app/server/honeypot.server";
@@ -29,8 +29,8 @@ const LoginSchema = z.object({
   redirectTo: z.string().optional(),
 });
 
-export function meta({ matches }: Route.MetaArgs) {
-  return buildNoindexMeta(formatPageTitle("Prijava", getRootSiteName(matches)));
+export function meta() {
+  return buildNoindexMeta(formatPageTitle("Prijava"));
 }
 
 export async function loader({ request, url }: Route.LoaderArgs) {

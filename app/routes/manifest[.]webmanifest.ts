@@ -1,10 +1,7 @@
-import { buildPwaManifest } from "#app/features/pwa/pwa-manifest";
-import { env } from "#app/server/env.server";
+import { PWA_MANIFEST } from "#app/features/pwa/pwa-manifest";
 
 export function loader() {
-  const manifest = buildPwaManifest(env().DZEMAT_NAME);
-
-  return Response.json(manifest, {
+  return Response.json(PWA_MANIFEST, {
     status: 200,
     headers: {
       "Content-Type": "application/manifest+json; charset=utf-8",

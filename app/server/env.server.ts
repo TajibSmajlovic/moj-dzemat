@@ -56,11 +56,6 @@ export const envSchema = z
 
     RESEND_API_KEY: optionalText,
     EMAIL_FROM: z.string().min(1),
-    DZEMAT_NAME: optionalText,
-    DZEMAT_ADDRESS: optionalText,
-    DZEMAT_MAP_QUERY: optionalText,
-    FACEBOOK_PAGE_URL: optionalText.pipe(z.url().optional()),
-    YOUTUBE_CHANNEL_URL: optionalText.pipe(z.url().optional()),
     CLOUDFLARE_WEB_ANALYTICS_TOKEN: optionalText,
 
     WEB_PUSH_ENABLED: z

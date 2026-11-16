@@ -3,6 +3,8 @@ import { href } from "react-router";
 import { expect, test, type Locator } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
+import { SITE_NAME } from "../../app/lib/branding";
+import { DZEMAT_LOCATION } from "../../app/lib/maps";
 import { prisma } from "../../app/server/db.server";
 import { SEEDED_POSTS } from "./fixtures/seed-posts";
 import { SEEDED_QA_VISIBLE } from "./fixtures/seed-qa";
@@ -50,10 +52,12 @@ for (const viewport of [
 
       try {
         await page.goto(href("/"));
-        await expect(page).toHaveTitle("Moj Džemat - Donje Mostre");
+        await expect(page).toHaveTitle(SITE_NAME);
         await expectReadable(page.getByRole("heading", { name: FEATURED_TITLE }));
         await expectReadable(page.getByText("Važna obavijest dostupna odmah."));
-        await expectReadable(page.getByRole("heading", { name: "Gdje se nalazimo" }));
+        if (DZEMAT_LOCATION) {
+          await expectReadable(page.getByRole("heading", { name: "Gdje se nalazimo" }));
+        }
 
         await page.getByRole("link", { name: FEATURED_TITLE }).click();
         await expect(page).toHaveURL(postHref(FEATURED_SLUG));
@@ -89,7 +93,9 @@ for (const viewport of [
 
         await page.goto(href("/kontakt"));
         await expectReadable(page.getByRole("heading", { name: "O džematu i kontakt" }));
-        await expectReadable(page.getByRole("link", { name: "Otvori u Google Maps" }));
+        if (DZEMAT_LOCATION) {
+          await expectReadable(page.getByRole("link", { name: "Otvori u Google Maps" }));
+        }
 
         await page.goto(href("/prijava"));
         await expectReadable(page.getByRole("heading", { name: "Prijava za uredništvo" }));

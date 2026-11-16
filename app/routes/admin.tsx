@@ -12,14 +12,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SiteLogo } from "#app/components/icons/site-logo";
 import { SegmentErrorBoundary } from "#app/components/layout/segment-error-boundary";
 import { Button } from "#app/components/ui/button";
 import { adminAuthMiddleware } from "#app/features/auth/admin-auth-middleware.server";
 import { adminUserContext } from "#app/features/auth/auth-context";
 import { countAdminQuestions } from "#app/features/qa/qa.server";
 import { ThemeToggle } from "#app/features/theme/components/theme-toggle";
-import { useRootSiteName } from "#app/lib/branding";
+import { SITE_NAME } from "#app/lib/branding";
 import { cn } from "#app/lib/cn";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { prisma } from "#app/server/db.server";
@@ -48,7 +48,6 @@ export async function loader({ context }: Route.LoaderArgs) {
 
 export default function AdminLayout({ loaderData }: Route.ComponentProps) {
   const { user, pendingQuestionCount, hasActiveAnnouncement } = loaderData;
-  const siteName = useRootSiteName();
 
   return (
     <div className="bg-background min-h-screen">
@@ -63,14 +62,14 @@ export default function AdminLayout({ loaderData }: Route.ComponentProps) {
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
             </Link>
             <div className="flex items-center gap-3">
-              <IslamskaZajednicaLogo />
+              <SiteLogo />
 
               <div>
                 <h1 className="font-display text-foreground text-lg leading-tight font-bold">
                   Admin panel
                 </h1>
                 <p className="text-muted-foreground hidden max-w-[18rem] text-xs text-balance sm:block sm:max-w-none">
-                  Upravljanje za {siteName}
+                  Upravljanje za {SITE_NAME}
                 </p>
               </div>
             </div>

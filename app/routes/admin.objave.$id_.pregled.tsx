@@ -11,7 +11,6 @@ import { togglePostStatus } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { adminPostHref, adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
-import { formatPageTitle, useRootSiteName } from "#app/lib/branding";
 import { requireId } from "#app/lib/id";
 import { IntentInput, isSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
@@ -26,10 +25,7 @@ import type { Route } from "./+types/admin.objave.$id_.pregled";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return buildNoindexMeta(
-    formatPageTitle(
-      loaderData?.post ? `Pregled: ${loaderData.post.title}` : "Pregled objave",
-      "Admin",
-    ),
+    loaderData?.post ? `Pregled: ${loaderData.post.title} · Admin` : "Pregled objave · Admin",
     ROBOTS_NOINDEX_NOFOLLOW,
   );
 }
@@ -93,7 +89,6 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   const entrance = useEntranceMotion(sectionReveal);
   const { post, siteUrl } = loaderData;
-  const siteName = useRootSiteName();
   const navigation = useNavigation();
   const toggling = isSubmittingIntent(navigation, PostAdminIntents.ToggleStatus);
   const isPublished = post.status === "published";
@@ -151,7 +146,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
         </div>
       </motion.div>
 
-      <PostDetailArticle post={post} siteName={siteName} siteUrl={siteUrl} showPinnedBadge />
+      <PostDetailArticle post={post} siteUrl={siteUrl} showPinnedBadge />
     </main>
   );
 }

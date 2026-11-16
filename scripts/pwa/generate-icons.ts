@@ -42,6 +42,8 @@ async function maskableIcon(): Promise<void> {
 }
 
 await Promise.all([
+  transparentIcon(32, "favicon-32x32.png"),
+  transparentIcon(180, "apple-touch-icon.png"),
   transparentIcon(192, "pwa-icon-192.png"),
   transparentIcon(512, "pwa-icon-512.png"),
   maskableIcon(),

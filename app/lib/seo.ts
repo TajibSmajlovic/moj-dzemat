@@ -1,3 +1,4 @@
+import { SITE_NAME } from "#app/lib/branding";
 import { absoluteUrl } from "#app/lib/url";
 
 export const THEME_COLOR = "#1a4737";
@@ -10,6 +11,7 @@ export const DEFAULT_SOCIAL_IMAGE = {
   path: "/social-card-default.jpg",
   width: 1200,
   height: 630,
+  alt: `${SITE_NAME} - nova online platforma za džemat`,
 } as const;
 
 type SocialMetaArgs = {
@@ -28,7 +30,6 @@ export type BreadcrumbListItem = {
 
 type PublicPageMetaArgs = SocialMetaArgs & {
   canonical: string;
-  siteName: string;
   ogType?: "website" | "article";
   robots?: string;
   socialTitle?: string;
@@ -36,10 +37,6 @@ type PublicPageMetaArgs = SocialMetaArgs & {
 
 export function getDefaultSocialImageUrl(siteUrl?: string): string {
   return absoluteUrl(siteUrl, DEFAULT_SOCIAL_IMAGE.path);
-}
-
-export function formatDefaultSocialImageAlt(siteName: string): string {
-  return `${siteName} - nova online platforma za džemat`;
 }
 
 export function buildSocialMeta({
@@ -72,7 +69,6 @@ export function buildPublicPageMeta({
   title,
   description,
   canonical,
-  siteName,
   imageUrl,
   imageAlt,
   imageWidth,
@@ -85,7 +81,7 @@ export function buildPublicPageMeta({
     { title },
     { name: "description", content: description },
     { property: "og:type", content: ogType },
-    { property: "og:site_name", content: siteName },
+    { property: "og:site_name", content: SITE_NAME },
     { property: "og:locale", content: "bs_BA" },
     { property: "og:url", content: canonical },
     ...buildSocialMeta({

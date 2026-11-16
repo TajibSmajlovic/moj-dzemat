@@ -286,7 +286,7 @@ model ImportantDate {
 }
 
 // Singleton contact / about page for the džemat. Always at most one row
-// (`id = "default"`). Address and map stay on env branding; this model
+// (`id = "default"`). Address and map come from `app/dzemat.config.ts`; this model
 // holds the editable community details (phone, bank details, imam, hours, etc.).
 model CommunityInfo {
   id String @id @default("default")

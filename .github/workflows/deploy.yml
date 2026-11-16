@@ -44,14 +44,24 @@ jobs:
 
       # CI runs can finish out of order. Only the newest tested master commit
       # may reach production; the environment limits manual runs separately.
+      # A fork that has not configured Fly yet skips automatic deploys instead
+      # of failing on every push; a manual run still fails loudly.
       - name: Check deploy target
         id: target
         env:
           EVENT_NAME: ${{ github.event_name }}
           TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "## Deploy skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "The FLY_API_TOKEN secret is not configured for this repository." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 

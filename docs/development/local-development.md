@@ -8,7 +8,9 @@ configuration, database maintenance, dependency updates, and development-only ro
 
 The app reads runtime environment variables from
 [`app/server/env.server.ts`](../../app/server/env.server.ts). The template lives in
-[`.env.example`](../../.env.example).
+[`.env.example`](../../.env.example). The džemat's name, tagline, parent
+organizations, location, and social links are not environment variables; they
+live in [`app/dzemat.config.ts`](../../app/dzemat.config.ts).
 
 These are the variables that matter most for local development:
 
@@ -25,11 +27,6 @@ These are the variables that matter most for local development:
 | `HONEYPOT_SKIP_MIN_AGE`          | Test-only. Defaults to `false`; Playwright enables it so browser tests do not need to wait on the honeypot timer.                    |
 | `DISABLE_RATE_LIMITING`          | Test-only. Defaults to `false`; Playwright enables it so auth abuse protections do not make tests flaky.                             |
 | `RESEND_API_KEY`                 | Required in production. Development and tests always capture email in memory, even when this key is set.                             |
-| `DZEMAT_NAME`                    | Optional branding suffix shown in the UI.                                                                                            |
-| `DZEMAT_ADDRESS`                 | Optional homepage address block for the embedded map section.                                                                        |
-| `DZEMAT_MAP_QUERY`               | Optional Google Maps search/embed query. Falls back to `DZEMAT_ADDRESS` when left empty.                                             |
-| `FACEBOOK_PAGE_URL`              | Optional official Facebook page URL. Header/footer Facebook links are hidden when empty.                                             |
-| `YOUTUBE_CHANNEL_URL`            | Optional official YouTube channel URL. Header YouTube links are hidden when empty.                                                   |
 | `CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional Cloudflare Web Analytics token. When empty, analytics is disabled. The script renders only on public pages.                 |
 | `PORT`                           | Defaults to `3000`.                                                                                                                  |
 

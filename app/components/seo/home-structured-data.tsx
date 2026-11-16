@@ -1,49 +1,40 @@
-import { formatSiteDescription } from "#app/lib/branding";
-import type { DzematLocation } from "#app/lib/maps";
+import { dzemat, SITE_DESCRIPTION, SITE_NAME } from "#app/lib/branding";
+import { DZEMAT_LOCATION } from "#app/lib/maps";
 import { DEFAULT_SOCIAL_IMAGE, getDefaultSocialImageUrl } from "#app/lib/seo";
+import { SOCIAL_LINKS } from "#app/lib/social-links";
 
 import { JsonLdScript } from "./json-ld-script";
 
-const RIJASET_ORGANIZATION = {
-  "@type": "Organization",
-  name: "Rijaset Islamske zajednice u Bosni i Hercegovini",
-  url: "https://islamskazajednica.ba/",
+type OrganizationNode = {
+  "@type": "Organization";
+  name: string;
+  url?: string;
+  parentOrganization?: OrganizationNode;
 };
 
-const MUFTIJSTVO_SARAJEVSKO_ORGANIZATION = {
-  "@type": "Organization",
-  name: "Muftijstvo sarajevsko",
-  url: "https://muftijstvosarajevsko.ba/",
-  parentOrganization: RIJASET_ORGANIZATION,
-};
+/** The closest configured organization, nested inside each broader one. */
+const PARENT_ORGANIZATION = nestOrganizations();
 
-const MEDZLIS_VISOKO_ORGANIZATION = {
-  "@type": "Organization",
-  name: "Medžlis Islamske zajednice Visoko",
-  url: "https://muftijstvosarajevsko.ba/medzlis-islamske-zajednice-visoko/",
-  parentOrganization: MUFTIJSTVO_SARAJEVSKO_ORGANIZATION,
-};
+function nestOrganizations(): OrganizationNode | undefined {
+  let parentOrganization: OrganizationNode | undefined;
 
-type HomeStructuredDataProps = {
-  location: DzematLocation | null;
-  socialProfileUrls: string[];
-  siteName: string;
-  siteUrl: string;
-};
+  for (const { name, url } of dzemat.organizations) {
+    parentOrganization = { "@type": "Organization", name, url, parentOrganization };
+  }
 
-export function HomeStructuredData({
-  location,
-  socialProfileUrls,
-  siteName,
-  siteUrl,
-}: HomeStructuredDataProps) {
+  return parentOrganization;
+}
+
+const SOCIAL_PROFILE_URLS = SOCIAL_LINKS.map((link) => link.href);
+
+export function HomeStructuredData({ siteUrl }: { siteUrl: string }) {
   const imageUrl = getDefaultSocialImageUrl(siteUrl);
   const organizationId = `${siteUrl}/#organization`;
   const placeId = `${siteUrl}/#place`;
-  const address = location
+  const address = DZEMAT_LOCATION
     ? {
         "@type": "PostalAddress",
-        streetAddress: location.address,
+        streetAddress: DZEMAT_LOCATION.address,
         addressCountry: "BA",
       }
     : undefined;
@@ -56,9 +47,9 @@ export function HomeStructuredData({
           {
             "@type": "Organization",
             "@id": organizationId,
-            name: siteName,
+            name: SITE_NAME,
             url: siteUrl,
-            description: formatSiteDescription(siteName),
+            description: SITE_DESCRIPTION,
             logo: {
               "@type": "ImageObject",
               url: `${siteUrl}/logo.png`,
@@ -73,18 +64,18 @@ export function HomeStructuredData({
             location: {
               "@id": placeId,
             },
-            parentOrganization: MEDZLIS_VISOKO_ORGANIZATION,
-            sameAs: socialProfileUrls.length > 0 ? socialProfileUrls : undefined,
+            parentOrganization: PARENT_ORGANIZATION,
+            sameAs: SOCIAL_PROFILE_URLS.length > 0 ? SOCIAL_PROFILE_URLS : undefined,
           },
           {
             "@type": "Mosque",
             "@id": placeId,
-            name: siteName,
+            name: SITE_NAME,
             url: siteUrl,
-            description: formatSiteDescription(siteName),
+            description: SITE_DESCRIPTION,
             image: imageUrl,
             address,
-            hasMap: location?.mapsUrl,
+            hasMap: DZEMAT_LOCATION?.mapsUrl,
             publicAccess: true,
             parentOrganization: {
               "@id": organizationId,

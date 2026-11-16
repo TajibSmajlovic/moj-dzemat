@@ -3,6 +3,9 @@ import { href } from "react-router";
 import { expect, test, type Page } from "@playwright/test";
 
 import { postHref } from "../../app/features/posts/post-routes";
+import { dzemat, SITE_DESCRIPTION, SITE_NAME } from "../../app/lib/branding";
+import { DZEMAT_LOCATION } from "../../app/lib/maps";
+import { SOCIAL_LINKS } from "../../app/lib/social-links";
 import { POSTS_TITLES } from "./fixtures/seed-posts";
 import { requiredEnvironment } from "./utils/environment";
 
@@ -25,7 +28,7 @@ type JsonLdObject = {
   location?: unknown;
   mainEntityOfPage?: unknown;
   name?: string;
-  parentOrganization?: unknown;
+  parentOrganization?: JsonLdObject;
   publisher?: unknown;
   sameAs?: string[];
   url?: string;
@@ -36,6 +39,17 @@ async function expectUniqueSharedMeta(page: Page) {
   await expect(page.locator('meta[property="og:description"]')).toHaveCount(1);
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+}
+
+/** Parent organizations from the broadest to the direct parent, like the config lists them. */
+function parentOrganizationChain(organization: JsonLdObject | undefined) {
+  const chain: Pick<JsonLdObject, "@type" | "name" | "url">[] = [];
+
+  for (let parent = organization?.parentOrganization; parent; parent = parent.parentOrganization) {
+    chain.unshift({ "@type": parent["@type"], name: parent.name, url: parent.url });
+  }
+
+  return chain;
 }
 
 async function getJsonLdObjects(page: Page): Promise<JsonLdObject[]> {
@@ -85,53 +99,36 @@ test.describe("seo", () => {
     const organization = graph.find((entry) => entry["@type"] === "Organization");
     const mosque = graph.find((entry) => entry["@type"] === "Mosque");
 
+    const address = DZEMAT_LOCATION
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: DZEMAT_LOCATION.address,
+          addressCountry: "BA",
+        }
+      : undefined;
+
     expect(parsed).toBeTruthy();
     expect(graph.map((entry) => entry["@type"])).toEqual(["Organization", "Mosque"]);
     expect(organization).toMatchObject({
       "@id": `${APP_ORIGIN}/#organization`,
-      name: "Moj Džemat - Donje Mostre",
+      name: SITE_NAME,
       url: APP_ORIGIN,
-      description:
-        "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Džamija Donje Moštre, R445, Donje Moštre, Visoko, Bosna i Hercegovina",
-        addressCountry: "BA",
-      },
+      description: SITE_DESCRIPTION,
+      address,
       location: {
         "@id": `${APP_ORIGIN}/#place`,
       },
-      parentOrganization: {
-        "@type": "Organization",
-        name: "Medžlis Islamske zajednice Visoko",
-        url: "https://muftijstvosarajevsko.ba/medzlis-islamske-zajednice-visoko/",
-        parentOrganization: {
-          "@type": "Organization",
-          name: "Muftijstvo sarajevsko",
-          url: "https://muftijstvosarajevsko.ba/",
-          parentOrganization: {
-            "@type": "Organization",
-            name: "Rijaset Islamske zajednice u Bosni i Hercegovini",
-            url: "https://islamskazajednica.ba/",
-          },
-        },
-      },
-      sameAs: [
-        "https://www.facebook.com/profile.php?id=100085095166223",
-        "https://www.youtube.com/@DzematDonjeMostre",
-      ],
+      sameAs: SOCIAL_LINKS.length > 0 ? SOCIAL_LINKS.map((link) => link.href) : undefined,
     });
+    expect(parentOrganizationChain(organization)).toEqual(
+      dzemat.organizations.map(({ name, url }) => ({ "@type": "Organization", name, url })),
+    );
     expect(mosque).toMatchObject({
       "@id": `${APP_ORIGIN}/#place`,
-      name: "Moj Džemat - Donje Mostre",
+      name: SITE_NAME,
       url: APP_ORIGIN,
-      description:
-        "Zvanična stranica džemata Donje Mostre za aktuelne obavijesti, hutbe, sergije, smrtovnice i priče.",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Džamija Donje Moštre, R445, Donje Moštre, Visoko, Bosna i Hercegovina",
-        addressCountry: "BA",
-      },
+      description: SITE_DESCRIPTION,
+      address,
       publicAccess: true,
       parentOrganization: {
         "@id": `${APP_ORIGIN}/#organization`,
@@ -241,7 +238,7 @@ test.describe("seo", () => {
       author: {
         "@type": "Organization",
         "@id": `${APP_ORIGIN}/#organization`,
-        name: "Moj Džemat - Donje Mostre",
+        name: SITE_NAME,
         url: APP_ORIGIN,
       },
       publisher: {

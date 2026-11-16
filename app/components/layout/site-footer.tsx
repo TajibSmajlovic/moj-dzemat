@@ -1,8 +1,10 @@
+import { Fragment } from "react";
+
 import { Code2, ContactRound, ExternalLink, GitPullRequest } from "lucide-react";
 
-import { IslamskaZajednicaLogo } from "#app/components/icons/islamska-zajednica-logo";
+import { SiteLogo } from "#app/components/icons/site-logo";
 import { Button } from "#app/components/ui/button";
-import { getSiteNameParts, useRootSiteName } from "#app/lib/branding";
+import { dzemat, PRODUCT_NAME } from "#app/lib/branding";
 
 const GITHUB_REPOSITORY_URL = "https://github.com/TajibSmajlovic/moj-dzemat";
 
@@ -22,69 +24,52 @@ const CONTRIBUTION_CONTACTS = [
 ] as const;
 
 export function SiteFooter() {
-  const siteName = useRootSiteName();
-  const { brandName, dzematName } = getSiteNameParts(siteName);
-
   return (
     <footer className="border-border/60 mt-8 border-t sm:mt-10">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
         <ContributionSection />
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-start">
-          <IslamskaZajednicaLogo className="h-14 sm:h-12" />
+          <SiteLogo className="h-14 sm:h-12" />
 
           <div className="min-w-0 space-y-1.5 text-center sm:text-left">
             <p className="font-display text-foreground text-sm leading-tight sm:text-base">
-              <span className="font-bold">&copy; {brandName}</span>
-              {dzematName ? (
-                <>
-                  <span className="text-muted-foreground mx-1.5 font-medium" aria-hidden="true">
-                    ·
-                  </span>
-                  <span className="text-primary font-semibold">{dzematName}</span>
-                </>
-              ) : null}
+              <span className="font-bold">&copy; {PRODUCT_NAME}</span>
+              <span className="text-muted-foreground mx-1.5 font-medium" aria-hidden="true">
+                ·
+              </span>
+              <span className="text-primary font-semibold">{dzemat.name}</span>
             </p>
 
             <p className="text-muted-foreground max-w-full text-xs leading-relaxed lg:whitespace-nowrap">
-              {dzematName ? (
-                <>
-                  Džemat <span className="text-foreground/80 font-medium">{dzematName}</span>{" "}
-                  djeluje u okviru{" "}
-                </>
-              ) : (
-                "Djeluje u okviru "
-              )}
-              <a
-                href="https://islamskazajednica.ba/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              >
-                Rijaseta Islamske zajednice u Bosni i Hercegovini
-              </a>{" "}
-              <span className="text-primary/50" aria-hidden="true">
-                /
-              </span>{" "}
-              <a
-                href="https://muftijstvosarajevsko.ba/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              >
-                Muftijstva sarajevskog
-              </a>{" "}
-              <span className="text-primary/50" aria-hidden="true">
-                /
-              </span>{" "}
-              <a
-                href="https://muftijstvosarajevsko.ba/medzlis-islamske-zajednice-visoko/"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-              >
-                Medžlisa Islamske zajednice Visoko
-              </a>
+              Džemat <span className="text-foreground/80 font-medium">{dzemat.name}</span> djeluje u
+              okviru{" "}
+              {dzemat.organizations.map((organization, index) => (
+                <Fragment key={organization.name}>
+                  {index > 0 ? (
+                    <>
+                      {" "}
+                      <span className="text-primary/50" aria-hidden="true">
+                        /
+                      </span>{" "}
+                    </>
+                  ) : null}
+                  {organization.url ? (
+                    <a
+                      href={organization.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="text-primary hover:text-primary/80 focus-visible:ring-ring rounded-sm font-medium underline-offset-4 transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    >
+                      {organization.nameGenitive}
+                    </a>
+                  ) : (
+                    <span className="text-foreground/80 font-medium">
+                      {organization.nameGenitive}
+                    </span>
+                  )}
+                </Fragment>
+              ))}
             </p>
           </div>
         </div>

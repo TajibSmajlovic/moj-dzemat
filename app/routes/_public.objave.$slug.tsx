@@ -12,7 +12,7 @@ import { PostDetailArticle } from "#app/features/posts/components/post-detail-ar
 import { adminPostHref, postHref } from "#app/features/posts/post-routes";
 import { buildPostPageMeta } from "#app/features/posts/post-seo";
 import { PostSnapshotCapture } from "#app/features/pwa/post-snapshot-capture";
-import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
 import { absoluteUrl } from "#app/lib/url";
 import { prisma } from "#app/server/db.server";
@@ -48,20 +48,17 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { post, siteUrl: env().APP_URL };
 }
 
-export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const siteName = getRootSiteName(matches);
-
+export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: formatPageTitle("Objava nije pronađena", siteName) }];
+    return [{ title: formatPageTitle("Objava nije pronađena") }];
   }
 
   const { post, siteUrl } = loaderData;
-  return buildPostPageMeta({ post, siteName, siteUrl });
+  return buildPostPageMeta({ post, siteUrl });
 }
 
 export default function PostDetailPage({ loaderData, matches }: Route.ComponentProps) {
   const { post, siteUrl } = loaderData;
-  const siteName = getRootSiteName(matches);
   const { isAdminLoggedIn } = matches[1].loaderData;
 
   return (
@@ -87,7 +84,6 @@ export default function PostDetailPage({ loaderData, matches }: Route.ComponentP
 
       <PostDetailArticle
         post={post}
-        siteName={siteName}
         siteUrl={siteUrl}
         showPinnedBadge={isAdminLoggedIn}
         showStructuredData

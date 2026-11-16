@@ -8,12 +8,12 @@ import { QaDetailArticle } from "#app/features/qa/components/qa-detail-article";
 import { qaQuestionHref } from "#app/features/qa/qa-routes";
 import { qaExcerpt } from "#app/features/qa/qa-seo";
 import { getPublicQuestionById, getRelatedPublicQuestions } from "#app/features/qa/qa.server";
-import { formatPageTitle, getRootSiteName } from "#app/lib/branding";
+import { formatPageTitle } from "#app/lib/branding";
 import { invariantResponse } from "#app/lib/invariant";
 import {
   ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   buildPublicPageMeta,
-  formatDefaultSocialImageAlt,
+  DEFAULT_SOCIAL_IMAGE,
   getDefaultSocialImageUrl,
 } from "#app/lib/seo";
 import { absoluteUrl } from "#app/lib/url";
@@ -30,15 +30,13 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { question, related, siteUrl: env().APP_URL };
 }
 
-export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const siteName = getRootSiteName(matches);
-
+export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) {
-    return [{ title: formatPageTitle("Pitanje nije pronađeno", siteName) }];
+    return [{ title: formatPageTitle("Pitanje nije pronađeno") }];
   }
 
   const { question, siteUrl } = loaderData;
-  const title = formatPageTitle(qaExcerpt(question.question, 70), siteName);
+  const title = formatPageTitle(qaExcerpt(question.question, 70));
   const description = qaExcerpt(question.answer, 160);
   const canonical = absoluteUrl(siteUrl, qaQuestionHref(question.id));
 
@@ -46,9 +44,8 @@ export function meta({ loaderData, matches }: Route.MetaArgs) {
     title,
     description,
     canonical,
-    siteName,
     imageUrl: getDefaultSocialImageUrl(siteUrl),
-    imageAlt: formatDefaultSocialImageAlt(siteName),
+    imageAlt: DEFAULT_SOCIAL_IMAGE.alt,
     ogType: "article",
     robots: ROBOTS_MAX_IMAGE_PREVIEW_LARGE,
   });

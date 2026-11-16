@@ -52,6 +52,16 @@ in [docs/architecture/boundaries.md](docs/architecture/boundaries.md). Run
 Routes compose multiple domains when a page needs them. A feature does not import
 another feature's internal files.
 
+## Deployment identity
+
+One deployment serves one džemat. Its public identity (name, header tagline,
+parent organizations, location, and social profiles) lives in
+`app/dzemat.config.ts` and is compiled into both the server and browser bundles,
+including the offline page. `app/lib/branding.ts` derives the site name and
+description from it. The build validates the file, and environment variables
+hold only secrets and infrastructure settings. Forks follow
+[Deploy Moj Džemat for your džemat](docs/deploy-your-dzemat.md).
+
 ## State and integrations
 
 Prisma and the SQLite schema are the authoritative application state. Uploaded

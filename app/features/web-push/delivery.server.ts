@@ -15,6 +15,7 @@ import {
   validateAndResolveEndpoint,
   type ResolvedPublicAddress,
 } from "#app/features/web-push/subscription.server";
+import { dzemat } from "#app/lib/branding";
 import { HOUR_MS, MINUTE_MS, SECOND_MS } from "#app/lib/time";
 import { prisma } from "#app/server/db.server";
 import { env } from "#app/server/env.server";
@@ -355,12 +356,11 @@ async function sendWebPushRequest({
   };
 }): Promise<{ statusCode: number; retryAfter: string | null }> {
   const environment = env();
-  const siteName = environment.DZEMAT_NAME?.trim() ?? "Moj Džemat";
   const topic = `md-${Buffer.from(notification.postId).toString("base64url").slice(0, 29)}`;
   const tag = `md-post-${Buffer.from(notification.postId).toString("base64url").slice(0, 32)}`;
   const payload = JSON.stringify({
     v: 1,
-    title: `${siteName}: nova objava`.slice(0, 160),
+    title: `${dzemat.name}: nova objava`.slice(0, 160),
     body: notification.titleSnapshot.slice(0, 240),
     url: notification.resolverPathSnapshot,
     tag,

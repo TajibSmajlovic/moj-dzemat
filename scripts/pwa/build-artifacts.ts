@@ -7,13 +7,18 @@ import { pathToFileURL } from "node:url";
 import {
   buildOfflineShellDocument,
   OFFLINE_SHELL_BACKGROUND_COLOR_MARKER,
+  OFFLINE_SHELL_DZEMAT_NAME_MARKER,
   OFFLINE_SHELL_LOGO_MARKER,
   OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER,
   OFFLINE_SHELL_LORA_LATIN_FONT_MARKER,
+  OFFLINE_SHELL_PRODUCT_NAME_MARKER,
   OFFLINE_SHELL_SCRIPT_MARKER,
+  OFFLINE_SHELL_SITE_NAME_MARKER,
+  OFFLINE_SHELL_TAGLINE_MARKER,
   OFFLINE_SHELL_THEME_COLOR_MARKER,
 } from "#app/features/pwa/offline-shell-document";
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR } from "#app/features/pwa/pwa-config";
+import { dzemat, PRODUCT_NAME, SITE_NAME } from "#app/lib/branding";
 
 import { findRepositoryRoot } from "../repository-root";
 
@@ -80,6 +85,10 @@ export async function buildPwaArtifacts(
     logoSvg,
     loraLatinFontBase64: loraLatinFont.toString("base64"),
     loraLatinExtendedFontBase64: loraLatinExtendedFont.toString("base64"),
+    siteName: SITE_NAME,
+    productName: PRODUCT_NAME,
+    dzematName: dzemat.name,
+    tagline: dzemat.tagline,
   });
 
   for (const marker of [
@@ -89,6 +98,10 @@ export async function buildPwaArtifacts(
     OFFLINE_SHELL_LOGO_MARKER,
     OFFLINE_SHELL_LORA_LATIN_FONT_MARKER,
     OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER,
+    OFFLINE_SHELL_SITE_NAME_MARKER,
+    OFFLINE_SHELL_PRODUCT_NAME_MARKER,
+    OFFLINE_SHELL_DZEMAT_NAME_MARKER,
+    OFFLINE_SHELL_TAGLINE_MARKER,
   ]) {
     if (document.includes(marker)) {
       throw new Error(`The generated offline shell still contains the ${marker} marker.`);
