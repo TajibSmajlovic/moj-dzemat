@@ -103,7 +103,8 @@ export default defineConfig(
     rules: {
       // React
       ...reactHooksDuplicates,
-      // Keep the `target="_blank"` guard from the previous React plugin's preset.
+      // Preserve the DOM property and external-link checks from the previous preset.
+      "@eslint-react/dom-no-unknown-property": "error",
       "@eslint-react/dom-no-unsafe-target-blank": "error",
       // Third-party embeds must state what they may do in the page.
       "@eslint-react/dom-no-missing-iframe-sandbox": "error",

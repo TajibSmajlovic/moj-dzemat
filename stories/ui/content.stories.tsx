@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { toast } from "sonner";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Alert, AlertDescription } from "#app/components/ui/alert";
 import { BackButton, BackLink } from "#app/components/ui/back-link";
@@ -89,6 +90,28 @@ export const CardsCarousel: StoryObj = {
       </Carousel>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const previous = canvas.getByRole("button", { name: "Prethodni slajd" });
+    const next = canvas.getByRole("button", { name: "Sljedeći slajd" });
+    await waitFor(async () => {
+      await expect(previous).toBeDisabled();
+      await expect(next).toBeEnabled();
+    });
+
+    await userEvent.click(next);
+    await waitFor(async () => {
+      await expect(previous).toBeEnabled();
+      await expect(next).toBeEnabled();
+    });
+    await userEvent.click(next);
+    await waitFor(() => expect(next).toBeDisabled());
+
+    await userEvent.click(previous);
+    await waitFor(() => expect(next).toBeEnabled());
+    await userEvent.click(previous);
+    await waitFor(() => expect(previous).toBeDisabled());
+  },
 };
 
 export const ReturnButton: StoryObj = { render: () => <BackButton fallback="/" /> };

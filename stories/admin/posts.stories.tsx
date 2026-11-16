@@ -58,6 +58,36 @@ function CreateDemo() {
   );
 }
 export const Create: StoryObj = { render: () => <CreateDemo /> };
+export const VideoRows: StoryObj = {
+  ...Create,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const add = canvas.getByRole("button", { name: "Dodaj video" });
+    await userEvent.type(
+      canvas.getByRole("textbox", { name: "YouTube link 1" }),
+      "https://youtu.be/first-video",
+    );
+    await userEvent.click(add);
+    await userEvent.type(
+      canvas.getByRole("textbox", { name: "YouTube link 2" }),
+      "https://youtu.be/secondvideo",
+    );
+    await userEvent.click(add);
+    const third = canvas.getByRole("textbox", { name: "YouTube link 3" });
+    await userEvent.type(third, "https://youtu.be/third-video");
+    await userEvent.click(canvas.getByRole("button", { name: "Ukloni video 2" }));
+    const remaining = canvas.getByRole("textbox", { name: "YouTube link 2" });
+    await expect(remaining).toHaveValue("https://youtu.be/third-video");
+    await expect(remaining).toBe(third);
+    await expect(canvas.getByRole("textbox", { name: "YouTube link 1" })).toHaveValue(
+      "https://youtu.be/first-video",
+    );
+
+    await userEvent.click(canvas.getByRole("button", { name: "Dodaj video" }));
+    await expect(canvas.getByRole("textbox", { name: "YouTube link 3" })).toHaveValue("");
+    await expect(remaining).toHaveValue("https://youtu.be/third-video");
+  },
+};
 export const Edit: StoryObj = {
   render: () => <PostForm post={post} webPushEnabled cancelTo="/admin/objave" />,
 };
