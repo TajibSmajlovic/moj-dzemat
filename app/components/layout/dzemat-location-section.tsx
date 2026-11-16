@@ -74,6 +74,10 @@ export function DzematLocationSection({ location }: DzematLocationSectionProps) 
               loading="lazy"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
+              // Maps scripts its own child frames and throws without its real origin.
+              // It keeps a cross-origin origin, so it still cannot reach this page.
+              // eslint-disable-next-line @eslint-react/dom-no-unsafe-iframe-sandbox -- cross-origin embed, see above
+              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
               className="h-full min-h-80 w-full border-0"
             />
           </div>

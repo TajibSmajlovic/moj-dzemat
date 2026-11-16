@@ -161,7 +161,7 @@ function Featured({ featured }: { featured: PostCardData[] }) {
   );
 
   const [only] = featured;
-  if (featured.length === 1 && only) {
+  if (only && featured.length === 1) {
     return (
       <section aria-label="Istaknuta objava" className="mb-8 sm:mb-10">
         <FeaturedHeroCard post={only} />

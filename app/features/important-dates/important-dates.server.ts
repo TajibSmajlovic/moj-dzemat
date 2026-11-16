@@ -67,7 +67,7 @@ export async function getUpcomingImportantDates(
     const occurrenceYmd = dateToYmd(occurrenceDate);
     if (occurrenceYmd < bounds.todayYmd || occurrenceYmd >= bounds.nextYearYmd) return [];
 
-    return [{ ...candidate, date: occurrenceDate }];
+    return { ...candidate, date: occurrenceDate };
   });
 
   occurrences.sort(

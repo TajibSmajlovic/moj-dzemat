@@ -141,6 +141,7 @@ function renderSavedPost(
   const body = createElement(document, "div", "offline-prose");
   // The public post writer sanitizes body HTML before persistence, and the
   // complete strict snapshot schema is validated immediately before rendering.
+  // eslint-disable-next-line unicorn/no-unsafe-dom-html -- sanitized on write and schema-validated here
   body.innerHTML = snapshot.bodyHtml;
   article.append(body);
   container.append(backLink, copyStatus, article);

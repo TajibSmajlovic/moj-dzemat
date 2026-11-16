@@ -5,13 +5,13 @@ import path from "node:path";
 
 import { requiredEnvironment } from "./tests/e2e/utils/environment";
 
-const port = requiredEnvironment("PWA_TEST_PORT");
-const temporaryDirectory = requiredEnvironment("PWA_TEST_TEMP_DIR");
-const baseURL = `http://127.0.0.1:${port}`;
-
 if (process.env.NODE_ENV !== "production") {
   throw new Error("The focused PWA suite must run against NODE_ENV=production.");
 }
+
+const port = requiredEnvironment("PWA_TEST_PORT");
+const temporaryDirectory = requiredEnvironment("PWA_TEST_TEMP_DIR");
+const baseURL = `http://127.0.0.1:${port}`;
 
 if (process.env.APP_URL !== baseURL) {
   throw new Error("APP_URL must match the isolated PWA test server origin.");
@@ -49,6 +49,8 @@ export default defineConfig({
   testDir: "./tests/e2e/pwa",
   fullyParallel: false,
   workers: 1,
+  // A committed `test.only` would otherwise skip every other test in CI.
+  forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI
     ? [["list"], ["html", { open: "never", outputFolder: "playwright-pwa-report" }]]

@@ -17,15 +17,15 @@ import { logger } from "#app/server/logger.server";
  */
 async function rotateUserSession(request: Request, userId: string): Promise<Headers> {
   const oldSession = await getSession(request.headers.get("Cookie"));
-  const destroyCookie = await destroySession(oldSession);
+  const expiredSessionCookie = await destroySession(oldSession);
 
   const newSession = await getSession();
   newSession.set("userId", userId);
-  const commitCookie = await commitSession(newSession);
+  const newSessionCookie = await commitSession(newSession);
 
   const headers = new Headers();
-  headers.append("Set-Cookie", destroyCookie);
-  headers.append("Set-Cookie", commitCookie);
+  headers.append("Set-Cookie", expiredSessionCookie);
+  headers.append("Set-Cookie", newSessionCookie);
 
   return headers;
 }
@@ -90,7 +90,7 @@ export async function validateNewPassword(password: string): Promise<PasswordPro
     }
 
     const body = await response.text();
-    const breached = body.split(/\r?\n/).some((line) => line.split(":")[0]?.trim() === suffix);
+    const breached = body.split(/\r?\n/).some((line) => line.split(":", 1)[0]?.trim() === suffix);
 
     return breached ? { kind: "breached" } : null;
   } catch (error) {
@@ -182,7 +182,7 @@ export async function login({
   });
 
   const match = await verifyPassword(password, user?.password?.hash ?? DUMMY_PASSWORD_HASH);
-  if (!user?.password || !match) {
+  if (!match || !user?.password) {
     logger.warn({ email: normalizedEmail, userId: user?.id }, "login failed");
 
     return { ok: false, reason: "invalid-credentials" };

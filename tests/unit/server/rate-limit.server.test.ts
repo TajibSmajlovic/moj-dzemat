@@ -67,7 +67,7 @@ describe("rate-limit.server", () => {
       const result = loginLimiter.check(ip);
       expect(result.ok).toBe(true);
       expect(result.resetInMs).toBe(0);
-      expect(result.remaining).toBe(Number.POSITIVE_INFINITY);
+      expect(result.remaining).toBe(Infinity);
     }
   });
 

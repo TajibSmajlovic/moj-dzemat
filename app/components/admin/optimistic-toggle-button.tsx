@@ -38,9 +38,9 @@ export function OptimisticToggleIconButton({
   active,
   tone,
   activeLabel,
-  inactiveLabel,
+  inactiveLabel = activeLabel,
   activeIcon,
-  inactiveIcon,
+  inactiveIcon = activeIcon,
   className,
 }: OptimisticToggleIconButtonProps) {
   const fetcher = useFetcher();
@@ -51,8 +51,8 @@ export function OptimisticToggleIconButton({
       ? !active
       : active;
 
-  const label = optimisticActive ? activeLabel : (inactiveLabel ?? activeLabel);
-  const icon = optimisticActive ? activeIcon : (inactiveIcon ?? activeIcon);
+  const label = optimisticActive ? activeLabel : inactiveLabel;
+  const icon = optimisticActive ? activeIcon : inactiveIcon;
 
   return (
     <fetcher.Form method="post" className="inline">

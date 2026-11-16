@@ -8,7 +8,7 @@ describe("requiredString", () => {
 
     expect(schema.parse("  hello  ")).toBe("hello");
 
-    const empty = schema.safeParse("   ");
+    const empty = schema.safeParse(" ".repeat(3));
     expect(empty.success).toBe(false);
     if (!empty.success) {
       expect(empty.error.issues[0]?.message).toBe("Polje je obavezno.");

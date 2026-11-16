@@ -65,18 +65,18 @@ try {
   for (const { directory } of suites) {
     for (const name of ["test-results", "playwright-report", "playwright-pwa-report"]) {
       const source = path.join(temporaryDirectory, directory, name);
-      if (fs.existsSync(source)) {
-        const destination = path.join(
-          root,
-          "test-results",
-          "verify",
-          path.basename(temporaryDirectory),
-          directory,
-          name,
-        );
-        fs.cpSync(source, destination, { recursive: true });
-        console.error(`[verify] Evidence retained at ${destination}`);
-      }
+      if (!fs.existsSync(source)) continue;
+
+      const destination = path.join(
+        root,
+        "test-results",
+        "verify",
+        path.basename(temporaryDirectory),
+        directory,
+        name,
+      );
+      fs.cpSync(source, destination, { recursive: true });
+      console.error(`[verify] Evidence retained at ${destination}`);
     }
   }
 } finally {

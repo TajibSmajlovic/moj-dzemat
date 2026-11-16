@@ -135,7 +135,7 @@ test.describe("production PWA", () => {
       await expect.poll(() => readSnapshots(page)).toEqual([]);
 
       const cacheUrls = await readPwaCacheUrls(page);
-      expect(cacheUrls).toEqual([new URL(PWA_OFFLINE_SHELL_PATH, page.url()).toString()]);
+      expect(cacheUrls).toEqual([new URL(PWA_OFFLINE_SHELL_PATH, page.url()).href]);
     } finally {
       await context.setOffline(false);
     }
@@ -167,7 +167,7 @@ test.describe("production PWA", () => {
     });
 
     expect(await readPwaCacheUrls(page)).toEqual([
-      new URL(PWA_OFFLINE_SHELL_PATH, page.url()).toString(),
+      new URL(PWA_OFFLINE_SHELL_PATH, page.url()).href,
     ]);
   });
 });
@@ -225,7 +225,7 @@ async function readSnapshots(page: Page): Promise<SnapshotSummary[]> {
   return page.evaluate(
     async ({ databaseName, storeName }) => {
       const databases = await indexedDB.databases();
-      if (!databases.some((database) => database.name === databaseName)) return [];
+      if (databases.every((database) => database.name !== databaseName)) return [];
 
       return new Promise<SnapshotSummary[]>((resolve, reject) => {
         const openRequest = indexedDB.open(databaseName);

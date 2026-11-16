@@ -9,7 +9,7 @@ import { commitSession, getSession } from "#app/features/auth/session.server";
 export async function sessionCookieFor(userId: string): Promise<string> {
   const session = await getSession(null);
   session.set("userId", userId);
-  const setCookie = await commitSession(session);
+  const cookieHeader = await commitSession(session);
 
-  return setCookie.split(";")[0]!;
+  return cookieHeader.split(";", 1)[0]!;
 }

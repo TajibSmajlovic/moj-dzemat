@@ -233,7 +233,9 @@ async function startRuntime(options: {
         await stopProcess(child.pid);
       } catch (cleanupError) {
         console.error(`Startup cleanup failed. State retained at ${statePath}`);
-        throw new AggregateError([error, cleanupError], "Runtime startup and cleanup failed.");
+        throw new AggregateError([error, cleanupError], "Runtime startup and cleanup failed.", {
+          cause: cleanupError,
+        });
       }
     }
     printStartupFailureLogs(processLogPath, logPath);

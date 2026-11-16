@@ -13,10 +13,9 @@ export const BANK_SWIFT_MAX = 11;
 export const BANK_NOTE_MAX = 300;
 export const BOARD_NOTE_MAX = 500;
 
-const visibilityFlag = z.preprocess(
-  (value) => value === true || value === "on" || value === "true",
-  z.boolean(),
-);
+const CHECKED_FORM_VALUES = new Set<unknown>([true, "on", "true"]);
+
+const visibilityFlag = z.preprocess((value) => CHECKED_FORM_VALUES.has(value), z.boolean());
 
 /**
    Optional trimmed string that becomes `null` when empty. Keeps the
@@ -38,10 +37,7 @@ function optionalEmail(tooLongMessage: string, invalidMessage: string) {
     .max(EMAIL_MAX, tooLongMessage)
     .optional()
     .transform((value) => (value && value.length > 0 ? value : null))
-    .refine(
-      (value) => value === null || z.string().email().safeParse(value).success,
-      invalidMessage,
-    );
+    .refine((value) => value === null || z.email().safeParse(value).success, invalidMessage);
 }
 
 /**

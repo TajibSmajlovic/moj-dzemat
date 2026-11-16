@@ -145,8 +145,8 @@ describe("sitemap route", () => {
   it("escapes XML special characters in generated entries", () => {
     const body = buildSitemapXml([
       {
-        loc: `https://example.test/${`a&b<c>d"e'f`}`,
-        images: [{ loc: `https://example.test/${`img&<>"'`}` }],
+        loc: `https://example.test/a&b<c>d"e'f`,
+        images: [{ loc: `https://example.test/img&<>"'` }],
       },
     ]);
 

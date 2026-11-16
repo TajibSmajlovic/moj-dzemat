@@ -63,11 +63,11 @@ export function buildOfflineShellDocument(
 
   return template
     .replace(OFFLINE_SHELL_SCRIPT_MARKER, () => inlineSafeJavascript)
-    .replaceAll(OFFLINE_SHELL_THEME_COLOR_MARKER, themeColor)
-    .replaceAll(OFFLINE_SHELL_BACKGROUND_COLOR_MARKER, backgroundColor)
+    .replaceAll(OFFLINE_SHELL_THEME_COLOR_MARKER, () => themeColor)
+    .replaceAll(OFFLINE_SHELL_BACKGROUND_COLOR_MARKER, () => backgroundColor)
     .replace(OFFLINE_SHELL_LOGO_MARKER, () => logoSvg)
-    .replace(OFFLINE_SHELL_LORA_LATIN_FONT_MARKER, loraLatinFontBase64)
-    .replace(OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER, loraLatinExtendedFontBase64)
+    .replace(OFFLINE_SHELL_LORA_LATIN_FONT_MARKER, () => loraLatinFontBase64)
+    .replace(OFFLINE_SHELL_LORA_LATIN_EXT_FONT_MARKER, () => loraLatinExtendedFontBase64)
     .replaceAll(OFFLINE_SHELL_SITE_NAME_MARKER, () => escapeHtml(siteName))
     .replace(OFFLINE_SHELL_PRODUCT_NAME_MARKER, () => escapeHtml(productName))
     .replace(OFFLINE_SHELL_DZEMAT_NAME_MARKER, () => escapeHtml(dzematName))

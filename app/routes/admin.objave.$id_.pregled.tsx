@@ -12,7 +12,7 @@ import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { PostDetailArticle } from "#app/features/posts/components/post-detail-article";
 import { adminPostHref, adminPostPreviewHref, postHref } from "#app/features/posts/post-routes";
 import { requireId } from "#app/lib/id";
-import { IntentInput, useIsSubmittingIntent } from "#app/lib/intent";
+import { IntentInput, isSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { sectionReveal, useEntranceMotion } from "#app/lib/motion";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
@@ -90,7 +90,7 @@ export default function AdminPostPreview({ loaderData }: Route.ComponentProps) {
   const entrance = useEntranceMotion(sectionReveal);
   const { post, siteUrl } = loaderData;
   const navigation = useNavigation();
-  const toggling = useIsSubmittingIntent(navigation, PostAdminIntents.ToggleStatus);
+  const toggling = isSubmittingIntent(navigation, PostAdminIntents.ToggleStatus);
   const isPublished = post.status === "published";
 
   return (

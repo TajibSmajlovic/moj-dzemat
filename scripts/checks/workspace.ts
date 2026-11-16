@@ -37,7 +37,7 @@ export function copyWorkspace(
   fs.mkdirSync(target, { recursive: true });
   // Linking node_modules itself would also share Vite and Storybook's writable cache directories.
   for (const name of fs.readdirSync(dependencies)) {
-    if (name.startsWith(".") && name !== ".bin") continue;
+    if (name !== ".bin" && name.startsWith(".")) continue;
     const source = path.join(dependencies, name);
     const entry = path.join(target, name);
 

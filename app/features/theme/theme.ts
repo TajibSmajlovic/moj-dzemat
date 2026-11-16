@@ -54,5 +54,5 @@ export function setThemePreference(theme: ThemePreference): void {
 
   document.documentElement.classList.toggle("dark", theme === "dark");
 
-  globalThis.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+  dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }

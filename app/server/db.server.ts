@@ -39,6 +39,7 @@ function createPrismaClient() {
 export const prisma = globalThis.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
+  // eslint-disable-next-line unicorn/no-top-level-side-effects, unicorn/no-global-object-property-assignment -- reuse one client across dev hot reloads
   globalThis.__prisma = prisma;
 }
 

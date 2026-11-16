@@ -43,15 +43,9 @@ const VIDEO_TWO = "oHg5SJYRHA0";
 const VIDEO_THREE = "9bZkp7q19f0";
 const VIDEO_FOUR = "M7lc1UVf-VE";
 
-function validPostFormData({
-  slug = `video-post-${Date.now()}`,
-  title = "Objava sa videom",
-}: {
-  slug?: string;
-  title?: string;
-} = {}) {
+function validPostFormData({ slug = `video-post-${Date.now()}` }: { slug?: string } = {}) {
   const formData = new FormData();
-  formData.set("title", title);
+  formData.set("title", "Objava sa videom");
   formData.set("slug", slug);
   formData.set("type", "obavijest");
   formData.set("body", "Tekst objave.");

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, use, useState, type ReactNode } from "react";
 
 import type { WebPushState } from "../../app/features/web-push/web-push";
 
@@ -40,7 +40,7 @@ export function DemoPushProvider({
 }
 
 export function useWebPush() {
-  const value = useContext(PushContext);
+  const value = use(PushContext);
   if (!value) throw new Error("Wrap notification stories in DemoPushProvider.");
   return value;
 }

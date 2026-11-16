@@ -75,10 +75,9 @@ describe("verification process queue", () => {
     const result = runTasks(
       [first, heldTask(directory, "second"), heldTask(directory, "queued")],
       2,
-    ).then(
-      () => undefined,
-      (error: unknown) => error,
-    );
+    )
+      .then(() => undefined)
+      .catch((error: unknown) => error);
     try {
       await expect.poll(() => fs.existsSync(path.join(directory, "second.started"))).toBe(true);
       expect(fs.existsSync(path.join(directory, "queued.started"))).toBe(false);

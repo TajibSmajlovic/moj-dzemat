@@ -12,4 +12,5 @@ export type CurrentUser = {
    There is deliberately no default value: protected loaders and actions
    fail closed when they are invoked outside the admin middleware chain.
  */
+// eslint-disable-next-line @eslint-react/naming-convention-context-name -- React Router context, not a React context
 export const adminUserContext = createContext<CurrentUser>();

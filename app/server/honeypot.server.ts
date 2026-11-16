@@ -48,7 +48,7 @@ export function assertHoneypot(formData: FormData): void {
   invariantResponse(typeof hp === "string" && hp === "", "Neispravno slanje obrasca.");
   invariantResponse(typeof ts === "string", "Neispravno slanje obrasca.");
 
-  const [timestampStr, signature] = ts.split(".");
+  const [timestampStr, signature] = ts.split(".", 2);
   invariantResponse(timestampStr && signature, "Neispravno slanje obrasca.");
 
   const expected = sign(timestampStr);

@@ -66,13 +66,16 @@ updates:
       - dependency-name: "@vitest/*"
         update-types:
           - version-update:semver-major
-      # Keep the lint toolchain on the current ESLint 9-compatible line.
+      # Keep the lint toolchain on the current ESLint 10-compatible line.
       # Dependabot cannot evaluate cross-package ESLint peer ranges, so
       # major lint-package bumps should be handled as a deliberate migration.
       - dependency-name: eslint
         update-types:
           - version-update:semver-major
       - dependency-name: "@eslint/*"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@eslint-react/*"
         update-types:
           - version-update:semver-major
       - dependency-name: "@typescript-eslint/*"

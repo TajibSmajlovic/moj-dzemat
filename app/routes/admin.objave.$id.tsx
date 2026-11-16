@@ -11,7 +11,7 @@ import {
 } from "#app/features/posts/admin/post-admin.server";
 import { PostAdminIntents } from "#app/features/posts/admin/post-intents";
 import { requireId } from "#app/lib/id";
-import { assertUnreachable, parseIntent, useIsSubmittingIntent } from "#app/lib/intent";
+import { assertUnreachable, parseIntent, isSubmittingIntent } from "#app/lib/intent";
 import { invariantResponse } from "#app/lib/invariant";
 import { ROBOTS_NOINDEX_NOFOLLOW, buildNoindexMeta } from "#app/lib/seo";
 import { createActionToast } from "#app/lib/toast";
@@ -118,7 +118,7 @@ export async function action({ request, context, params }: Route.ActionArgs) {
 export default function AdminEditPost({ actionData, loaderData }: Route.ComponentProps) {
   const { post } = loaderData;
   const navigation = useNavigation();
-  const submitting = useIsSubmittingIntent(navigation, PostAdminIntents.Update);
+  const submitting = isSubmittingIntent(navigation, PostAdminIntents.Update);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">

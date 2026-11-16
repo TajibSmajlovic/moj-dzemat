@@ -21,7 +21,7 @@ function extractYouTubeId(url: URL): string | null {
   const host = url.hostname.replace(/^www\./, "").toLowerCase();
 
   if (host === "youtu.be") {
-    const id = url.pathname.slice(1).split("/")[0];
+    const id = url.pathname.slice(1).split("/", 1)[0];
     if (!id) return null;
 
     return id;
@@ -33,7 +33,7 @@ function extractYouTubeId(url: URL): string | null {
     }
 
     if (url.pathname.startsWith("/embed/")) {
-      const id = url.pathname.slice("/embed/".length).split("/")[0];
+      const id = url.pathname.slice("/embed/".length).split("/", 1)[0];
       if (!id) return null;
 
       return id;

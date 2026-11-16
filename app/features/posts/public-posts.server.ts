@@ -63,7 +63,7 @@ export async function getPublicPostCards({
   const posts = await prisma.post.findMany({
     where: getPublicPostsWhere(activeType),
     orderBy: publicPostOrderBy,
-    ...(take === undefined ? {} : { take }),
+    ...(take !== undefined && { take }),
     select: publicPostCardSelect,
   });
 

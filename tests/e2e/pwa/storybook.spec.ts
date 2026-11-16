@@ -44,7 +44,9 @@ test("serves the catalogue and preserves main-site framing protection", async ({
     expect(asset.headers()["cache-control"]).toContain("immutable");
   }
   const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => {
+    errors.push(error.message);
+  });
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
@@ -82,7 +84,9 @@ test("loads stories under an existing app worker without changing app preference
   const failures: string[] = [];
   const forbidden: string[] = [];
   const origin = new URL(page.url()).origin;
-  page.on("pageerror", (error) => failures.push(error.message));
+  page.on("pageerror", (error) => {
+    failures.push(error.message);
+  });
   page.on("console", (message) => {
     if (message.type() === "error") failures.push(message.text());
   });
@@ -154,6 +158,7 @@ test("keeps the catalogue usable while the app worker updates", async ({ page, c
   await nextPage.goto("/storybook/iframe.html?id=ui-button--default&viewMode=story");
   await expect(nextPage.getByRole("button", { name: "Sačuvaj" })).toBeVisible();
   await expect
+    // eslint-disable-next-line unicorn/no-optional-chaining-on-undeclared-variable -- `navigator` exists in the browser page
     .poll(() => nextPage.evaluate(() => navigator.serviceWorker.controller?.scriptURL))
     .toContain("storybook-update");
   await context.setOffline(true);

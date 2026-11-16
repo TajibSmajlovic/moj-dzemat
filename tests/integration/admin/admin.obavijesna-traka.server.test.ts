@@ -118,7 +118,7 @@ describe("site announcement route", () => {
       const after = await prisma.siteAnnouncement.findMany({
         where: { id: { in: [a.id, b.id] } },
       });
-      expect(after.every((row) => row.isActive === false)).toBe(true);
+      expect(after.every((row) => !row.isActive)).toBe(true);
 
       const newRow = await prisma.siteAnnouncement.findFirst({
         where: { message: "Nova aktivna poruka" },
@@ -129,7 +129,7 @@ describe("site announcement route", () => {
     it("returns 400 with a field error when the message is empty", async () => {
       const formData = new FormData();
       formData.set("intent", "create");
-      formData.set("message", "   ");
+      formData.set("message", " ".repeat(3));
       withHoneypot(formData);
 
       const result = await callAction(formData, context);

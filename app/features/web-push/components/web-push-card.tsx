@@ -181,7 +181,8 @@ function stateContent(state: WebPushState): { title: string; description: string
         description: "Uklanjamo pretplatu s ovog uređaja.",
       };
     }
-    default: {
+    case "initializing":
+    case "hidden": {
       return { title: "Obavijesti", description: "" };
     }
   }

@@ -482,11 +482,11 @@ function useMobileMenu({ headerRef }: { headerRef: React.RefObject<HTMLElement |
       }
     }
 
-    globalThis.addEventListener("keydown", handleKeyDown);
+    addEventListener("keydown", handleKeyDown);
     document.addEventListener("pointerdown", handlePointerDown);
 
     return () => {
-      globalThis.removeEventListener("keydown", handleKeyDown);
+      removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [menuOpen, headerRef]);

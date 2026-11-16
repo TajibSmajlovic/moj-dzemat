@@ -13,7 +13,7 @@ function buildFacebookShareUrl(url: string): string {
 export function shareOnFacebook(path?: string): void {
   if (typeof globalThis === "undefined") return;
 
-  const url = `${globalThis.location.origin}${path ?? globalThis.location.pathname}`;
+  const url = `${location.origin}${path ?? location.pathname}`;
   const shareUrl = buildFacebookShareUrl(url);
   window.open(shareUrl, "_blank", "noopener,noreferrer,width=600,height=600");
 }

@@ -45,7 +45,7 @@ const loggerOptions: LoggerOptions = {
   base: {
     service: "moj-dzemat",
     component: "web",
-    ...(environment.AGENT_RUN_ID ? { runId: environment.AGENT_RUN_ID } : {}),
+    ...(environment.AGENT_RUN_ID && { runId: environment.AGENT_RUN_ID }),
   },
   timestamp: pino.stdTimeFunctions.isoTime,
 };

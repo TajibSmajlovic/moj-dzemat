@@ -5,7 +5,7 @@ export const PUBLIC_VIEW_TRANSITION_KINDS = ["section", "theme"] as const;
 export type PublicViewTransitionKind = (typeof PUBLIC_VIEW_TRANSITION_KINDS)[number];
 
 export function hasNavigationStateFlag(state: unknown, key: string): boolean {
-  return isRecord(state) && Boolean(state[key]);
+  return isRecord(state) && state[key] === true;
 }
 
 export function isPublicPathname(pathname: string): boolean {

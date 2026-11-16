@@ -1,42 +1,51 @@
-import { forwardRef, type MouseEvent } from "react";
+import type { MouseEvent, Ref } from "react";
 import { createPath, Link, type LinkProps, useLocation, useResolvedPath } from "react-router";
 
 import { useOptionalPublicViewTransition } from "#app/platform/view-transitions/public-view-transition-provider";
 
-type PublicTransitionLinkProps = Omit<LinkProps, "download" | "reloadDocument" | "viewTransition">;
+type PublicTransitionLinkProps = Omit<
+  LinkProps,
+  "download" | "reloadDocument" | "viewTransition"
+> & {
+  ref?: Ref<HTMLAnchorElement>;
+};
 
-export const PublicTransitionLink = forwardRef<HTMLAnchorElement, PublicTransitionLinkProps>(
-  function PublicTransitionLink({ onClick, relative, target, to, ...props }, ref) {
-    const location = useLocation();
-    const resolved = useResolvedPath(to, { relative });
-    const transition = useOptionalPublicViewTransition();
-    const currentUrl = createPath(location);
-    const targetUrl = createPath(resolved);
-    const alreadyAtDestination = currentUrl === targetUrl;
-    const transitionEnabled = transition !== null && !alreadyAtDestination;
+export function PublicTransitionLink({
+  onClick,
+  relative,
+  target,
+  to,
+  ...props
+}: PublicTransitionLinkProps) {
+  const location = useLocation();
+  const resolved = useResolvedPath(to, { relative });
+  const transition = useOptionalPublicViewTransition();
+  const currentUrl = createPath(location);
+  const targetUrl = createPath(resolved);
+  const alreadyAtDestination = currentUrl === targetUrl;
+  const transitionEnabled = transition !== null && !alreadyAtDestination;
 
-    const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-      onClick?.(event);
-      if (!shouldHandleTransitionClick(event, target)) return;
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(event);
+    if (!shouldHandleTransitionClick(event, target)) return;
 
-      if (alreadyAtDestination) return;
+    if (alreadyAtDestination) return;
 
-      transition?.beginSection(targetUrl);
-    };
+    transition?.beginSection(targetUrl);
+  };
 
-    return (
-      <Link
-        {...props}
-        ref={ref}
-        to={to}
-        relative={relative}
-        target={target}
-        onClick={handleClick}
-        viewTransition={transitionEnabled}
-      />
-    );
-  },
-);
+  return (
+    <Link
+      {...props}
+      to={to}
+      relative={relative}
+      target={target}
+      onClick={handleClick}
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- moving to React's <ViewTransition> is tracked as TD-008
+      viewTransition={transitionEnabled}
+    />
+  );
+}
 
 function shouldHandleTransitionClick(
   event: Pick<

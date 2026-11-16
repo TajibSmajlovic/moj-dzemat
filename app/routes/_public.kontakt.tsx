@@ -46,7 +46,7 @@ export default function KontaktPage({ loaderData }: Route.ComponentProps) {
     <PageMain>
       <ContactPageContent info={info} />
 
-      {info.showLocation && DZEMAT_LOCATION ? (
+      {DZEMAT_LOCATION && info.showLocation ? (
         <DzematLocationSection location={DZEMAT_LOCATION} />
       ) : null}
     </PageMain>

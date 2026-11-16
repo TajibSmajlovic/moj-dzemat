@@ -66,10 +66,7 @@ export const envSchema = z
     WEB_PUSH_VAPID_PRIVATE_KEY: optionalText,
     WEB_PUSH_ENCRYPTION_KEYS: optionalText,
 
-    APP_URL: z
-      .string()
-      .url()
-      .transform((value) => value.replace(/\/$/, "")),
+    APP_URL: z.url().transform((value) => value.replace(/\/$/, "")),
 
     PORT: z.coerce.number().int().positive().default(3000),
     AGENT_RUN_ID: optionalText,
@@ -110,7 +107,7 @@ export const envSchema = z
       ] as const;
 
       for (const key of requiredKeys) {
-        if (!value[key]) {
+        if (value[key] === undefined) {
           ctx.addIssue({ code: "custom", path: [key], message: `${key} is required` });
         }
       }

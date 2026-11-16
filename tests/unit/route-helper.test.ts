@@ -29,6 +29,7 @@ describe("route test helpers", () => {
   });
 
   it("passes an explicit route pattern and caller-provided context to actions", async () => {
+    // eslint-disable-next-line @eslint-react/naming-convention-context-name -- React Router context
     const actorContext = createContext<string>();
     const context = new RouterContextProvider();
     context.set(actorContext, "admin-123");

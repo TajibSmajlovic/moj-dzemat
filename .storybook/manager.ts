@@ -3,8 +3,7 @@ import { create } from "storybook/theming";
 
 addons.setConfig({
   layoutCustomisations: {
-    showPanel: (state, defaultValue) =>
-      state.storyId === "welcome--catalogue" ? false : defaultValue,
+    showPanel: (state, defaultValue) => state.storyId !== "welcome--catalogue" && defaultValue,
   },
   theme: create({
     base: "light",

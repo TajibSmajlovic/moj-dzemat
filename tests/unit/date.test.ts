@@ -63,7 +63,7 @@ describe("formatDateLong", () => {
 
   it("returns an empty string for invalid input", () => {
     expect(formatDateLong("not-a-date")).toBe("");
-    expect(formatDateLong(Number.NaN)).toBe("");
+    expect(formatDateLong(NaN)).toBe("");
   });
 
   it("accepts string and number inputs", () => {
@@ -86,7 +86,7 @@ describe("formatDateShort", () => {
 
   it("returns an empty string for invalid input", () => {
     expect(formatDateShort("nope")).toBe("");
-    expect(formatDateShort(Number.NaN)).toBe("");
+    expect(formatDateShort(NaN)).toBe("");
   });
 });
 
@@ -188,7 +188,7 @@ describe("dateToYmd", () => {
   });
 
   it("returns an empty string for invalid input", () => {
-    expect(dateToYmd(Number.NaN)).toBe("");
+    expect(dateToYmd(NaN)).toBe("");
     expect(dateToYmd("nope")).toBe("");
   });
 });
@@ -205,6 +205,6 @@ describe("ymdWithYear", () => {
 
   it("rejects invalid input and invalid target years", () => {
     expect(ymdWithYear("2026-02-30", 2028)).toBeNull();
-    expect(ymdWithYear("2026-06-16", Number.NaN)).toBeNull();
+    expect(ymdWithYear("2026-06-16", NaN)).toBeNull();
   });
 });

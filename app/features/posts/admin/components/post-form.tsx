@@ -413,22 +413,28 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
 }
 
 function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
-  const [urls, setUrls] = useState<string[]>(() =>
-    videos && videos.length > 0 ? videos.map((video) => video.url) : [""],
+  // Rows carry a stable key so removing one from the middle keeps the remaining
+  // inputs attached to their own DOM nodes.
+  const [rows, setRows] = useState<{ key: number; url: string }[]>(() =>
+    (videos && videos.length > 0 ? videos.map((video) => video.url) : [""]).map((url, key) => ({
+      key,
+      url,
+    })),
   );
 
-  const updateUrl = (index: number, value: string) =>
-    setUrls((current) =>
-      current.map((url, currentIndex) => (currentIndex === index ? value : url)),
-    );
+  const updateUrl = (key: number, value: string) =>
+    setRows((current) => current.map((row) => (row.key === key ? { ...row, url: value } : row)));
 
-  const removeUrl = (index: number) =>
-    setUrls((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  const removeUrl = (key: number) => setRows((current) => current.filter((row) => row.key !== key));
 
-  const addUrl = () => setUrls((current) => [...current, ""]);
+  const addUrl = () =>
+    setRows((current) => [
+      ...current,
+      { key: Math.max(-1, ...current.map((row) => row.key)) + 1, url: "" },
+    ]);
 
-  const filledCount = urls.filter((url) => url.trim()).length;
-  const canAddMore = urls.length < MAX_VIDEOS_PER_POST;
+  const filledCount = rows.filter((row) => row.url.trim()).length;
+  const canAddMore = rows.length < MAX_VIDEOS_PER_POST;
 
   return (
     <section aria-label="Video" className="border-border space-y-3 rounded-md border p-4">
@@ -443,14 +449,14 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
       </header>
 
       <ul className="space-y-3">
-        {urls.map((url, index) => {
+        {rows.map(({ key, url }, index) => {
           const trimmed = url.trim();
           const parsed = trimmed ? parseYouTubeUrl(trimmed) : null;
           const invalid = Boolean(trimmed) && !parsed;
           const errorId = invalid ? `video-url-${index}-error` : undefined;
 
           return (
-            <li key={index} className="space-y-2">
+            <li key={key} className="space-y-2">
               <div className="flex items-start gap-2">
                 <Input
                   name="videoUrl"
@@ -458,7 +464,7 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
                   inputMode="url"
                   autoComplete="off"
                   value={url}
-                  onChange={(event) => updateUrl(index, event.currentTarget.value)}
+                  onChange={(event) => updateUrl(key, event.currentTarget.value)}
                   aria-label={`YouTube link ${index + 1}`}
                   aria-describedby={errorId}
                   aria-invalid={invalid || undefined}
@@ -469,7 +475,7 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
                   variant="ghost"
                   size="icon"
                   aria-label={`Ukloni video ${index + 1}`}
-                  onClick={() => removeUrl(index)}
+                  onClick={() => removeUrl(key)}
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />

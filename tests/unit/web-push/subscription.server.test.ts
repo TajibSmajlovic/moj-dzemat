@@ -61,6 +61,7 @@ describe("Web Push subscription validation", () => {
     const { validateAndResolveEndpoint } =
       await import("#app/features/web-push/subscription.server");
     await expect(
+      // eslint-disable-next-line unicorn/prefer-https -- plain HTTP must be rejected
       validateAndResolveEndpoint("http://push.example.com", resolvePublicAddress),
     ).rejects.toMatchObject({
       status: 400,

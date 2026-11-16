@@ -135,7 +135,7 @@ describe("honeypot.server", () => {
     if (typeof timestampToken !== "string") {
       throw new TypeError("expected honeypot timestamp token");
     }
-    const timestamp = timestampToken.split(".")[0] ?? "";
+    const timestamp = timestampToken.split(".", 1)[0] ?? "";
     formData.set(HONEYPOT_TIMESTAMP_FIELD, `${timestamp}.short`);
 
     expectInvalidSubmission(() => assertHoneypot(formData));

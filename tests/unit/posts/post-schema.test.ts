@@ -18,10 +18,10 @@ describe("PostFormSchema", () => {
   it("rejects a slug with uppercase letters", () => {
     const result = PostFormSchema.safeParse({ ...valid, slug: "Prva-Objava" });
     expect(result.success).toBe(false);
-    if (!result.success) {
-      const issue = result.error.issues.find((i) => i.path[0] === "slug");
-      expect(issue?.message).toMatch(/mala slova/);
-    }
+    if (result.success) return;
+
+    const issue = result.error.issues.find((i) => i.path[0] === "slug");
+    expect(issue?.message).toMatch(/mala slova/);
   });
 
   it("rejects a slug with leading or trailing dashes", () => {
@@ -59,12 +59,14 @@ describe("PostFormSchema", () => {
     it("defaults to false when the field is omitted", () => {
       const result = PostFormSchema.safeParse(valid);
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.publish).toBe(false);
-        expect(result.data.notifyOnPublish).toBe(false);
-        expect(result.data.featured).toBe(false);
-        expect(result.data.pinned).toBe(false);
+      if (!result.success) {
+        return;
       }
+
+      expect(result.data.publish).toBe(false);
+      expect(result.data.notifyOnPublish).toBe(false);
+      expect(result.data.featured).toBe(false);
+      expect(result.data.pinned).toBe(false);
     });
 
     it("treats the literal 'on' as true (matching the browser checkbox encoding)", () => {
@@ -76,12 +78,14 @@ describe("PostFormSchema", () => {
         notifyOnPublish: "on",
       });
       expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.publish).toBe(true);
-        expect(result.data.featured).toBe(true);
-        expect(result.data.pinned).toBe(true);
-        expect(result.data.notifyOnPublish).toBe(true);
+      if (!result.success) {
+        return;
       }
+
+      expect(result.data.publish).toBe(true);
+      expect(result.data.featured).toBe(true);
+      expect(result.data.pinned).toBe(true);
+      expect(result.data.notifyOnPublish).toBe(true);
     });
 
     it("rejects values other than 'on' or undefined", () => {

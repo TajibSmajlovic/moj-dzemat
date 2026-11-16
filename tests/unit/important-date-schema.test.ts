@@ -38,7 +38,7 @@ describe("ImportantDateFormSchema", () => {
     const empty = ImportantDateFormSchema.safeParse({
       title: "Bajram namaz",
       date: "2026-06-16",
-      description: "   ",
+      description: " ".repeat(3),
     });
     expect(empty.success).toBe(true);
     if (empty.success) {

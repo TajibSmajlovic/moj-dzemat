@@ -75,7 +75,7 @@ export function PostDetailArticle({
           <div className="flex flex-wrap items-center gap-3">
             <PostTypeBadge type={post.type} />
 
-            {post.pinned && showPinnedBadge ? (
+            {showPinnedBadge && post.pinned ? (
               <span className="text-gold-foreground inline-flex items-center gap-1">
                 <Pin className="fill-secondary h-4 w-4" aria-hidden="true" />
                 <span className="text-xs font-semibold tracking-wide uppercase">Na vrhu</span>
@@ -94,6 +94,7 @@ export function PostDetailArticle({
 
         <div
           className="prose prose-stone prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-blockquote:border-primary/30 prose-blockquote:text-muted-foreground dark:prose-invert dark:prose-a:text-primary text-foreground/85 max-w-none min-w-0 leading-relaxed wrap-break-word"
+          // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- sanitized on write
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
       </article>
@@ -129,7 +130,7 @@ const PostMediaCarousel = ({ media, fallbackAlt }: { media: MediaItem[]; fallbac
     setLightboxIndex((current) => {
       if (current === null) return current;
 
-      return current === 0 ? media.length - 1 : current - 1;
+      return (current === 0 ? media.length : current) - 1;
     });
   };
 
@@ -252,10 +253,10 @@ function MediaLightbox({
   onNext: VoidFunction;
 }) {
   const item = media[activeIndex];
+  if (!item) return null;
+
   const canNavigate = media.length > 1;
   const allImages = media.every((mediaItem) => mediaItem.kind === "image");
-
-  if (!item) return null;
 
   const activeNoun = item.kind === "video" ? "videa" : "slike";
   const counterKind = item.kind === "video" ? "Video" : "Slika";
@@ -336,6 +337,10 @@ function MediaLightbox({
                   className="ring-lightbox-foreground/10 aspect-video max-h-full w-full max-w-4xl rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1"
                   allow="autoplay; encrypted-media; picture-in-picture; web-share"
                   allowFullScreen
+                  // YouTube's player does not load with an opaque origin. It keeps its own
+                  // cross-origin origin, so it still cannot reach this page.
+                  // eslint-disable-next-line @eslint-react/dom-no-unsafe-iframe-sandbox -- cross-origin embed, see above
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
                 />
               )}
             </div>

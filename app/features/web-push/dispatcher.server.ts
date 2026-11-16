@@ -33,10 +33,12 @@ export function kickWebPushDispatcher(options: { bypassCooldown?: boolean } = {}
     })
     .finally(() => {
       activeRun = null;
-      if (rerunRequested) {
-        rerunRequested = false;
-        kickWebPushDispatcher({ bypassCooldown: true });
+      if (!rerunRequested) {
+        return;
       }
+
+      rerunRequested = false;
+      kickWebPushDispatcher({ bypassCooldown: true });
     });
 }
 

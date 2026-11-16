@@ -41,7 +41,7 @@ for (const password of ["existing-password-123", null]) {
       expect(await bcrypt.compare(values[1 - winner]!, row.hash)).toBe(false);
       const replay = await submit("SequentialReplay123!");
       expect(replay.status).toBe(400);
-      const cookie = responses[winner]!.headers.getSetCookie().at(-1)!.split(";")[0]!;
+      const cookie = responses[winner]!.headers.getSetCookie().at(-1)!.split(";", 1)[0]!;
       const admin = await page.request.get("/admin/objave", {
         headers: { Cookie: cookie },
         maxRedirects: 0,

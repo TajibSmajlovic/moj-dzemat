@@ -68,7 +68,7 @@ function newImageAltTexts(formData: FormData, imageCount: number): (string | nul
 export function existingImageAltTextUpdates(formData: FormData): ImageAltTextUpdate[] {
   const updates: ImageAltTextUpdate[] = [];
 
-  for (const [key, value] of formData.entries()) {
+  for (const [key, value] of formData) {
     if (!key.startsWith("imageAltText:")) continue;
 
     const id = key.slice("imageAltText:".length);

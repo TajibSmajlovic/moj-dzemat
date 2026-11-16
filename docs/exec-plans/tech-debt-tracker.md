@@ -67,23 +67,39 @@ helper, verified with a clean `npm ci`,
 
 **Status:** Accepted pending stable upstream fixes, reviewed on 2026-11-15.
 
-**Evidence and impact:** `npm audit --json` reports 13 moderate entries from
+**Evidence and impact:** `npm audit --json` reports 14 moderate entries from
 three development-tool advisories, including affected parent packages:
 
 - [postcss-selector-parser](https://github.com/advisories/GHSA-rj75-hqrm-r3gf) through Typography.
 - [glob](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) through Storybook's docgen plugin.
-- [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249) through docgen, Router fs-routes, and TypeScript ESLint.
+- [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249) through docgen, Router fs-routes, TypeScript ESLint, and the accessibility lint plugin.
 
 There are no high or critical findings. `npm audit --omit=dev --json` reports
 zero findings; Typography is a build-only development dependency. The reviewed
 callers process repository-controlled files and patterns, limiting exposure.
 The owner accepts these findings without overrides until stable upstream fixes
-are available. Install deprecations for ESLint 9 and the native helper in TD-003
-remain separate warnings.
+are available. The native-helper install deprecation in TD-003 remains a
+separate warning.
 
 **Exit condition:** Stable upstream updates remove the findings without
 overrides, verified by a clean `npm ci`, both audit commands, and
 `npm run agent:verify`.
+
+## TD-008: Public view transitions use deprecated React Router APIs
+
+**Status:** Accepted, reviewed on 2026-11-15.
+
+**Evidence and impact:** React Router 8 deprecates the `viewTransition` link
+prop and `useViewTransitionState()` in favor of React's `<ViewTransition>`
+component. `PublicTransitionLink` and `PublicViewTransitionProvider` in
+`app/platform/view-transitions/` still use both. Each call has an inline
+exception to `@typescript-eslint/no-deprecated` that names this item. The
+transitions work today, but a future React Router major version can remove
+these APIs.
+
+**Exit condition:** Public section transitions use React's `<ViewTransition>`,
+both inline exceptions are removed, and the transition behavior is verified in
+the browser and by `npm run agent:verify`.
 
 ## Resolved items
 

@@ -61,7 +61,7 @@ function openPostSnapshotDatabase(): Promise<IDBDatabase> {
   }
 
   return new Promise((resolve, reject) => {
-    const request = globalThis.indexedDB.open(PWA_DATABASE_NAME, PWA_DATABASE_VERSION);
+    const request = indexedDB.open(PWA_DATABASE_NAME, PWA_DATABASE_VERSION);
     let settled = false;
 
     request.addEventListener("upgradeneeded", () => {

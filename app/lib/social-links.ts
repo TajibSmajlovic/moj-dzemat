@@ -17,5 +17,5 @@ const SOCIAL_LINK_LABELS: Record<SocialLinkPlatform, string> = {
 export const SOCIAL_LINKS: SocialLink[] = (["facebook", "youtube"] as const).flatMap((platform) => {
   const href = dzemat.socialLinks[platform];
 
-  return href ? [{ platform, label: SOCIAL_LINK_LABELS[platform], href }] : [];
+  return href ? { platform, label: SOCIAL_LINK_LABELS[platform], href } : [];
 });

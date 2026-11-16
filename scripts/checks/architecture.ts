@@ -110,7 +110,7 @@ function resolveInternalTarget(
 function isTypeOnlyImport(node: ts.ImportDeclaration): boolean {
   const clause = node.importClause;
   if (!clause) return false;
-  if (clause.isTypeOnly) return true;
+  if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) return true;
   if (clause.name) return false;
   if (!clause.namedBindings) return false;
   if (ts.isNamespaceImport(clause.namedBindings)) return false;
@@ -245,7 +245,7 @@ function violationFor(edge: ImportEdge, browserPath?: string[]): ArchitectureVio
     edge.target.startsWith("generated/") ||
     edge.target.startsWith("prisma/") ||
     /\.server(?:\/|$)/.test(edge.target);
-  if (!edge.typeOnly && browserPath && isServerTarget) {
+  if (browserPath && isServerTarget && !edge.typeOnly) {
     return {
       ...edge,
       browserPath,
@@ -301,8 +301,9 @@ function sourceFiles(rootDir: string): string[] {
   walk(path.join(rootDir, ".storybook"));
 
   // The repository targets ES2022, so Array.prototype.toSorted is unavailable.
+  // The comparator keeps the default code-unit order.
   // eslint-disable-next-line unicorn/no-array-sort
-  return files.sort();
+  return files.sort((left, right) => Number(left > right) - Number(left < right));
 }
 
 export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
@@ -311,15 +312,19 @@ export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
     ? ts.readConfigFile(configPath, (file) => ts.sys.readFile(file)).config
     : {};
   const configuredOptions =
-    config && typeof config === "object" && "compilerOptions" in config
+    config &&
+    typeof config === "object" &&
+    "compilerOptions" in config &&
+    config.compilerOptions &&
+    typeof config.compilerOptions === "object"
       ? config.compilerOptions
-      : undefined;
+      : {};
   const compilerOptions = ts.parseJsonConfigFileContent(
     {
       compilerOptions: {
         moduleResolution: "bundler",
         module: "esnext",
-        ...(configuredOptions && typeof configuredOptions === "object" ? configuredOptions : {}),
+        ...configuredOptions,
       },
       files: [],
       include: [],
@@ -347,14 +352,17 @@ export function checkArchitecture(rootDir: string): ArchitectureViolation[] {
 
   // Follow runtime edges through helpers and barrels; a directory name alone
   // cannot establish that a module stays on the server.
+  // Entries added inside the loop are visited later in the same loop, which makes
+  // this a breadth-first worklist.
   for (const [source, trail] of browserPaths) {
     for (const edge of graph.get(source) ?? []) {
       if (edge.typeOnly || !graph.has(edge.target) || browserPaths.has(edge.target)) continue;
       if (edge.target.startsWith("app/server/") || /\.server(?:\/|$)/.test(edge.target)) continue;
+      // eslint-disable-next-line unicorn/no-loop-iterable-mutation -- intentional worklist
       browserPaths.set(edge.target, [...trail, edge.target]);
     }
   }
-  return [...graph.entries()].flatMap(([source, edges]) =>
+  return [...graph].flatMap(([source, edges]) =>
     edges.flatMap((edge) => {
       const violation = violationFor(edge, browserPaths.get(source));
       return violation ? [violation] : [];

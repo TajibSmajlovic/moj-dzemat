@@ -7,6 +7,6 @@ export function pwaAssetHeaders(kind: PwaAssetKind): Record<string, string> {
       kind === "service-worker"
         ? "application/javascript; charset=utf-8"
         : "text/html; charset=utf-8",
-    ...(kind === "service-worker" ? { "Service-Worker-Allowed": "/" } : {}),
+    ...(kind === "service-worker" && { "Service-Worker-Allowed": "/" }),
   };
 }

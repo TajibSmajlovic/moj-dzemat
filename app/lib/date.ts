@@ -197,7 +197,7 @@ export function formatYmdDayMonth(ymd: string): string {
 // such as 29 February in a non-leap year.
 export function ymdWithYear(ymd: string, year: number): string | null {
   const parts = parseYmd(ymd);
-  if (!parts || !Number.isInteger(year) || year < 1 || year > 9999) return null;
+  if (!parts || !Number.isSafeInteger(year) || year < 1 || year > 9999) return null;
 
   const candidate = `${String(year).padStart(4, "0")}-${pad2(parts.m)}-${pad2(parts.d)}`;
 

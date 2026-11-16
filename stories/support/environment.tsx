@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-  type MouseEvent,
-} from "react";
+import { createContext, use, useEffect, useState, type ReactNode, type MouseEvent } from "react";
 import {
   createMemoryRouter,
   Outlet,
@@ -34,7 +27,7 @@ const ContentContext = createContext<ReactNode>(null);
 function StoryContent() {
   useActionToast(useActionData());
 
-  return useContext(ContentContext);
+  return use(ContentContext);
 }
 
 export function StoryEnvironment({
@@ -79,10 +72,10 @@ export function StoryEnvironment({
   });
 
   useEffect(() => {
-    globalThis.scrollTo(0, 0);
+    scrollTo(0, 0);
     document.documentElement.lang = "bs-BA";
     document.documentElement.classList.toggle("dark", theme === "dark");
-    globalThis.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+    dispatchEvent(new Event(THEME_CHANGE_EVENT));
     return () => {
       toast.dismiss();
     };
@@ -111,10 +104,12 @@ export function StoryEnvironment({
 
 function simulateExternalLink(event: MouseEvent<HTMLDivElement>) {
   const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
-  if (anchor instanceof HTMLAnchorElement && new URL(anchor.href).origin !== location.origin) {
-    event.preventDefault();
-    toast.message("Vanjski link je simuliran u ovom primjeru.");
+  if (!(anchor instanceof HTMLAnchorElement) || new URL(anchor.href).origin === location.origin) {
+    return;
   }
+
+  event.preventDefault();
+  toast.message("Vanjski link je simuliran u ovom primjeru.");
 }
 
 async function demoAction() {

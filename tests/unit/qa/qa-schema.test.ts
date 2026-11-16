@@ -20,7 +20,7 @@ describe("Q&A schemas", () => {
 
   it("rejects missing and out-of-range questions", () => {
     expect(QaSubmitSchema.safeParse({ question: "" }).success).toBe(false);
-    expect(QaSubmitSchema.safeParse({ question: "    " }).success).toBe(false);
+    expect(QaSubmitSchema.safeParse({ question: " ".repeat(4) }).success).toBe(false);
     expect(QaSubmitSchema.safeParse({ question: "1234" }).success).toBe(false);
     expect(
       QaSubmitSchema.safeParse({ question: "a".repeat(QA_QUESTION_MAX_LENGTH + 1) }).success,
@@ -37,7 +37,7 @@ describe("Q&A schemas", () => {
 
   it("rejects missing and out-of-range answers", () => {
     expect(QaAnswerSchema.safeParse({ answer: "" }).success).toBe(false);
-    expect(QaAnswerSchema.safeParse({ answer: "    " }).success).toBe(false);
+    expect(QaAnswerSchema.safeParse({ answer: " ".repeat(4) }).success).toBe(false);
     expect(QaAnswerSchema.safeParse({ answer: "1234" }).success).toBe(false);
     expect(QaAnswerSchema.safeParse({ answer: "a".repeat(QA_ANSWER_MAX_LENGTH + 1) }).success).toBe(
       false,
