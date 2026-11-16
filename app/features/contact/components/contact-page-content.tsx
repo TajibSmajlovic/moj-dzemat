@@ -36,9 +36,7 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
 
   const hasContact =
     info.showContact && Boolean(info.contactPhone ?? info.contactEmail ?? info.officeHours);
-  const hasImam = info.showImam && Boolean(info.imamName ?? info.imamPhone ?? info.imamEmail);
-  const hasBoard = info.showBoard && Boolean(info.boardNote);
-  const hasLeadership = hasImam || hasBoard;
+  const hasLeadership = hasLeadershipDetails(info);
   const hasBank =
     info.showBank &&
     Boolean(
@@ -81,78 +79,99 @@ export function ContactPageContent({ info }: ContactPageContentProps) {
 
       {hasContact || hasLeadership ? (
         <div className="grid min-w-0 gap-6 lg:grid-cols-2">
-          {hasContact ? (
-            <motion.section
-              aria-labelledby="contact-details-heading"
-              {...sectionRevealMotion}
-              className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
-            >
-              <SectionHeading
-                id="contact-details-heading"
-                eyebrow="Brzi kontakt"
-                title="Kontaktirajte nas"
-                description="Pozovite nas, pošaljite e-mail ili provjerite prijemno vrijeme."
-              />
-
-              <address className="border-border/60 mt-5 min-w-0 divide-y overflow-hidden rounded-xl border not-italic">
-                {info.contactPhone ? (
-                  <ContactRow
-                    icon={Phone}
-                    label="Telefon"
-                    value={info.contactPhone}
-                    href={telHref(info.contactPhone)}
-                  />
-                ) : null}
-                {info.contactEmail ? (
-                  <ContactRow
-                    icon={Mail}
-                    label="E-mail"
-                    value={info.contactEmail}
-                    href={`mailto:${info.contactEmail}`}
-                  />
-                ) : null}
-                {info.officeHours ? (
-                  <ContactRow icon={Clock3} label="Prijemno vrijeme" value={info.officeHours} />
-                ) : null}
-              </address>
-            </motion.section>
-          ) : null}
+          {hasContact ? <ContactDetails info={info} motionProps={sectionRevealMotion} /> : null}
 
           {hasLeadership ? (
-            <motion.section
-              aria-labelledby="contact-people-heading"
-              {...sectionRevealMotion}
-              className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
-            >
-              <SectionHeading
-                id="contact-people-heading"
-                eyebrow="Džematska zajednica"
-                title="Kome se možete obratiti"
-                description="Javno dostupni podaci imama i džematskog odbora."
-              />
-
-              <div className="mt-5 space-y-4">
-                {hasImam ? <ImamCard info={info} /> : null}
-
-                {hasBoard && info.boardNote ? (
-                  <div className="bg-muted/35 border-border/60 rounded-xl border p-4">
-                    <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
-                      <Building2 className="text-primary h-4 w-4" aria-hidden="true" />
-                      Džematski odbor
-                    </div>
-                    <p className="text-muted-foreground mt-2 text-sm leading-6 text-pretty whitespace-pre-line">
-                      {info.boardNote}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </motion.section>
+            <LeadershipDetails info={info} motionProps={sectionRevealMotion} />
           ) : null}
         </div>
       ) : null}
 
       {hasBank ? <BankDetails info={info} suppressRouteMotion={suppressRouteMotion} /> : null}
     </div>
+  );
+}
+
+type ContactSectionProps = ContactPageContentProps & {
+  motionProps: ReturnType<typeof useEntranceMotion>;
+};
+
+function hasLeadershipDetails(info: CommunityInfoRecord): boolean {
+  const hasImam = info.showImam && Boolean(info.imamName ?? info.imamPhone ?? info.imamEmail);
+  return hasImam || (info.showBoard && Boolean(info.boardNote));
+}
+
+function ContactDetails({ info, motionProps }: ContactSectionProps) {
+  return (
+    <motion.section
+      aria-labelledby="contact-details-heading"
+      {...motionProps}
+      className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
+    >
+      <SectionHeading
+        id="contact-details-heading"
+        eyebrow="Brzi kontakt"
+        title="Kontaktirajte nas"
+        description="Pozovite nas, pošaljite e-mail ili provjerite prijemno vrijeme."
+      />
+
+      <address className="border-border/60 mt-5 min-w-0 divide-y overflow-hidden rounded-xl border not-italic">
+        {info.contactPhone ? (
+          <ContactRow
+            icon={Phone}
+            label="Telefon"
+            value={info.contactPhone}
+            href={telHref(info.contactPhone)}
+          />
+        ) : null}
+        {info.contactEmail ? (
+          <ContactRow
+            icon={Mail}
+            label="E-mail"
+            value={info.contactEmail}
+            href={`mailto:${info.contactEmail}`}
+          />
+        ) : null}
+        {info.officeHours ? (
+          <ContactRow icon={Clock3} label="Prijemno vrijeme" value={info.officeHours} />
+        ) : null}
+      </address>
+    </motion.section>
+  );
+}
+
+function LeadershipDetails({ info, motionProps }: ContactSectionProps) {
+  const hasImam = info.showImam && Boolean(info.imamName ?? info.imamPhone ?? info.imamEmail);
+  const hasBoard = info.showBoard && Boolean(info.boardNote);
+  return (
+    <motion.section
+      aria-labelledby="contact-people-heading"
+      {...motionProps}
+      className="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm sm:p-6"
+    >
+      <SectionHeading
+        id="contact-people-heading"
+        eyebrow="Džematska zajednica"
+        title="Kome se možete obratiti"
+        description="Javno dostupni podaci imama i džematskog odbora."
+      />
+
+      <div className="mt-5 space-y-4">
+        {hasImam ? <ImamCard info={info} /> : null}
+
+        {hasBoard && info.boardNote ? (
+          <div className="bg-muted/35 border-border/60 rounded-xl border p-4">
+            <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
+              <Building2 className="text-primary h-4 w-4" aria-hidden="true" />
+              Džematski odbor
+            </div>
+            <p className="text-muted-foreground mt-2 text-sm leading-6 text-pretty whitespace-pre-line">
+              {info.boardNote}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </motion.section>
   );
 }
 

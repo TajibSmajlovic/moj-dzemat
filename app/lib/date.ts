@@ -43,12 +43,8 @@ function getSiteCalendarYmd(value: Date | string | number): {
   month: number;
   day: number;
 } | null {
-  const instant = new Date(value);
-  if (Number.isNaN(instant.getTime())) {
-    return null;
-  }
+  const parts = siteDateParts(value, siteCalendarFormatter);
 
-  const parts = siteCalendarFormatter.formatToParts(instant);
   const year = Number(parts.find((p) => p.type === "year")?.value);
   const month = Number(parts.find((p) => p.type === "month")?.value);
   const day = Number(parts.find((p) => p.type === "day")?.value);
@@ -64,12 +60,8 @@ function getSiteHourMinute(value: Date | string | number): {
   hour: number;
   minute: number;
 } | null {
-  const instant = new Date(value);
-  if (Number.isNaN(instant.getTime())) {
-    return null;
-  }
+  const parts = siteDateParts(value, siteTimeFormatter);
 
-  const parts = siteTimeFormatter.formatToParts(instant);
   const hour = Number(parts.find((p) => p.type === "hour")?.value);
   const minute = Number(parts.find((p) => p.type === "minute")?.value);
 
@@ -78,6 +70,27 @@ function getSiteHourMinute(value: Date | string | number): {
   }
 
   return { hour, minute };
+}
+
+function siteDateParts(
+  value: Date | string | number,
+  formatter: Intl.DateTimeFormat,
+): Intl.DateTimeFormatPart[] {
+  const instant = new Date(value);
+  return Number.isNaN(instant.getTime()) ? [] : formatter.formatToParts(instant);
+}
+
+function longCalendarDate({
+  year,
+  month,
+  day,
+}: {
+  year: number;
+  month: number;
+  day: number;
+}): string {
+  const monthName = MONTHS_LONG_BS[month - 1];
+  return monthName ? `${day}. ${monthName} ${year}.` : "";
 }
 
 function pad2(n: number): string {
@@ -90,12 +103,7 @@ export function formatDateLong(value: Date | string | number): string {
     return "";
   }
 
-  const monthName = MONTHS_LONG_BS[ymd.month - 1];
-  if (!monthName) {
-    return "";
-  }
-
-  return `${ymd.day}. ${monthName} ${ymd.year}.`;
+  return longCalendarDate(ymd);
 }
 
 export function formatDateShort(value: Date | string | number): string {
@@ -121,12 +129,8 @@ export function formatDateTimeLong(value: Date | string | number): string {
     return "";
   }
 
-  const monthName = MONTHS_LONG_BS[ymd.month - 1];
-  if (!monthName) {
-    return "";
-  }
-
-  return `${ymd.day}. ${monthName} ${ymd.year}. u ${pad2(hm.hour)}:${pad2(hm.minute)}`;
+  const date = longCalendarDate(ymd);
+  return date ? `${date} u ${pad2(hm.hour)}:${pad2(hm.minute)}` : "";
 }
 
 export function toIsoDate(value: Date | string | number): string {
@@ -147,9 +151,9 @@ function parseYmd(value: string): { y: number; m: number; d: number } | null {
 
   const parts = value.split("-");
   const y = Number(parts[0]);
+  if (y === 0) return null;
   const m = Number(parts[1]);
   const d = Number(parts[2]);
-  if (!y || m < 1 || m > 12 || d < 1 || d > 31) return null;
 
   // Round-trip through a UTC date to reject impossible days (e.g. Feb 30).
   const dt = new Date(Date.UTC(y, m - 1, d));
@@ -197,7 +201,9 @@ export function formatYmdDayMonth(ymd: string): string {
 // such as 29 February in a non-leap year.
 export function ymdWithYear(ymd: string, year: number): string | null {
   const parts = parseYmd(ymd);
-  if (!parts || !Number.isSafeInteger(year) || year < 1 || year > 9999) return null;
+  if (!parts) return null;
+  if (!Number.isSafeInteger(year)) return null;
+  if (year < 1 || year > 9999) return null;
 
   const candidate = `${String(year).padStart(4, "0")}-${pad2(parts.m)}-${pad2(parts.d)}`;
 

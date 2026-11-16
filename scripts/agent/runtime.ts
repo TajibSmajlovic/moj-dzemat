@@ -6,6 +6,9 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { z } from "zod";
+
+import { exitOnUnsupportedNode } from "../checks/node-version";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const runtimePrefix = "moj-dzemat-agent-";
@@ -24,16 +27,16 @@ function secret(): string {
   return crypto.randomBytes(32).toString("base64url");
 }
 
-type RuntimeManifest = {
-  run_id: string;
-  url: string;
-  pid: number;
-  state_path: string;
-  log_path: string;
-  process_log_path: string;
-  started_at: string;
-  status?: "starting" | "ready";
-};
+const RuntimeManifestSchema = z.looseObject({
+  state_path: z.string(),
+  run_id: z.string(),
+  url: z.string(),
+  log_path: z.string(),
+  process_log_path: z.string(),
+  started_at: z.string(),
+  pid: z.number().int().positive(),
+});
+type RuntimeManifest = z.infer<typeof RuntimeManifestSchema>;
 
 type LogFilters = {
   level?: string;
@@ -62,20 +65,25 @@ export function matchesLogFilters(
   rawLine: string,
   filters: LogFilters,
 ): boolean {
-  const level =
-    typeof entry.level === "number"
-      ? logLevels.get(entry.level)
-      : typeof entry.level === "string"
-        ? entry.level
-        : undefined;
-  if (filters.level && level !== filters.level) return false;
-  if (filters.requestId && entry.requestId !== filters.requestId) return false;
-  if (filters.component && entry.component !== filters.component) return false;
-  if (filters.text && !rawLine.toLocaleLowerCase().includes(filters.text.toLocaleLowerCase())) {
-    return false;
-  }
+  const values = {
+    level: logLevel(entry.level),
+    requestId: entry.requestId,
+    component: entry.component,
+  };
+  const matchesFields = (["level", "requestId", "component"] as const).every((key) => {
+    const expected = filters[key];
+    return !expected || values[key] === expected;
+  });
+  return matchesFields && matchesLogText(rawLine, filters.text);
+}
 
-  return true;
+function logLevel(value: unknown): string | undefined {
+  if (typeof value === "number") return logLevels.get(value);
+  return typeof value === "string" ? value : undefined;
+}
+
+function matchesLogText(rawLine: string, text?: string): boolean {
+  return !text || rawLine.toLocaleLowerCase().includes(text.toLocaleLowerCase());
 }
 
 export function loadOwnedManifest(manifestPath: string): {
@@ -83,45 +91,57 @@ export function loadOwnedManifest(manifestPath: string): {
   manifestPath: string;
 } {
   const absoluteManifest = path.resolve(manifestPath);
-  const manifest = JSON.parse(fs.readFileSync(absoluteManifest, "utf8")) as Record<string, unknown>;
+  const manifest: unknown = JSON.parse(fs.readFileSync(absoluteManifest, "utf8"));
+  const statePath = ownedManifestDirectory(manifest, absoluteManifest);
 
+  const checkedManifest = parseManifest(manifest);
+  checkLogPaths(checkedManifest, statePath);
+
+  return { manifest: checkedManifest, manifestPath: absoluteManifest };
+}
+
+function ownedManifestDirectory(manifest: unknown, absoluteManifest: string): string {
   if (!manifest || typeof manifest !== "object") {
     throw new Error("Runtime manifest must contain a JSON object.");
   }
-  if (typeof manifest.state_path !== "string" || !isOwnedStatePath(manifest.state_path)) {
+  if (!("state_path" in manifest)) {
     throw new Error("Refusing runtime operation: state_path is outside the owned temp namespace.");
   }
+  const statePath = ownedStateDirectory(manifest.state_path);
+  if (absoluteManifest !== path.join(statePath, "manifest.json")) {
+    throw new Error("Refusing runtime operation: manifest must be inside its declared state_path.");
+  }
+  return statePath;
+}
 
-  const statePath = path.resolve(manifest.state_path);
+function ownedStateDirectory(candidate: unknown): string {
+  if (typeof candidate !== "string" || !isOwnedStatePath(candidate)) {
+    throw new Error("Refusing runtime operation: state_path is outside the owned temp namespace.");
+  }
+  const statePath = path.resolve(candidate);
   const stateStat = fs.lstatSync(statePath);
   if (!stateStat.isDirectory() || stateStat.isSymbolicLink()) {
     throw new Error("Refusing runtime operation: state_path must be a real directory.");
   }
-  if (absoluteManifest !== path.join(statePath, "manifest.json")) {
-    throw new Error("Refusing runtime operation: manifest must be inside its declared state_path.");
-  }
 
-  for (const key of ["run_id", "url", "log_path", "process_log_path", "started_at"]) {
-    if (typeof manifest[key] !== "string") {
-      throw new TypeError(`Runtime manifest is missing ${key}.`);
-    }
-  }
-  if (
-    typeof manifest.pid !== "number" ||
-    !Number.isSafeInteger(manifest.pid) ||
-    manifest.pid <= 0
-  ) {
-    throw new Error("Runtime manifest contains an invalid pid.");
-  }
-  const checkedManifest = manifest as RuntimeManifest;
-  for (const logPath of [checkedManifest.log_path, checkedManifest.process_log_path]) {
+  return statePath;
+}
+
+function checkLogPaths(manifest: RuntimeManifest, statePath: string): void {
+  for (const logPath of [manifest.log_path, manifest.process_log_path]) {
     const relative = path.relative(statePath, path.resolve(logPath));
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
       throw new Error("Refusing runtime operation: a log path is outside state_path.");
     }
   }
+}
 
-  return { manifest: checkedManifest, manifestPath: absoluteManifest };
+function parseManifest(value: unknown): RuntimeManifest {
+  const result = RuntimeManifestSchema.safeParse(value);
+  if (result.success) return result.data;
+  const field = result.error.issues[0]?.path[0];
+  if (field === "pid") throw new Error("Runtime manifest contains an invalid pid.");
+  throw new TypeError(`Runtime manifest is missing ${String(field)}.`);
 }
 
 async function startRuntime(options: {
@@ -135,7 +155,7 @@ async function startRuntime(options: {
   const logPath = path.join(statePath, "app.ndjson");
   const processLogPath = path.join(statePath, "process.log");
   const manifestPath = path.join(statePath, "manifest.json");
-  let child: ChildProcess | null = null;
+  const owned: { child: ChildProcess | null } = { child: null };
 
   try {
     fs.closeSync(fs.openSync(databasePath, "wx"));
@@ -151,44 +171,15 @@ async function startRuntime(options: {
       url,
     });
 
-    const steps = [
-      [
-        "database migrations",
-        [
-          path.join(projectRoot, "node_modules", "prisma", "build", "index.js"),
-          "migrate",
-          "deploy",
-        ],
-      ],
-      [
-        "deterministic seed",
-        ["--import", "tsx", path.join(projectRoot, "scripts", "agent", "seed.ts")],
-      ],
-    ] as const;
-    for (const [name, args] of steps) {
-      options.signal.throwIfAborted();
-      console.log(`[agent-runtime] ${name}`);
-      child = spawn(process.execPath, args, {
-        cwd: projectRoot,
-        env: environment,
-        stdio: "inherit",
-        detached: process.platform !== "win32",
-      });
-      await once(child, "spawn", { signal: options.signal });
-      await once(child, "exit", { signal: options.signal });
-      const code = child.exitCode;
-      if (code !== 0) throw new Error(`${name} failed with code ${String(code)}.`);
-      child = null;
-    }
-    options.signal.throwIfAborted();
+    await migrateAndSeed(environment, options.signal, owned);
 
     const processLog = fs.openSync(processLogPath, "wx");
-    child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
+    const child = (owned.child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
       cwd: projectRoot,
       env: environment,
       detached: process.platform !== "win32",
       stdio: ["ignore", processLog, processLog],
-    });
+    }));
     fs.closeSync(processLog);
     await once(child, "spawn", { signal: options.signal });
 
@@ -196,19 +187,7 @@ async function startRuntime(options: {
       throw new Error("Agent runtime process started without a pid.");
     }
 
-    const manifest = {
-      version: 1,
-      status: "starting",
-      run_id: runId,
-      url,
-      pid: child.pid,
-      state_path: statePath,
-      log_path: logPath,
-      process_log_path: processLogPath,
-      database: databasePath,
-      started_at: new Date().toISOString(),
-      stop_command: `npm run agent:stop -- --manifest ${manifestPath}`,
-    };
+    const manifest = startingManifest({ statePath, runId, url, pid: child.pid });
     fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600 });
 
     console.log(`AGENT_RUNTIME_MANIFEST=${manifestPath}`);
@@ -228,23 +207,111 @@ async function startRuntime(options: {
     console.log(`Logs: npm run agent:logs -- --manifest ${manifestPath}`);
     console.log(`Stop: ${manifest.stop_command}`);
   } catch (error) {
-    if (child?.pid && child.exitCode === null && child.signalCode === null) {
-      try {
-        await stopProcess(child.pid);
-      } catch (cleanupError) {
-        console.error(`Startup cleanup failed. State retained at ${statePath}`);
-        throw new AggregateError([error, cleanupError], "Runtime startup and cleanup failed.", {
-          cause: cleanupError,
-        });
-      }
-    }
-    printStartupFailureLogs(processLogPath, logPath);
-    if (options.keepStateOnFailure) {
-      console.error(`Startup state retained at ${statePath}`);
-    } else {
-      fs.rmSync(statePath, { recursive: true, force: true });
-    }
+    await cleanupStartup({
+      child: owned.child,
+      statePath,
+      processLogPath,
+      logPath,
+      keepStateOnFailure: options.keepStateOnFailure,
+      error,
+    });
     throw error;
+  }
+}
+
+async function migrateAndSeed(
+  environment: NodeJS.ProcessEnv,
+  signal: AbortSignal,
+  owned: { child: ChildProcess | null },
+): Promise<void> {
+  const steps = [
+    [
+      "database migrations",
+      [path.join(projectRoot, "node_modules", "prisma", "build", "index.js"), "migrate", "deploy"],
+    ],
+    [
+      "deterministic seed",
+      ["--import", "tsx", path.join(projectRoot, "scripts", "agent", "seed.ts")],
+    ],
+  ] as const;
+  for (const [name, args] of steps) {
+    signal.throwIfAborted();
+    console.log(`[agent-runtime] ${name}`);
+    owned.child = spawn(process.execPath, args, {
+      cwd: projectRoot,
+      env: environment,
+      stdio: "inherit",
+      detached: process.platform !== "win32",
+    });
+    await once(owned.child, "spawn", { signal });
+    await once(owned.child, "exit", { signal });
+    const code = owned.child.exitCode;
+    if (code !== 0) throw new Error(`${name} failed with code ${String(code)}.`);
+    owned.child = null;
+  }
+  signal.throwIfAborted();
+}
+
+function startingManifest({
+  statePath,
+  runId,
+  url,
+  pid,
+}: {
+  statePath: string;
+  runId: string;
+  url: string;
+  pid: number;
+}) {
+  const databasePath = path.join(statePath, "runtime.db");
+  const logPath = path.join(statePath, "app.ndjson");
+  const processLogPath = path.join(statePath, "process.log");
+  const manifestPath = path.join(statePath, "manifest.json");
+  return {
+    version: 1,
+    status: "starting",
+    run_id: runId,
+    url,
+    pid,
+    state_path: statePath,
+    log_path: logPath,
+    process_log_path: processLogPath,
+    database: databasePath,
+    started_at: new Date().toISOString(),
+    stop_command: `npm run agent:stop -- --manifest ${manifestPath}`,
+  };
+}
+
+async function cleanupStartup({
+  child,
+  statePath,
+  processLogPath,
+  logPath,
+  keepStateOnFailure,
+  error,
+}: {
+  child: ChildProcess | null;
+  statePath: string;
+  processLogPath: string;
+  logPath: string;
+  keepStateOnFailure: boolean;
+  error: unknown;
+}): Promise<void> {
+  if (child?.pid && child.exitCode === null && child.signalCode === null) {
+    try {
+      await stopProcess(child.pid);
+    } catch (cleanupError) {
+      console.error(`Startup cleanup failed. State retained at ${statePath}`);
+      throw new AggregateError([error, cleanupError], "Runtime startup and cleanup failed.", {
+        cause: cleanupError,
+      });
+    }
+  }
+  printStartupFailureLogs(processLogPath, logPath);
+  if (keepStateOnFailure) {
+    console.error(`Startup state retained at ${statePath}`);
+  } else {
+    fs.rmSync(statePath, { recursive: true, force: true });
   }
 }
 
@@ -308,15 +375,7 @@ async function waitForRuntime({
     }
 
     try {
-      for (const endpoint of ["/resources/healthcheck", "/resources/readiness"]) {
-        const response = await fetch(`${url}${endpoint}`, {
-          signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]),
-        });
-        if (!response.ok) throw new Error(`${endpoint} returned ${response.status}`);
-        if (response.headers.get("x-agent-run-id") !== runId) {
-          throw new Error(`${endpoint} returned the wrong runtime identity`);
-        }
-      }
+      await checkReadiness(url, runId, signal);
       return;
     } catch (error) {
       signal.throwIfAborted();
@@ -326,6 +385,18 @@ async function waitForRuntime({
   }
 
   throw new Error(`Server did not become ready within ${timeoutMs}ms: ${lastProblem}`);
+}
+
+async function checkReadiness(url: string, runId: string, signal: AbortSignal): Promise<void> {
+  for (const endpoint of ["/resources/healthcheck", "/resources/readiness"]) {
+    const response = await fetch(`${url}${endpoint}`, {
+      signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]),
+    });
+    if (!response.ok) throw new Error(`${endpoint} returned ${response.status}`);
+    if (response.headers.get("x-agent-run-id") !== runId) {
+      throw new Error(`${endpoint} returned the wrong runtime identity`);
+    }
+  }
 }
 
 async function stopRuntime(manifestPath: string, keepState: boolean): Promise<void> {
@@ -447,18 +518,22 @@ function printLogRange(logPath: string, offset: number, filters: LogFilters): nu
 
   for (const rawLine of next.split("\n")) {
     if (!rawLine) continue;
-    try {
-      const entry = JSON.parse(rawLine) as Record<string, unknown>;
-      if (matchesLogFilters(entry, rawLine, filters)) console.log(rawLine);
-    } catch {
-      if (filters.level || filters.requestId || filters.component) continue;
-      if (!filters.text || rawLine.toLocaleLowerCase().includes(filters.text.toLocaleLowerCase())) {
-        console.log(rawLine);
-      }
-    }
+    printLogLine(rawLine, filters);
   }
 
   return contents.length;
+}
+
+function printLogLine(rawLine: string, filters: LogFilters): void {
+  try {
+    const entry = JSON.parse(rawLine) as Record<string, unknown>;
+    if (matchesLogFilters(entry, rawLine, filters)) console.log(rawLine);
+  } catch {
+    if ([filters.level, filters.requestId, filters.component].some(Boolean)) return;
+    if (matchesLogText(rawLine, filters.text)) {
+      console.log(rawLine);
+    }
+  }
 }
 
 function parseArguments(argv: readonly string[]): { command: string; options: RuntimeOptions } {
@@ -474,42 +549,50 @@ function parseArguments(argv: readonly string[]): { command: string; options: Ru
       continue;
     }
     const value = rest[index + 1];
-    if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value.`);
-    options[name] = value;
+    options[name] = argumentValue(argument, value);
     index += 1;
   }
 
   return { command, options };
 }
 
+function argumentValue(argument: string, value: string | undefined): string {
+  if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value.`);
+  return value;
+}
+
 function textOption(value: string | boolean | undefined): string | undefined {
   return typeof value === "string" ? value : undefined;
+}
+
+async function startCommand(options: RuntimeOptions): Promise<void> {
+  const timeoutMs = Number(textOption(options.timeout_ms) ?? 120_000);
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
+    throw new Error("--timeout-ms must be a positive integer.");
+  const controller = new AbortController();
+  const cancel = (signal: NodeJS.Signals) => {
+    process.exitCode = signal === "SIGINT" ? 130 : 143;
+    controller.abort(new Error(`Runtime startup cancelled by ${signal}.`));
+  };
+  process.on("SIGINT", cancel);
+  process.on("SIGTERM", cancel);
+  try {
+    await startRuntime({
+      keepStateOnFailure: Boolean(options.keep_state_on_failure),
+      signal: controller.signal,
+      timeoutMs,
+    });
+  } finally {
+    process.off("SIGINT", cancel);
+    process.off("SIGTERM", cancel);
+  }
 }
 
 async function main(): Promise<void> {
   const { command, options } = parseArguments(process.argv.slice(2));
 
   if (command === "start") {
-    const timeoutMs = Number(textOption(options.timeout_ms) ?? 120_000);
-    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
-      throw new Error("--timeout-ms must be a positive integer.");
-    const controller = new AbortController();
-    const cancel = (signal: NodeJS.Signals) => {
-      process.exitCode = signal === "SIGINT" ? 130 : 143;
-      controller.abort(new Error(`Runtime startup cancelled by ${signal}.`));
-    };
-    process.on("SIGINT", cancel);
-    process.on("SIGTERM", cancel);
-    try {
-      await startRuntime({
-        keepStateOnFailure: Boolean(options.keep_state_on_failure),
-        signal: controller.signal,
-        timeoutMs,
-      });
-    } finally {
-      process.off("SIGINT", cancel);
-      process.off("SIGTERM", cancel);
-    }
+    await startCommand(options);
     return;
   }
   const manifestPath = textOption(options.manifest);
@@ -534,6 +617,7 @@ async function main(): Promise<void> {
 
 const entrypoint = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : null;
 if (entrypoint === import.meta.url) {
+  exitOnUnsupportedNode();
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode ??= 1;

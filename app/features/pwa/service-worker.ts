@@ -107,27 +107,8 @@ async function showPushNotification(event: PushEvent): Promise<void> {
   const raw = event.data.text();
   if (new TextEncoder().encode(raw).byteLength > MAX_PUSH_PAYLOAD_BYTES) return;
 
-  let payload: WebPushPayload;
-  try {
-    const value = JSON.parse(raw) as Partial<WebPushPayload>;
-    if (
-      value.v !== WEB_PUSH_PROTOCOL_VERSION ||
-      typeof value.title !== "string" ||
-      typeof value.body !== "string" ||
-      typeof value.url !== "string" ||
-      typeof value.tag !== "string" ||
-      value.title.length > 160 ||
-      value.body.length > 240 ||
-      value.tag.length > 80 ||
-      !isSafePushPath(value.url)
-    ) {
-      return;
-    }
-
-    payload = value as WebPushPayload;
-  } catch {
-    return;
-  }
+  const payload = parsePushPayload(raw);
+  if (!payload) return;
 
   await serviceWorker.registration.showNotification(payload.title, {
     body: payload.body,
@@ -148,6 +129,27 @@ function isSafePushPath(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function parsePushPayload(raw: string): WebPushPayload | null {
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!value || typeof value !== "object") return null;
+    if (!("v" in value) || value.v !== WEB_PUSH_PROTOCOL_VERSION) return null;
+    if (!("title" in value) || !isPushText(value.title, 160)) return null;
+    if (!("body" in value) || !isPushText(value.body, 240)) return null;
+    if (!("tag" in value) || !isPushText(value.tag, 80)) return null;
+    if (!("url" in value) || typeof value.url !== "string") return null;
+    if (!isSafePushPath(value.url)) return null;
+
+    return { v: value.v, title: value.title, body: value.body, tag: value.tag, url: value.url };
+  } catch {
+    return null;
+  }
+}
+
+function isPushText(value: unknown, maxLength: number): value is string {
+  return typeof value === "string" && value.length <= maxLength;
 }
 
 async function openPushTarget(data: unknown): Promise<void> {

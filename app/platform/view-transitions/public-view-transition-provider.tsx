@@ -1,24 +1,32 @@
-import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigation, useViewTransitionState } from "react-router";
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  ViewTransition,
+} from "react";
+import { useLocation, useNavigation } from "react-router";
 
 import {
-  clearDocumentViewTransitionKind,
-  setDocumentViewTransitionKind,
-} from "#app/platform/view-transitions/document-view-transition";
-import { isPublicPathname } from "#app/platform/view-transitions/view-transition-model";
+  isPublicPathname,
+  PUBLIC_SECTION_TRANSITION_CLASS,
+} from "#app/platform/view-transitions/view-transition-model";
 
 const INTENT_FALLBACK_TIMEOUT_MS = 30_000;
 
-type IntentBase = {
+type SectionIntent = {
   token: number;
   targetUrl: string;
   startedFromLocationKey: string;
 };
 
-type ActiveIntent = IntentBase & { kind: "section" };
-
 type PublicViewTransitionContextValue = {
-  suppressRouteMotion: boolean;
+  sectionKey: string;
+  sectionPending: boolean;
   beginSection: (targetUrl: string) => void;
 };
 
@@ -29,28 +37,28 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
   const navigation = useNavigation();
   const nextTokenRef = useRef(0);
   const navigationStartedForTokenRef = useRef<number | null>(null);
-  const routerTransitionSeenForTokenRef = useRef<number | null>(null);
-  const [intent, setIntent] = useState<ActiveIntent | null>(null);
-  const intentRef = useRef<ActiveIntent | null>(intent);
-  const transitionTarget = intent?.targetUrl ?? location.pathname;
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- moving to React's <ViewTransition> is tracked as TD-008
-  const routerTransitionActive = useViewTransitionState(transitionTarget);
+  const [intent, setIntent] = useState<SectionIntent | null>(null);
+  const intentRef = useRef<SectionIntent | null>(intent);
+  const [sectionKey, setSectionKey] = useState(location.key);
 
-  const replaceIntent = useCallback((nextIntent: ActiveIntent | null) => {
+  // A new key in the destination render makes the outgoing and incoming pages
+  // separate exit and enter snapshots. Only section navigations change it, so
+  // filters, pagination, and revalidation keep their route state.
+  if (intent && location.key !== intent.startedFromLocationKey && sectionKey !== location.key) {
+    setSectionKey(location.key);
+  }
+
+  const replaceIntent = useCallback((nextIntent: SectionIntent | null) => {
     intentRef.current = nextIntent;
     navigationStartedForTokenRef.current = null;
-    routerTransitionSeenForTokenRef.current = null;
     setIntent(nextIntent);
   }, []);
 
-  const beginIntent = useCallback(
+  const beginSection = useCallback(
     (targetUrl: string) => {
-      const token = ++nextTokenRef.current;
-      setDocumentViewTransitionKind("section");
       replaceIntent({
-        kind: "section",
         targetUrl,
-        token,
+        token: ++nextTokenRef.current,
         startedFromLocationKey: location.key,
       });
     },
@@ -59,98 +67,100 @@ export function PublicViewTransitionProvider({ children }: { children: React.Rea
 
   const finishIntent = useCallback(
     (token: number) => {
-      const current = intentRef.current;
-      if (current?.token !== token) return;
+      if (intentRef.current?.token !== token) return;
 
-      clearDocumentViewTransitionKind(current.kind);
       replaceIntent(null);
     },
     [replaceIntent],
   );
 
-  const beginSection = useCallback(
-    (targetUrl: string) => {
-      beginIntent(targetUrl);
-    },
-    [beginIntent],
-  );
-
+  // The intent must outlive the commit that renders the destination, because
+  // that commit reads the section class to start React's View Transition.
   useEffect(() => {
     if (!intent) return;
 
     if (navigation.state !== "idle") {
       navigationStartedForTokenRef.current = intent.token;
-    }
-
-    if (routerTransitionActive) {
-      routerTransitionSeenForTokenRef.current = intent.token;
       return;
     }
 
-    if (routerTransitionSeenForTokenRef.current === intent.token) {
-      finishIntent(intent.token);
-      return;
-    }
-
-    if (navigationStartedForTokenRef.current === intent.token && navigation.state === "idle") {
-      finishIntent(intent.token);
-      return;
-    }
-
-    if (location.key !== intent.startedFromLocationKey && navigation.state === "idle") {
+    if (
+      navigationStartedForTokenRef.current === intent.token ||
+      location.key !== intent.startedFromLocationKey
+    ) {
       finishIntent(intent.token);
     }
-  }, [finishIntent, intent, location.key, navigation.state, routerTransitionActive]);
+  }, [finishIntent, intent, location.key, navigation.state]);
 
   useEffect(() => {
     if (!intent) return;
 
     // A blocked navigation may never change either Router signal. Keep the
-    // document marker bounded so it cannot affect later interactions forever.
+    // intent bounded so it cannot animate a later, unrelated update.
     const token = intent.token;
     const timeout = setTimeout(() => finishIntent(token), INTENT_FALLBACK_TIMEOUT_MS);
 
     return () => clearTimeout(timeout);
   }, [finishIntent, intent]);
 
+  const handlePopState = useEffectEvent(() => {
+    const targetUrl = `${globalThis.location.pathname}${globalThis.location.search}${globalThis.location.hash}`;
+    if (intentRef.current?.targetUrl === targetUrl) return;
+
+    if (
+      location.pathname !== globalThis.location.pathname &&
+      isPublicPathname(location.pathname) &&
+      isPublicPathname(globalThis.location.pathname)
+    ) {
+      beginSection(targetUrl);
+    }
+  });
+
   useEffect(() => {
-    const handlePopState = () => {
-      const targetUrl = `${globalThis.location.pathname}${globalThis.location.search}${globalThis.location.hash}`;
-      if (intentRef.current?.targetUrl === targetUrl) return;
+    const listener = () => handlePopState();
 
-      if (
-        location.pathname !== globalThis.location.pathname &&
-        isPublicPathname(location.pathname) &&
-        isPublicPathname(globalThis.location.pathname)
-      ) {
-        beginIntent(targetUrl);
-      }
-    };
+    // Capture runs before React Router's bubble listener so the section intent
+    // is rendered before Router commits the destination. The listener stays
+    // registered for the provider's lifetime and reads the committed location
+    // when it runs. Registering it again for each location let a second Back
+    // arrive while the first one was committing, and that Back did not animate.
+    addEventListener("popstate", listener, { capture: true });
 
-    // Capture runs before React Router's bubble listener so the section marker
-    // is set before Router captures the outgoing snapshot.
-    addEventListener("popstate", handlePopState, { capture: true });
-
-    return () => removeEventListener("popstate", handlePopState, true);
-  }, [beginIntent, location]);
-
-  useEffect(
-    () => () => {
-      const current = intentRef.current;
-      if (current) clearDocumentViewTransitionKind(current.kind);
-    },
-    [],
-  );
+    return () => removeEventListener("popstate", listener, true);
+  }, []);
 
   const value = useMemo<PublicViewTransitionContextValue>(
     () => ({
-      suppressRouteMotion: intent !== null,
+      sectionKey,
+      sectionPending: intent !== null,
       beginSection,
     }),
-    [beginSection, intent],
+    [beginSection, intent, sectionKey],
   );
 
   return <PublicViewTransitionContext value={value}>{children}</PublicViewTransitionContext>;
+}
+
+/**
+   Animates public section changes as an exit and an enter, so each page keeps
+   its own on-screen position instead of morphing between scroll offsets.
+   Updates never animate, because the Router's pending-navigation commit is an
+   update of this boundary too.
+ */
+export function PublicSectionViewTransition({ children }: { children: React.ReactNode }) {
+  const transition = use(PublicViewTransitionContext);
+  const sectionClass = transition?.sectionPending ? PUBLIC_SECTION_TRANSITION_CLASS : "none";
+
+  return (
+    <ViewTransition
+      key={transition?.sectionKey}
+      default="none"
+      enter={sectionClass}
+      exit={sectionClass}
+    >
+      {children}
+    </ViewTransition>
+  );
 }
 
 export function useOptionalPublicViewTransition() {
@@ -160,5 +170,5 @@ export function useOptionalPublicViewTransition() {
 export function useSuppressPublicRouteMotion(): boolean {
   const transition = useOptionalPublicViewTransition();
 
-  return transition?.suppressRouteMotion ?? false;
+  return transition?.sectionPending ?? false;
 }

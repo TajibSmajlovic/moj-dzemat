@@ -7,6 +7,7 @@ import {
   getSelectProps,
   useForm,
   type SubmissionResult,
+  type FieldMetadata,
 } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod/v4";
 import { Bell, Eye, ImagePlus, Pin, Play, Plus, Star, Trash2 } from "lucide-react";
@@ -84,25 +85,10 @@ export function PostForm({
   notificationDecisionRecorded = false,
 }: PostFormProps) {
   const isEdit = Boolean(post);
-  const [form, fields] = useForm({
-    id: "post-form",
-    lastResult,
-    defaultValue: post
-      ? { title: post.title, slug: post.slug, type: post.type, body: post.body }
-      : undefined,
-    shouldValidate: "onBlur",
-    shouldRevalidate: "onInput",
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: PostFormSchema });
-    },
-  });
+  const [form, fields] = usePostForm(post, lastResult);
 
   const existingCount = post?.images.length ?? 0;
   const remainingSlots = Math.max(0, MAX_IMAGES_PER_POST - existingCount);
-
-  const [bodyHtml, setBodyHtml] = useState(post?.body ?? "");
-  const notificationDisabled =
-    !webPushEnabled || post?.status === "published" || notificationDecisionRecorded;
 
   return (
     <Form
@@ -121,123 +107,21 @@ export function PostForm({
           </Alert>
         ) : null}
 
-        <Field
-          label="Naslov"
-          errors={fields.title.errors}
-          inputProps={{
-            ...getInputProps(fields.title, { type: "text" }),
-            autoComplete: "off",
-            maxLength: 200,
-            placeholder: "Unesite naslov…",
-          }}
+        <PostDetailsFields fields={fields} />
+
+        <PostFlags
+          post={post}
+          webPushEnabled={webPushEnabled}
+          notificationDecisionRecorded={notificationDecisionRecorded}
         />
 
-        <Field
-          label="Dio URL-a"
-          hint="Pojavljuje se u adresi stranice, npr. /objave/hutba-petak."
-          errors={fields.slug.errors}
-          inputProps={{
-            ...getInputProps(fields.slug, { type: "text" }),
-            autoComplete: "off",
-            maxLength: 80,
-          }}
-        />
-
-        <SelectField
-          label="Vrsta"
-          errors={fields.type.errors}
-          selectProps={getSelectProps(fields.type)}
-          placeholder="Odaberite vrstu objave"
-        >
-          {POST_TYPES.map((value) => (
-            <option key={value} value={value}>
-              {POST_TYPE_LABEL[value]}
-            </option>
-          ))}
-        </SelectField>
-
-        <div className="grid items-start gap-x-6 gap-y-4 pt-1 sm:grid-cols-2 xl:grid-cols-4">
-          <FlagToggle
-            id="post-publish"
-            name="publish"
-            defaultChecked={post?.status === "published"}
-            icon={<Eye className="text-primary h-4 w-4" aria-hidden="true" />}
-            label="Objavi odmah"
-          />
-          <div className="min-w-0 space-y-1">
-            {notificationDisabled && post?.notifyOnPublish ? (
-              <input type="hidden" name="notifyOnPublish" value="on" />
-            ) : null}
-
-            <FlagToggle
-              id="post-notify-on-publish"
-              name={notificationDisabled ? undefined : "notifyOnPublish"}
-              defaultChecked={post?.notifyOnPublish ?? false}
-              disabled={notificationDisabled}
-              describedBy="post-notify-on-publish-help"
-              icon={<Bell className="text-primary h-4 w-4" aria-hidden="true" />}
-              label="Pošalji obavijest"
-            />
-
-            <p id="post-notify-on-publish-help" className="text-muted-foreground pl-12 text-xs">
-              {webPushEnabled
-                ? "Šalje se samo pri prvoj objavi."
-                : "Slanje obavijesti nije uključeno."}
-            </p>
-          </div>
-          <FlagToggle
-            id="post-featured"
-            name="featured"
-            defaultChecked={post?.featured ?? false}
-            icon={<Star className="text-secondary h-4 w-4" aria-hidden="true" />}
-            label="Istaknuto"
-          />
-          <FlagToggle
-            id="post-pinned"
-            name="pinned"
-            defaultChecked={post?.pinned ?? false}
-            icon={<Pin className="text-primary h-4 w-4" aria-hidden="true" />}
-            label="Na vrhu"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={fields.body.id}>Tekst</Label>
-          <input type="hidden" name={fields.body.name} value={bodyHtml} />
-          <RichEditor
-            id={fields.body.id}
-            label="Tekst"
-            value={bodyHtml}
-            onChange={setBodyHtml}
-            placeholder="Počnite pisati tekst objave…"
-          />
-          {fields.body.errors?.length ? (
-            <p className="text-destructive text-xs">{fields.body.errors[0]}</p>
-          ) : null}
-        </div>
+        <PostBodyField field={fields.body} initialBody={post?.body ?? ""} />
 
         <ImagesSection post={post} remainingSlots={remainingSlots} />
         <VideosSection videos={post?.videos} />
       </div>
 
-      <FormActions>
-        {cancelTo ? (
-          <Button type="button" variant="ghost" asChild>
-            <Link to={cancelTo}>Odustani</Link>
-          </Button>
-        ) : null}
-        {isEdit ? (
-          <Button type="button" variant="outline" className="gap-2" asChild>
-            <Link to={adminPostPreviewHref(post!.id)}>
-              <Eye className="h-4 w-4" aria-hidden="true" />
-              Pregled
-            </Link>
-          </Button>
-        ) : null}
-        <Button type="submit" disabled={submitting}>
-          {submitting ? "Spremanje…" : isEdit ? "Spremi izmjene" : "Sačuvaj"}
-        </Button>
-      </FormActions>
+      <PostFormActions post={post} cancelTo={cancelTo} submitting={submitting} />
     </Form>
   );
 }
@@ -251,6 +135,180 @@ type FlagToggleProps = {
   disabled?: boolean;
   describedBy?: string;
 };
+
+function usePostForm(post: PostFormProps["post"], lastResult: PostFormProps["lastResult"]) {
+  return useForm({
+    id: "post-form",
+    lastResult,
+    defaultValue: post
+      ? { title: post.title, slug: post.slug, type: post.type, body: post.body }
+      : undefined,
+    shouldValidate: "onBlur",
+    shouldRevalidate: "onInput",
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: PostFormSchema });
+    },
+  });
+}
+
+function PostDetailsFields({ fields }: { fields: ReturnType<typeof usePostForm>[1] }) {
+  return (
+    <>
+      <Field
+        label="Naslov"
+        errors={fields.title.errors}
+        inputProps={{
+          ...getInputProps(fields.title, { type: "text" }),
+          autoComplete: "off",
+          maxLength: 200,
+          placeholder: "Unesite naslov…",
+        }}
+      />
+
+      <Field
+        label="Dio URL-a"
+        hint="Pojavljuje se u adresi stranice, npr. /objave/hutba-petak."
+        errors={fields.slug.errors}
+        inputProps={{
+          ...getInputProps(fields.slug, { type: "text" }),
+          autoComplete: "off",
+          maxLength: 80,
+        }}
+      />
+
+      <SelectField
+        label="Vrsta"
+        errors={fields.type.errors}
+        selectProps={getSelectProps(fields.type)}
+        placeholder="Odaberite vrstu objave"
+      >
+        {POST_TYPES.map((value) => (
+          <option key={value} value={value}>
+            {POST_TYPE_LABEL[value]}
+          </option>
+        ))}
+      </SelectField>
+    </>
+  );
+}
+
+function PostFlags({
+  post,
+  webPushEnabled,
+  notificationDecisionRecorded,
+}: Pick<PostFormProps, "post" | "webPushEnabled" | "notificationDecisionRecorded">) {
+  return (
+    <div className="grid items-start gap-x-6 gap-y-4 pt-1 sm:grid-cols-2 xl:grid-cols-4">
+      <FlagToggle
+        id="post-publish"
+        name="publish"
+        defaultChecked={post?.status === "published"}
+        icon={<Eye className="text-primary h-4 w-4" aria-hidden="true" />}
+        label="Objavi odmah"
+      />
+      <PostNotificationFlag
+        post={post}
+        webPushEnabled={webPushEnabled}
+        notificationDecisionRecorded={notificationDecisionRecorded}
+      />
+      <FlagToggle
+        id="post-featured"
+        name="featured"
+        defaultChecked={post?.featured ?? false}
+        icon={<Star className="text-secondary h-4 w-4" aria-hidden="true" />}
+        label="Istaknuto"
+      />
+      <FlagToggle
+        id="post-pinned"
+        name="pinned"
+        defaultChecked={post?.pinned ?? false}
+        icon={<Pin className="text-primary h-4 w-4" aria-hidden="true" />}
+        label="Na vrhu"
+      />
+    </div>
+  );
+}
+
+function PostNotificationFlag({
+  post,
+  webPushEnabled,
+  notificationDecisionRecorded,
+}: Pick<PostFormProps, "post" | "webPushEnabled" | "notificationDecisionRecorded">) {
+  const notificationDisabled =
+    !webPushEnabled || post?.status === "published" || notificationDecisionRecorded;
+  return (
+    <div className="min-w-0 space-y-1">
+      {notificationDisabled && post?.notifyOnPublish ? (
+        <input type="hidden" name="notifyOnPublish" value="on" />
+      ) : null}
+
+      <FlagToggle
+        id="post-notify-on-publish"
+        name={notificationDisabled ? undefined : "notifyOnPublish"}
+        defaultChecked={post?.notifyOnPublish ?? false}
+        disabled={notificationDisabled}
+        describedBy="post-notify-on-publish-help"
+        icon={<Bell className="text-primary h-4 w-4" aria-hidden="true" />}
+        label="Pošalji obavijest"
+      />
+
+      <p id="post-notify-on-publish-help" className="text-muted-foreground pl-12 text-xs">
+        {webPushEnabled ? "Šalje se samo pri prvoj objavi." : "Slanje obavijesti nije uključeno."}
+      </p>
+    </div>
+  );
+}
+
+function PostBodyField({
+  field,
+  initialBody,
+}: {
+  field: FieldMetadata<string>;
+  initialBody: string;
+}) {
+  const [bodyHtml, setBodyHtml] = useState(initialBody);
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={field.id}>Tekst</Label>
+      <input type="hidden" name={field.name} value={bodyHtml} />
+      <RichEditor
+        id={field.id}
+        label="Tekst"
+        value={bodyHtml}
+        onChange={setBodyHtml}
+        placeholder="Počnite pisati tekst objave…"
+      />
+      {field.errors?.length ? <p className="text-destructive text-xs">{field.errors[0]}</p> : null}
+    </div>
+  );
+}
+
+function PostFormActions({
+  post,
+  cancelTo,
+  submitting,
+}: Pick<PostFormProps, "post" | "cancelTo" | "submitting">) {
+  return (
+    <FormActions>
+      {cancelTo ? (
+        <Button type="button" variant="ghost" asChild>
+          <Link to={cancelTo}>Odustani</Link>
+        </Button>
+      ) : null}
+      {post ? (
+        <Button type="button" variant="outline" className="gap-2" asChild>
+          <Link to={adminPostPreviewHref(post.id)}>
+            <Eye className="h-4 w-4" aria-hidden="true" />
+            Pregled
+          </Link>
+        </Button>
+      ) : null}
+      <Button type="submit" disabled={submitting}>
+        {submitting ? "Spremanje…" : post ? "Spremi izmjene" : "Sačuvaj"}
+      </Button>
+    </FormActions>
+  );
+}
 
 function FlagToggle({
   id,
@@ -351,57 +409,7 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
             onChange={(event) => handleFiles(event.currentTarget.files)}
             className="file:bg-muted file:text-foreground hover:file:bg-accent block w-full cursor-pointer text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm file:font-medium"
           />
-          <p className="text-muted-foreground flex items-center gap-1 text-xs">
-            <ImagePlus className="h-3.5 w-3.5" aria-hidden="true" />
-            {pending.length === 0
-              ? `Možete dodati do ${remainingSlots} ${remainingSlots === 1 ? "sliku" : "slike"} (JPEG, PNG, WebP).`
-              : `${pending.length} ${pending.length === 1 ? "slika odabrana" : "slike odabrane"}.`}
-          </p>
-
-          {pending.length > 0 ? (
-            <div className="space-y-3 pt-1">
-              <div className="bg-muted/50 border-border flex items-center justify-between rounded-xl border border-dashed px-3 py-2">
-                <p className="text-foreground text-sm font-medium">Pregled prije slanja</p>
-                <span className="text-muted-foreground text-xs">
-                  {pending.length}/{remainingSlots} za slanje
-                </span>
-              </div>
-
-              <ul className="grid gap-3 sm:grid-cols-3">
-                {pending.map((image, index) => (
-                  <li
-                    key={`${image.file.name}-${image.file.lastModified}-${image.file.size}`}
-                    className="border-border bg-card overflow-hidden rounded-xl border shadow-sm"
-                  >
-                    <div className="bg-muted relative aspect-video overflow-hidden">
-                      <img
-                        src={image.previewUrl}
-                        alt={`Pregled slike ${image.file.name}`}
-                        className="h-full w-full object-cover"
-                      />
-                      <div className="bg-primary/90 text-primary-foreground absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-medium">
-                        Nova slika
-                      </div>
-                    </div>
-                    <div className="border-border space-y-1 border-t px-3 py-2">
-                      <p className="text-foreground truncate text-sm font-medium">
-                        {image.file.name}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {formatFileSize(image.file.size)}
-                      </p>
-                      <div className="space-y-1 pt-1 text-left">
-                        <Label htmlFor={`new-image-alt-${index}`} className="text-xs">
-                          Opis slike
-                        </Label>
-                        <ImageAltTextarea id={`new-image-alt-${index}`} name="newImageAltText" />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <PendingImages pending={pending} remainingSlots={remainingSlots} />
         </div>
       ) : (
         <p className="text-muted-foreground text-xs">
@@ -409,6 +417,66 @@ function ImagesSection({ post, remainingSlots }: ImagesSectionProps) {
         </p>
       )}
     </section>
+  );
+}
+
+function PendingImages({
+  pending,
+  remainingSlots,
+}: {
+  pending: PendingImagePreview[];
+  remainingSlots: number;
+}) {
+  return (
+    <>
+      <p className="text-muted-foreground flex items-center gap-1 text-xs">
+        <ImagePlus className="h-3.5 w-3.5" aria-hidden="true" />
+        {pending.length === 0
+          ? `Možete dodati do ${remainingSlots} ${remainingSlots === 1 ? "sliku" : "slike"} (JPEG, PNG, WebP).`
+          : `${pending.length} ${pending.length === 1 ? "slika odabrana" : "slike odabrane"}.`}
+      </p>
+
+      {pending.length > 0 ? (
+        <div className="space-y-3 pt-1">
+          <div className="bg-muted/50 border-border flex items-center justify-between rounded-xl border border-dashed px-3 py-2">
+            <p className="text-foreground text-sm font-medium">Pregled prije slanja</p>
+            <span className="text-muted-foreground text-xs">
+              {pending.length}/{remainingSlots} za slanje
+            </span>
+          </div>
+
+          <ul className="grid gap-3 sm:grid-cols-3">
+            {pending.map((image, index) => (
+              <li
+                key={`${image.file.name}-${image.file.lastModified}-${image.file.size}`}
+                className="border-border bg-card overflow-hidden rounded-xl border shadow-sm"
+              >
+                <div className="bg-muted relative aspect-video overflow-hidden">
+                  <img
+                    src={image.previewUrl}
+                    alt={`Pregled slike ${image.file.name}`}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="bg-primary/90 text-primary-foreground absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-medium">
+                    Nova slika
+                  </div>
+                </div>
+                <div className="border-border space-y-1 border-t px-3 py-2">
+                  <p className="text-foreground truncate text-sm font-medium">{image.file.name}</p>
+                  <p className="text-muted-foreground text-xs">{formatFileSize(image.file.size)}</p>
+                  <div className="space-y-1 pt-1 text-left">
+                    <Label htmlFor={`new-image-alt-${index}`} className="text-xs">
+                      Opis slike
+                    </Label>
+                    <ImageAltTextarea id={`new-image-alt-${index}`} name="newImageAltText" />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -449,64 +517,15 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
       </header>
 
       <ul className="space-y-3">
-        {rows.map(({ key, url }, index) => {
-          const trimmed = url.trim();
-          const parsed = trimmed ? parseYouTubeUrl(trimmed) : null;
-          const invalid = Boolean(trimmed) && !parsed;
-          const errorId = invalid ? `video-url-${index}-error` : undefined;
-
-          return (
-            <li key={key} className="space-y-2">
-              <div className="flex items-start gap-2">
-                <Input
-                  name="videoUrl"
-                  type="url"
-                  inputMode="url"
-                  autoComplete="off"
-                  value={url}
-                  onChange={(event) => updateUrl(key, event.currentTarget.value)}
-                  aria-label={`YouTube link ${index + 1}`}
-                  aria-describedby={errorId}
-                  aria-invalid={invalid || undefined}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Ukloni video ${index + 1}`}
-                  onClick={() => removeUrl(key)}
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </div>
-
-              {invalid ? (
-                <p id={errorId} className="text-destructive text-xs">
-                  Unesite ispravan YouTube link.
-                </p>
-              ) : null}
-
-              {parsed ? (
-                <div className="bg-muted relative aspect-video w-full max-w-xs overflow-hidden rounded-xl">
-                  <img
-                    src={youtubeThumbnailUrl(parsed.videoId)}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="bg-background/90 text-foreground absolute inset-0 m-auto inline-flex h-12 w-12 items-center justify-center rounded-full shadow-md"
-                  >
-                    <Play className="h-5 w-5 translate-x-0.5 fill-current" />
-                  </span>
-                </div>
-              ) : null}
-            </li>
-          );
-        })}
+        {rows.map(({ key, url }, index) => (
+          <VideoRow
+            key={key}
+            url={url}
+            index={index}
+            onChange={(value) => updateUrl(key, value)}
+            onRemove={() => removeUrl(key)}
+          />
+        ))}
       </ul>
 
       {canAddMore ? (
@@ -524,6 +543,75 @@ function VideosSection({ videos }: { videos?: PostFormVideo[] }) {
         Podržani su YouTube linkovi, npr. https://www.youtube.com/watch?v=...
       </p>
     </section>
+  );
+}
+
+function VideoRow({
+  url,
+  index,
+  onChange,
+  onRemove,
+}: {
+  url: string;
+  index: number;
+  onChange: (value: string) => void;
+  onRemove: () => void;
+}) {
+  const trimmed = url.trim();
+  const parsed = trimmed ? parseYouTubeUrl(trimmed) : null;
+  const invalid = Boolean(trimmed) && !parsed;
+  const errorId = invalid ? `video-url-${index}-error` : undefined;
+
+  return (
+    <li className="space-y-2">
+      <div className="flex items-start gap-2">
+        <Input
+          name="videoUrl"
+          type="url"
+          inputMode="url"
+          autoComplete="off"
+          value={url}
+          onChange={(event) => onChange(event.currentTarget.value)}
+          aria-label={`YouTube link ${index + 1}`}
+          aria-describedby={errorId}
+          aria-invalid={invalid || undefined}
+          placeholder="https://www.youtube.com/watch?v=..."
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Ukloni video ${index + 1}`}
+          onClick={onRemove}
+          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      </div>
+
+      {invalid ? (
+        <p id={errorId} className="text-destructive text-xs">
+          Unesite ispravan YouTube link.
+        </p>
+      ) : null}
+
+      {parsed ? (
+        <div className="bg-muted relative aspect-video w-full max-w-xs overflow-hidden rounded-xl">
+          <img
+            src={youtubeThumbnailUrl(parsed.videoId)}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+          <span
+            aria-hidden="true"
+            className="bg-background/90 text-foreground absolute inset-0 m-auto inline-flex h-12 w-12 items-center justify-center rounded-full shadow-md"
+          >
+            <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+          </span>
+        </div>
+      ) : null}
+    </li>
   );
 }
 

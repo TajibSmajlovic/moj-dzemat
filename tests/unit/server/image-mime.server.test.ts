@@ -14,6 +14,21 @@ describe("image-mime.server", () => {
       expect(sniffImageMime(WEBP_BYTES)).toBe("image/webp");
     });
 
+    it("rejects every truncated supported signature", () => {
+      for (const bytes of [PNG_BYTES, JPEG_BYTES.subarray(0, 3), WEBP_BYTES]) {
+        expect(sniffImageMime(bytes)).toMatch(/^image\/(jpeg|png|webp)$/);
+        for (let length = 0; length < bytes.length; length += 1) {
+          expect(sniffImageMime(bytes.subarray(0, length))).toBeNull();
+        }
+      }
+    });
+
+    it("checks both WebP markers while ignoring the size bytes between them", () => {
+      expect(sniffImageMime(Buffer.from("RIFF1234WEBP", "ascii"))).toBe("image/webp");
+      expect(sniffImageMime(Buffer.from("RIFF1234WAVE", "ascii"))).toBeNull();
+      expect(sniffImageMime(Buffer.from("RIFX1234WEBP", "ascii"))).toBeNull();
+    });
+
     it("returns null for unsupported or incomplete byte sequences", () => {
       expect(sniffImageMime(Buffer.from("GIF89a", "ascii"))).toBeNull();
       expect(sniffImageMime(Buffer.from("BM", "ascii"))).toBeNull();

@@ -32,43 +32,36 @@ function normalizeClientMime(raw: string): string {
   return t;
 }
 
+const IMAGE_SIGNATURES: readonly {
+  mime: AllowedImageMime;
+  parts: readonly { offset: number; bytes: Buffer }[];
+}[] = [
+  { mime: "image/jpeg", parts: [{ offset: 0, bytes: Buffer.from([0xff, 0xd8, 0xff]) }] },
+  {
+    mime: "image/png",
+    parts: [{ offset: 0, bytes: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) }],
+  },
+  {
+    mime: "image/webp",
+    parts: [
+      { offset: 0, bytes: Buffer.from("RIFF", "ascii") },
+      { offset: 8, bytes: Buffer.from("WEBP", "ascii") },
+    ],
+  },
+];
+
 /**
    When the browser sends an empty or generic MIME (common with some
    drag/drop paths), infer JPEG / PNG / WebP from magic bytes so sharp
    still accepts the upload.
  */
 export function sniffImageMime(buffer: Buffer): AllowedImageMime | null {
-  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-    return "image/jpeg";
-  }
-  if (
-    buffer.length >= 8 &&
-    buffer[0] === 0x89 &&
-    buffer[1] === 0x50 &&
-    buffer[2] === 0x4e &&
-    buffer[3] === 0x47 &&
-    buffer[4] === 0x0d &&
-    buffer[5] === 0x0a &&
-    buffer[6] === 0x1a &&
-    buffer[7] === 0x0a
-  ) {
-    return "image/png";
-  }
-  if (
-    buffer.length >= 12 &&
-    buffer[0] === 0x52 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46 &&
-    buffer[3] === 0x46 &&
-    buffer[8] === 0x57 &&
-    buffer[9] === 0x45 &&
-    buffer[10] === 0x42 &&
-    buffer[11] === 0x50
-  ) {
-    return "image/webp";
-  }
-
-  return null;
+  const signature = IMAGE_SIGNATURES.find(({ parts }) =>
+    parts.every(({ offset, bytes }) =>
+      buffer.subarray(offset, offset + bytes.length).equals(bytes),
+    ),
+  );
+  return signature?.mime ?? null;
 }
 
 /**

@@ -20,55 +20,25 @@ export function WebPushPrompt() {
   const eligibleRoute = pathname === "/" || /^\/objave\/[^/]+$/.test(pathname);
   const eligibleState = state === "ready" || state === "install-required";
 
-  useEffect(() => {
-    if (
-      !eligibleRoute ||
-      !eligibleState ||
-      wasPromptDismissed() ||
-      sessionStorage.getItem(SESSION_KEY)
-    ) {
-      return;
-    }
-    const markInteraction = () => setInteracted(true);
-    const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
-    for (const eventName of events)
-      addEventListener(eventName, markInteraction, { once: true, passive: true });
-    return () => {
-      for (const eventName of events) removeEventListener(eventName, markInteraction);
-    };
-  }, [eligibleRoute, eligibleState]);
+  const eligible = eligibleRoute && eligibleState;
 
   useEffect(() => {
-    if (!eligibleRoute || !eligibleState || !interacted || visible) return;
+    if (!eligible || !canShowPrompt()) return;
+    return watchInteraction(() => setInteracted(true));
+  }, [eligible]);
 
-    let remainingMs = ENGAGEMENT_MS;
-    let startedAt = performance.now();
-    let timeout: ReturnType<typeof setTimeout> | undefined;
+  useEffect(() => {
+    if (!eligible || !interacted || visible) return;
 
     const show = () => {
-      if (wasPromptDismissed() || sessionStorage.getItem(SESSION_KEY)) return;
+      if (!canShowPrompt()) return;
       sessionStorage.setItem(SESSION_KEY, "1");
       setVisible(true);
     };
-    const schedule = () => {
-      if (timeout) clearTimeout(timeout);
-      if (document.visibilityState !== "visible") {
-        remainingMs = Math.max(0, remainingMs - (performance.now() - startedAt));
-        return;
-      }
-      startedAt = performance.now();
-      timeout = setTimeout(show, remainingMs);
-    };
+    return watchEngagement(show);
+  }, [eligible, interacted, visible]);
 
-    schedule();
-    document.addEventListener("visibilitychange", schedule);
-    return () => {
-      if (timeout) clearTimeout(timeout);
-      document.removeEventListener("visibilitychange", schedule);
-    };
-  }, [eligibleRoute, eligibleState, interacted, visible]);
-
-  if (!visible || !eligibleRoute || !eligibleState) return null;
+  if (!visible || !eligible) return null;
 
   const dismiss = () => {
     localStorage.setItem(DISMISSAL_KEY, String(Date.now() + DISMISSAL_MS));
@@ -111,4 +81,41 @@ function wasPromptDismissed(): boolean {
     return false;
   }
   return true;
+}
+
+function canShowPrompt(): boolean {
+  return !wasPromptDismissed() && !sessionStorage.getItem(SESSION_KEY);
+}
+
+function watchInteraction(markInteraction: () => void): () => void {
+  const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+  for (const eventName of events)
+    addEventListener(eventName, markInteraction, { once: true, passive: true });
+  return () => {
+    for (const eventName of events) removeEventListener(eventName, markInteraction);
+  };
+}
+
+function watchEngagement(show: () => void): () => void {
+  let remainingMs = ENGAGEMENT_MS;
+  let startedAt = performance.now();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  const schedule = () => {
+    if (timeout) clearTimeout(timeout);
+    if (document.visibilityState !== "visible") {
+      remainingMs = Math.max(0, remainingMs - (performance.now() - startedAt));
+      return;
+    }
+    startedAt = performance.now();
+    timeout = setTimeout(show, remainingMs);
+  };
+
+  schedule();
+  document.addEventListener("visibilitychange", schedule);
+
+  return () => {
+    if (timeout) clearTimeout(timeout);
+    document.removeEventListener("visibilitychange", schedule);
+  };
 }

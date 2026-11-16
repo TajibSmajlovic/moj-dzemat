@@ -1,4 +1,7 @@
+import { exitOnUnsupportedNode } from "./checks/node-version";
 import { runTasks } from "./checks/runner";
+
+exitOnUnsupportedNode();
 
 const mode = process.argv[2];
 const npm = (name: string, ...args: string[]) => ({

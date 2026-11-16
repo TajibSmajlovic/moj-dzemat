@@ -62,6 +62,53 @@ describe("agent runtime ownership", () => {
   });
 });
 
+function writeManifest(overrides: Record<string, unknown> = {}): string {
+  const statePath = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-agent-manifest-"));
+  temporaryPaths.push(statePath);
+  const manifestPath = path.join(statePath, "manifest.json");
+  fs.writeFileSync(
+    manifestPath,
+    JSON.stringify({
+      run_id: "agent-test",
+      url: "http://127.0.0.1:12345",
+      pid: 12_345,
+      state_path: statePath,
+      log_path: path.join(statePath, "app.ndjson"),
+      process_log_path: path.join(statePath, "process.log"),
+      started_at: "2026-11-16T00:00:00.000Z",
+      ...overrides,
+    }),
+  );
+  return manifestPath;
+}
+
+describe("runtime manifest validation", () => {
+  it("reads a complete owned manifest", () => {
+    const result = runtime.loadOwnedManifest(writeManifest());
+    expect(result.manifest).toMatchObject({
+      run_id: "agent-test",
+      url: "http://127.0.0.1:12345",
+      pid: 12_345,
+      started_at: "2026-11-16T00:00:00.000Z",
+    });
+  });
+
+  it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, "12345", null])(
+    "rejects an invalid pid: %s",
+    (pid) => {
+      expect(() => runtime.loadOwnedManifest(writeManifest({ pid }))).toThrow("invalid pid");
+    },
+  );
+
+  it.each(["log_path", "process_log_path"])("rejects %s outside the runtime directory", (field) => {
+    expect(() =>
+      runtime.loadOwnedManifest(
+        writeManifest({ [field]: path.join(os.tmpdir(), "outside.ndjson") }),
+      ),
+    ).toThrow("a log path is outside state_path");
+  });
+});
+
 describe("agent log filters", () => {
   const entry = { level: 50, requestId: "request-1", component: "web", msg: "failed" };
   const raw = JSON.stringify(entry);

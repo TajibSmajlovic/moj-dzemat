@@ -3,7 +3,10 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
+import { exitOnUnsupportedNode } from "./checks/node-version";
 import { runTasks } from "./checks/runner";
+
+exitOnUnsupportedNode();
 
 const projectRoot = path.resolve(import.meta.dirname, "..");
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "moj-dzemat-e2e-tests-"));

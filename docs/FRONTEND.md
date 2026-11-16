@@ -47,7 +47,9 @@ domain-specific.
 
 Public section navigation and theme changes use the capabilities in
 `app/platform/view-transitions/`. Features provide data or links to the platform
-API and do not reach into another feature to coordinate a transition.
+API and do not reach into another feature to coordinate a transition. Section
+navigation animates through React's `<ViewTransition>`; React Router's
+deprecated `viewTransition` options and `useViewTransitionState()` are not used.
 
 All animation must respect the OS reduced-motion preference. The global motion
 policy is configured in `app/root.tsx`, while CSS fallbacks and transition

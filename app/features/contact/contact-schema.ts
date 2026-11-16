@@ -60,14 +60,8 @@ function optionalPhone(tooLongMessage: string, invalidMessage: string) {
 }
 
 function isValidIban(value: string): boolean {
-  if (
-    value.length < 15 ||
-    value.length > 34 ||
-    !/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(value) ||
-    (value.startsWith("BA") && value.length !== 20)
-  ) {
-    return false;
-  }
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(value)) return false;
+  if (value.startsWith("BA") && value.length !== 20) return false;
 
   const rearranged = `${value.slice(4)}${value.slice(0, 4)}`;
   let remainder = 0;

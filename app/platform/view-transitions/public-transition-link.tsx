@@ -23,7 +23,6 @@ export function PublicTransitionLink({
   const currentUrl = createPath(location);
   const targetUrl = createPath(resolved);
   const alreadyAtDestination = currentUrl === targetUrl;
-  const transitionEnabled = transition !== null && !alreadyAtDestination;
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);
@@ -34,17 +33,7 @@ export function PublicTransitionLink({
     transition?.beginSection(targetUrl);
   };
 
-  return (
-    <Link
-      {...props}
-      to={to}
-      relative={relative}
-      target={target}
-      onClick={handleClick}
-      // eslint-disable-next-line @typescript-eslint/no-deprecated -- moving to React's <ViewTransition> is tracked as TD-008
-      viewTransition={transitionEnabled}
-    />
-  );
+  return <Link {...props} to={to} relative={relative} target={target} onClick={handleClick} />;
 }
 
 function shouldHandleTransitionClick(

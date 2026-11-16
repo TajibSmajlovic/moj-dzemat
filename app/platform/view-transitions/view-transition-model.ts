@@ -1,8 +1,5 @@
-export const VIEW_TRANSITION_KIND_ATTRIBUTE = "data-view-transition-kind";
-
-export const PUBLIC_VIEW_TRANSITION_KINDS = ["section", "theme"] as const;
-
-export type PublicViewTransitionKind = (typeof PUBLIC_VIEW_TRANSITION_KINDS)[number];
+/** `view-transition-class` that React assigns to public section snapshots. */
+export const PUBLIC_SECTION_TRANSITION_CLASS = "public-section";
 
 export function hasNavigationStateFlag(state: unknown, key: string): boolean {
   return isRecord(state) && state[key] === true;
